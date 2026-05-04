@@ -1054,27 +1054,8 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
       <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
     </div>
 
-    <!-- 2FA VERIFICATION STEP -->
-    <div id="twofa-form" style="display:none;">
-      <div style="text-align:center;margin-bottom:24px;">
-        <div style="font-size:48px;margin-bottom:12px;">🔐</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6;">A verification code has been sent to your email address.<br>Enter it below to finish creating your account.</p>
-      </div>
-      <div id="twofa-email-status" style="background:var(--teal-pale);border:1.5px solid var(--teal);border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
-        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal-dark);font-weight:600;margin-bottom:8px;">Email Verification</div>
-        <div id="twofa-status-text" style="font-size:13px;color:var(--slate);line-height:1.5;">Sending code…</div>
-        <div id="twofa-countdown" style="font-size:11px;color:var(--muted);margin-top:8px;">Code expires in 5:00</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Enter Verification Code</label>
-        <input type="text" class="form-input" id="twofa-input" placeholder="Email code" maxlength="10" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-size:22px;letter-spacing:4px;font-family:'Cormorant Garamond',serif;" onkeydown="if(event.key==='Enter')verify2FA()">
-      </div>
-      <button class="btn btn-primary btn-full" onclick="verify2FA()">✓ Verify & Create Account</button>
-      <div style="display:flex;gap:10px;margin-top:12px;">
-        <button class="btn btn-outline btn-full btn-sm" onclick="resend2FA()" style="font-size:12px;">🔄 Resend Code</button>
-        <button class="btn btn-outline btn-full btn-sm" onclick="cancel2FA()" style="font-size:12px;">← Go Back</button>
-      </div>
-    </div>
+    <!-- Email verification has been temporarily disabled. Kept as a hidden placeholder so older scripts/styles do not break. -->
+    <div id="twofa-form" style="display:none;"></div>
   </div>
 </div>
 
@@ -1758,166 +1739,11 @@ async function refreshTasks() {
 }
 
 // ══════════════════════════════════════════════════════
-//  EMAIL VERIFICATION for signup
-//  Uses Supabase password signup + Confirm Signup email template.
-//  The app never displays the verification code on-screen.
+//  EMAIL VERIFICATION DISABLED TEMPORARILY
+//  Signup now creates the user account immediately.
 // ══════════════════════════════════════════════════════
-let _2faPending = null; // { name, email, pass, role }
-let _2faTimer = null;
-let _2faExpiry = 0;
-
-function getAuthRedirectURL() {
-  // Avoid sending users to file:// or localhost when the site is deployed.
-  const href = window.location.href.split('#')[0].split('?')[0];
-  if (window.location.protocol === 'file:') return undefined;
-  return href;
-}
-
-async function send2FACodeToEmail(pendingUser) {
-  const redirectTo = getAuthRedirectURL();
-  const options = {
-    data: {
-      full_name: pendingUser.name,
-      role: pendingUser.role
-    }
-  };
-  if (redirectTo) options.emailRedirectTo = redirectTo;
-
-  // For password-based registration, Supabase sends the code from
-  // Authentication → Email Templates → Confirm signup. That template must use
-  // {{ .Token }} instead of {{ .ConfirmationURL }}. Do not hard-code the length; some projects may send longer numeric tokens.
-  const { data, error } = await _sb.auth.signUp({
-    email: pendingUser.email,
-    password: pendingUser.pass,
-    options
-  });
-
-  if (error) throw error;
-
-  // If a session is returned immediately, email confirmation is disabled in Supabase.
-  // Stop here so the platform does not silently bypass email verification.
-  if (data && data.session) {
-    throw new Error('Supabase email confirmation is disabled. Enable Confirm email in Authentication settings so a signup code can be emailed.');
-  }
-}
-
-async function verifyEmailCode(email, token) {
-  // Signup confirmation codes verify with type: 'signup'.
-  // Retry 'email' only for older projects that still send a magic-link OTP token.
-  let result = await _sb.auth.verifyOtp({ email, token, type: 'signup' });
-  if (result.error) {
-    result = await _sb.auth.verifyOtp({ email, token, type: 'email' });
-  }
-  if (result.error) throw result.error;
-}
-
-async function finishVerifiedSignup(pendingUser) {
-  const u = { email: pendingUser.email, password: pendingUser.pass, name: pendingUser.name, role: pendingUser.role };
-  let created = await dbGetUserByEmail(u.email);
-  if (!created) created = await dbCreateUser(u);
-  currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
-  localStorage.setItem('jw_session', JSON.stringify(currentUser));
-  sessionStorage.removeItem('jw_pending_signup');
-  _2faPending = null;
-  clearInterval(_2faTimer);
-  launchApp();
-}
-
 function handleSupabaseMagicLinkReturn() {
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const cameFromMagicLink = hash.get('access_token') && (hash.get('type') === 'magiclink' || hash.get('type') === 'email' || hash.get('type') === 'signup');
-  if (!cameFromMagicLink) return false;
-
-  // Remove access tokens from the address bar immediately.
-  history.replaceState(null, document.title, window.location.pathname + window.location.search);
-
-  let pending = _2faPending;
-  try { pending = pending || JSON.parse(sessionStorage.getItem('jw_pending_signup') || 'null'); } catch { pending = null; }
-
-  if (!pending) {
-    notify('✅ Email verified. Please finish registration from the Create Account tab.');
-    return true;
-  }
-
-  setLoading(true);
-  finishVerifiedSignup(pending)
-    .catch(err => { notify('❌ Email verified, but account creation failed: ' + err.message); console.error(err); })
-    .finally(() => setLoading(false));
-  return true;
-}
-
-async function show2FAStep(pendingUser) {
-  _2faPending = pendingUser;
-  _2faExpiry = Date.now() + 5 * 60 * 1000; // 5-min expiry shown to the user
-
-  document.getElementById('signup-form').style.display = 'none';
-  document.getElementById('twofa-form').style.display = '';
-  document.getElementById('auth-panel-title').textContent = 'Verify Your Email';
-  document.getElementById('auth-panel-sub').textContent = 'Enter the email code to finish registration';
-  document.getElementById('twofa-input').value = '';
-
-  const statusEl = document.getElementById('twofa-status-text');
-  try { sessionStorage.setItem('jw_pending_signup', JSON.stringify(pendingUser)); } catch {}
-  if (statusEl) statusEl.textContent = `Sending verification code to ${pendingUser.email}…`;
-
-  try {
-    await send2FACodeToEmail(pendingUser);
-    if (statusEl) statusEl.innerHTML = `A verification code has been sent to <strong>${pendingUser.email}</strong>. Please check your inbox or spam folder, then enter the exact code from the email.`;
-  } catch (err) {
-    if (statusEl) statusEl.innerHTML = `We could not send the verification email. Please enable Supabase email confirmations and make sure the <strong>Confirm signup</strong> template uses <strong>{{ .Token }}</strong>. Check the browser console for the exact Supabase error.`;
-    notify('❌ Verification email could not be sent. Check Supabase Confirm signup settings.');
-    console.error('Email verification error:', err);
-    return;
-  }
-
-  clearInterval(_2faTimer);
-  let secsLeft = 300;
-  const countEl = document.getElementById('twofa-countdown');
-  const updateCount = () => {
-    const m = Math.floor(secsLeft/60), s = secsLeft%60;
-    if (countEl) countEl.textContent = `Code expires in ${m}:${s.toString().padStart(2,'0')}`;
-    secsLeft--;
-    if (secsLeft < 0) {
-      clearInterval(_2faTimer);
-      if (countEl) countEl.textContent = 'Code expired. Please request a new code.';
-    }
-  };
-  updateCount();
-  _2faTimer = setInterval(updateCount, 1000);
-}
-
-async function verify2FA() {
-  const entered = (document.getElementById('twofa-input').value||'').trim();
-  if (!_2faPending) { notify('⚠️ Please start signup again.'); cancel2FA(); return; }
-  if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please request a new code.'); return; }
-  if (!/^\d{6,10}$/.test(entered)) { notify('⚠️ Enter the verification code sent to your email.'); return; }
-
-  setLoading(true);
-  try {
-    await verifyEmailCode(_2faPending.email, entered);
-    await finishVerifiedSignup(_2faPending);
-    setLoading(false);
-  } catch (err) {
-    setLoading(false);
-    notify('❌ Incorrect or expired verification code. Please check your email and try again.');
-    console.error('Verification failed:', err);
-  }
-}
-
-function cancel2FA() {
-  clearInterval(_2faTimer);
-  _2faPending = null;
-  sessionStorage.removeItem('jw_pending_signup');
-  document.getElementById('twofa-form').style.display = 'none';
-  document.getElementById('signup-form').style.display = '';
-  document.getElementById('auth-panel-title').textContent = 'Create Account';
-  document.getElementById('auth-panel-sub').textContent = 'Join Janelle Writes today';
-}
-
-function resend2FA() {
-  if (!_2faPending) return;
-  show2FAStep(_2faPending);
-  notify('✦ A new signup verification code has been sent.', 'message');
+  return false;
 }
 
 // ══════════════════════════════════════════════════════
@@ -1965,14 +1791,29 @@ function doSignup() {
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const pass  = document.getElementById('signup-password').value;
   if (!name || !email || !pass) { notify('⚠️ Please fill in all fields'); return; }
+  if (!/^\S+@\S+\.\S+$/.test(email)) { notify('⚠️ Please enter a valid email address'); return; }
   if (pass.length < 6) { notify('⚠️ Password must be at least 6 characters'); return; }
+
   setLoading(true);
   dbGetUserByEmail(email).then(existing => {
+    if (existing) {
+      setLoading(false);
+      notify('❌ An account with this email already exists');
+      return;
+    }
+    return dbCreateUser({ email, password: pass, name, role: _selectedRole });
+  }).then(created => {
+    if (!created) return;
+    currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
     setLoading(false);
-    if (existing) { notify('❌ An account with this email already exists'); return; }
-    // Trigger email verification instead of directly creating
-    show2FAStep({ name, email, pass, role: _selectedRole });
-  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
+    notify('✅ Account created successfully. Welcome to Janelle Writes!', 'message');
+    launchApp();
+  }).catch(err => {
+    setLoading(false);
+    notify('❌ Signup error: ' + err.message);
+    console.error('Signup error:', err);
+  });
 }
 
 function showForgotPassword() {
