@@ -1759,32 +1759,74 @@ async function refreshTasks() {
 
 // ══════════════════════════════════════════════════════
 //  EMAIL VERIFICATION for signup
-//  Uses Supabase Auth email OTP so the verification code is sent by email
-//  and is never displayed on the platform.
+//  Supabase decides whether to email a code or a magic link from the
+//  Magic Link email template. The app never displays the verification code.
 // ══════════════════════════════════════════════════════
 let _2faPending = null; // { name, email, pass, role }
 let _2faTimer = null;
 let _2faExpiry = 0;
 
+function getAuthRedirectURL() {
+  // Avoid sending users to file:// or localhost when the site is deployed.
+  const href = window.location.href.split('#')[0].split('?')[0];
+  if (window.location.protocol === 'file:') return undefined;
+  return href;
+}
+
 async function send2FACodeToEmail(email, name) {
-  // Supabase sends the OTP/code by email. The browser never generates or displays it.
-  const { error } = await _sb.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-      emailRedirectTo: window.location.href
-    }
-  });
+  const redirectTo = getAuthRedirectURL();
+  const options = { shouldCreateUser: true };
+  if (redirectTo) options.emailRedirectTo = redirectTo;
+
+  // Supabase sends a 6-digit code only when the Magic Link email template
+  // uses {{ .Token }} instead of {{ .ConfirmationURL }}.
+  const { error } = await _sb.auth.signInWithOtp({ email, options });
   if (error) throw error;
 }
 
 async function verifyEmailCode(email, token) {
-  const { error } = await _sb.auth.verifyOtp({
-    email,
-    token,
-    type: 'email'
-  });
-  if (error) throw error;
+  // Hosted Supabase email OTP normally verifies with type: 'email'.
+  // Some project/template settings may require 'signup', so we retry once.
+  let result = await _sb.auth.verifyOtp({ email, token, type: 'email' });
+  if (result.error) {
+    result = await _sb.auth.verifyOtp({ email, token, type: 'signup' });
+  }
+  if (result.error) throw result.error;
+}
+
+async function finishVerifiedSignup(pendingUser) {
+  const u = { email: pendingUser.email, password: pendingUser.pass, name: pendingUser.name, role: pendingUser.role };
+  let created = await dbGetUserByEmail(u.email);
+  if (!created) created = await dbCreateUser(u);
+  currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+  sessionStorage.removeItem('jw_pending_signup');
+  _2faPending = null;
+  clearInterval(_2faTimer);
+  launchApp();
+}
+
+function handleSupabaseMagicLinkReturn() {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const cameFromMagicLink = hash.get('access_token') && (hash.get('type') === 'magiclink' || hash.get('type') === 'email');
+  if (!cameFromMagicLink) return false;
+
+  // Remove access tokens from the address bar immediately.
+  history.replaceState(null, document.title, window.location.pathname + window.location.search);
+
+  let pending = _2faPending;
+  try { pending = pending || JSON.parse(sessionStorage.getItem('jw_pending_signup') || 'null'); } catch { pending = null; }
+
+  if (!pending) {
+    notify('✅ Email verified. Please finish registration from the Create Account tab.');
+    return true;
+  }
+
+  setLoading(true);
+  finishVerifiedSignup(pending)
+    .catch(err => { notify('❌ Email verified, but account creation failed: ' + err.message); console.error(err); })
+    .finally(() => setLoading(false));
+  return true;
 }
 
 async function show2FAStep(pendingUser) {
@@ -1798,11 +1840,12 @@ async function show2FAStep(pendingUser) {
   document.getElementById('twofa-input').value = '';
 
   const statusEl = document.getElementById('twofa-status-text');
+  try { sessionStorage.setItem('jw_pending_signup', JSON.stringify(pendingUser)); } catch {}
   if (statusEl) statusEl.textContent = `Sending verification code to ${pendingUser.email}…`;
 
   try {
     await send2FACodeToEmail(pendingUser.email, pendingUser.name);
-    if (statusEl) statusEl.textContent = `A verification code has been sent to ${pendingUser.email}. Please check your inbox or spam folder.`;
+    if (statusEl) statusEl.innerHTML = `A 6-digit verification code has been sent to <strong>${pendingUser.email}</strong>. Please check your inbox or spam folder. If the email shows a sign-in link instead of a code, update the Supabase Magic Link email template to use <strong>{{ .Token }}</strong> and remove the confirmation-link button.`;
   } catch (err) {
     if (statusEl) statusEl.innerHTML = `We could not send the verification email. Please confirm that Email OTP is enabled in Supabase Auth, then try again.`;
     notify('❌ Verification email could not be sent. Check your Supabase email settings.');
@@ -1835,14 +1878,8 @@ async function verify2FA() {
   setLoading(true);
   try {
     await verifyEmailCode(_2faPending.email, entered);
-    const u = { email: _2faPending.email, password: _2faPending.pass, name: _2faPending.name, role: _2faPending.role };
-    const created = await dbCreateUser(u);
+    await finishVerifiedSignup(_2faPending);
     setLoading(false);
-    clearInterval(_2faTimer);
-    currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
-    localStorage.setItem('jw_session', JSON.stringify(currentUser));
-    _2faPending = null;
-    launchApp();
   } catch (err) {
     setLoading(false);
     notify('❌ Incorrect or expired verification code. Please check your email and try again.');
@@ -1853,6 +1890,7 @@ async function verify2FA() {
 function cancel2FA() {
   clearInterval(_2faTimer);
   _2faPending = null;
+  sessionStorage.removeItem('jw_pending_signup');
   document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('signup-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Create Account';
@@ -3594,6 +3632,7 @@ function subscribeRealtime() {
 //  INIT
 // ══════════════════════════════════════════════════════
 (function init() {
+  if (handleSupabaseMagicLinkReturn()) return;
   if (currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
     launchApp();
