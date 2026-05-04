@@ -64,6 +64,19 @@ body.nav-open { overflow:hidden; }
     linear-gradient(160deg, #0f1923 0%, #1a2e3b 100%);
 }
 
+.auth-visual-photo {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(15,25,35,0.94) 0%, rgba(15,25,35,0.88) 24%, rgba(15,25,35,0.64) 48%, rgba(15,25,35,0.44) 70%, rgba(15,25,35,0.72) 100%),
+    linear-gradient(180deg, rgba(15,25,35,0.08) 0%, rgba(15,25,35,0.18) 100%),
+    url('https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=1800&q=80');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  opacity: 0.95;
+}
+
 .auth-visual-pattern {
   position: absolute; inset: 0;
   background-image: 
@@ -86,7 +99,7 @@ body.nav-open { overflow:hidden; }
 
 .auth-brand-name {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 52px; font-weight: 700;
+  font-size: 60px; font-weight: 700;
   color: var(--white);
   line-height: 1.1;
 }
@@ -94,14 +107,14 @@ body.nav-open { overflow:hidden; }
 .auth-brand-name em { color: var(--teal-light); font-style: italic; }
 
 .auth-brand-sub {
-  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  font-size: 15px; letter-spacing: 3px; text-transform: uppercase;
   color: var(--muted); margin-top: 8px;
 }
 
 .auth-tagline {
   margin-top: 32px;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; color: rgba(255,255,255,0.6);
+  font-size: 26px; color: rgba(255,255,255,0.68);
   font-style: italic; line-height: 1.5;
   max-width: 360px;
 }
@@ -112,11 +125,11 @@ body.nav-open { overflow:hidden; }
 
 .auth-stat-val {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 36px; font-weight: 700; color: var(--teal-light);
+  font-size: 42px; font-weight: 700; color: var(--teal-light);
 }
 
 .auth-stat-lbl {
-  font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
   color: rgba(255,255,255,0.4); margin-top: 2px;
 }
 
@@ -131,22 +144,162 @@ body.nav-open { overflow:hidden; }
   font-size: 100px;
 }
 
+
+/* ── AUTH SHOWCASE CARDS ─────────────────── */
+.auth-showcase {
+  position: absolute;
+  top: 70px;
+  left: 60px;
+  z-index: 2;
+  width: min(390px, calc(100% - 120px));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.auth-glass-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid rgba(82,196,184,0.26);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.105), rgba(255,255,255,0.035));
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter: blur(18px);
+}
+
+.auth-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(circle at top right, rgba(82,196,184,0.18), transparent 42%);
+  pointer-events: none;
+}
+
+.auth-card-kicker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--teal-light);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+}
+
+.auth-workflow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.workflow-step span {
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--ink);
+  background: var(--teal-light);
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(82,196,184,0.22);
+}
+
+.auth-order-preview {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-preview-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(82,196,184,0.16);
+  border: 1px solid rgba(82,196,184,0.25);
+  font-size: 20px;
+}
+
+.order-preview-title {
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.order-preview-meta {
+  color: rgba(255,255,255,0.48);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.order-preview-badge {
+  align-self: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(82,196,184,0.16);
+  color: var(--teal-light);
+  border: 1px solid rgba(82,196,184,0.23);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.auth-trust-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: rgba(255,255,255,0.46);
+  font-size: 11px;
+}
+
+.auth-trust-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  box-shadow: 0 0 0 5px rgba(82,196,184,0.12);
+}
+
 /* Auth Form Panel */
 .auth-panel {
-  width: 480px; flex-shrink: 0;
+  width: 520px; flex-shrink: 0;
   background: var(--white);
   display: flex; flex-direction: column;
   justify-content: center;
-  padding: 64px 56px;
+  padding: 64px 60px;
   position: relative;
 }
 
 .auth-panel-header { margin-bottom: 36px; }
 .auth-panel-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 32px; font-weight: 700; color: var(--ink);
+  font-size: 38px; font-weight: 700; color: var(--ink);
 }
-.auth-panel-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.auth-panel-sub { font-size: 15px; color: var(--muted); margin-top: 8px; }
 
 .auth-tabs {
   display: flex; gap: 0; margin-bottom: 32px;
@@ -154,8 +307,8 @@ body.nav-open { overflow:hidden; }
 }
 
 .auth-tab {
-  flex: 1; text-align: center; padding: 10px;
-  font-size: 13px; font-weight: 500; cursor: pointer;
+  flex: 1; text-align: center; padding: 12px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
   border-radius: 7px; color: var(--muted);
   transition: all 0.2s;
 }
@@ -176,15 +329,15 @@ body.nav-open { overflow:hidden; }
 .role-card:hover { border-color: var(--teal); }
 .role-card.selected { border-color: var(--teal); background: var(--teal-pale); }
 .role-card .role-icon { font-size: 28px; margin-bottom: 8px; }
-.role-card .role-name { font-size: 14px; font-weight: 600; color: var(--ink); }
-.role-card .role-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.role-card .role-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+.role-card .role-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.form-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+.form-label { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--slate); }
 .form-input, .form-select, .form-textarea {
   padding: 12px 14px; border: 1.5px solid var(--border);
   border-radius: 8px; font-family: 'DM Sans', sans-serif;
-  font-size: 14px; color: var(--ink); background: var(--cream);
+  font-size: 16px; color: var(--ink); background: var(--cream);
   transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%; min-height: 46px;
 }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -195,7 +348,7 @@ body.nav-open { overflow:hidden; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 12px 20px; border-radius: 9px;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
   cursor: pointer; border: none; transition: all 0.2s; min-height: 46px;
   touch-action: manipulation;
 }
@@ -747,6 +900,22 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   .support-popover { right:64px; max-width:200px; }
 }
 
+
+
+@media (max-height:780px) and (min-width:901px) {
+  .auth-showcase { top: 42px; width: 360px; gap: 10px; }
+  .auth-glass-card { padding: 14px 16px; border-radius: 16px; }
+  .workflow-step { font-size: 11px; min-height: 30px; }
+  .auth-stats { margin-top: 32px; }
+}
+
+@media (max-width:1180px) and (min-width:901px) {
+  .auth-showcase { width: 340px; }
+  .auth-workflow { grid-template-columns: 1fr; }
+  .auth-order-preview { grid-template-columns: 40px 1fr; }
+  .order-preview-badge { grid-column: 1 / -1; justify-self: start; }
+}
+
 /* ── RESPONSIVE ─── */
 @media (max-width:900px) {
   .auth-visual { display: none; }
@@ -939,6 +1108,16 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
   .modal { padding:24px; }
 }
 
+
+/* ── AUTH TEXT SIZE POLISH ─────────────────── */
+.auth-showcase-title { font-size: 13px !important; }
+.auth-showcase-step-text { font-size: 14px !important; line-height: 1.35; }
+.auth-showcase-step-num { font-size: 14px !important; }
+.auth-task-title { font-size: 15px !important; }
+.auth-task-meta { font-size: 13px !important; line-height: 1.35; }
+.auth-task-note { font-size: 13px !important; }
+.auth-task-status { font-size: 12px !important; }
+
 </style>
 </head>
 <body>
@@ -951,10 +1130,36 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
   <!-- Visual Panel -->
   <div class="auth-visual">
     <div class="auth-visual-bg"></div>
+    <div class="auth-visual-photo"></div>
     <div class="auth-visual-pattern"></div>
     <div class="auth-visual-quote">"</div>
 
     <div class="auth-visual-img">✍️</div>
+
+
+    <div class="auth-showcase" aria-hidden="true">
+      <div class="auth-glass-card">
+        <div class="auth-card-kicker">✦ How it works</div>
+        <div class="auth-workflow">
+          <div class="workflow-step"><span>1</span> Employer posts a task</div>
+          <div class="workflow-step"><span>2</span> Writer reviews instructions</div>
+          <div class="workflow-step"><span>3</span> Work is submitted</div>
+          <div class="workflow-step"><span>4</span> Both sides rate the order</div>
+        </div>
+      </div>
+
+      <div class="auth-glass-card">
+        <div class="auth-order-preview">
+          <div class="order-preview-icon">📄</div>
+          <div>
+            <div class="order-preview-title">New Task Posted</div>
+            <div class="order-preview-meta">JW-BK-0001 · Business Essay · 24h deadline</div>
+          </div>
+          <div class="order-preview-badge">Waiting for writer</div>
+        </div>
+        <div class="auth-trust-row"><span class="auth-trust-dot"></span> Secure workspace for employers and writers</div>
+      </div>
+    </div>
 
     <div class="auth-brand" style="position:relative;z-index:2;">
       <div class="auth-brand-name">Janelle <em>Writes!</em></div>
