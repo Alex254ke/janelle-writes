@@ -295,6 +295,16 @@ body.nav-open { overflow:hidden; }
   font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600;
 }
 
+.message-unread-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:18px; height:18px; padding:0 6px; border-radius:999px;
+  background:var(--rust); color:#fff; font-size:10px; font-weight:700;
+  line-height:18px; margin-left:auto; box-shadow:0 0 0 2px rgba(255,255,255,0.08);
+}
+.message-unread-badge.show { display:inline-flex; }
+.topbar .message-unread-badge { margin-left:4px; box-shadow:none; }
+.nav-badge:empty, .nav-badge-revision:empty { display:inline-flex; }
+
 .sidebar-footer {
   padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06);
 }
@@ -677,6 +687,28 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   .message-composer { flex-direction:column; align-items:stretch; }
 }
 
+.rating-stars { display:flex; gap:6px; align-items:center; margin:8px 0 4px; }
+.rating-stars button {
+  border:1px solid var(--border); background:var(--cream); color:var(--warning);
+  width:38px; height:38px; border-radius:10px; font-size:20px; cursor:pointer;
+  transition:all 0.2s;
+}
+.rating-stars button:hover, .rating-stars button.active { background:#fff3e0; border-color:var(--warning); transform:translateY(-1px); }
+.rating-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:#fff3e0; color:var(--warning); font-size:11px; font-weight:700; }
+.instruction-file-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.instruction-file-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border:1px solid var(--border); border-left:4px solid var(--teal); border-radius:10px; flex-wrap:wrap; }
+.instruction-file-main { flex:1; min-width:180px; }
+.floating-support-btn {
+  position:fixed; left:calc(var(--sidebar-w) + 20px); bottom:20px; z-index:700;
+  display:inline-flex; align-items:center; gap:9px; padding:13px 17px;
+  background:#25D366; color:#fff; text-decoration:none; border-radius:999px;
+  font-size:13px; font-weight:800; box-shadow:0 12px 32px rgba(37,211,102,0.35);
+  border:1px solid rgba(255,255,255,0.35); transition:transform 0.2s, box-shadow 0.2s;
+}
+.floating-support-btn:hover { transform:translateY(-2px); box-shadow:0 16px 40px rgba(37,211,102,0.45); }
+.floating-support-btn .wa { font-size:18px; }
+@media (max-width:900px) { .floating-support-btn { left:16px; bottom:16px; padding:12px 14px; } }
+
 /* ── RESPONSIVE ─── */
 @media (max-width:900px) {
   .auth-visual { display: none; }
@@ -894,6 +926,8 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   </div>
 </aside>
 
+<a class="floating-support-btn" href="https://wa.me/254723156622" target="_blank" rel="noopener"><span class="wa">💬</span> Contact Support</a>
+
 <!-- Mobile Overlay -->
 <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
 
@@ -996,6 +1030,16 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
         <div class="form-group"><label class="form-label">Deadline</label><input type="datetime-local" class="form-input" id="emp-deadline"></div>
         <div class="form-group form-full"><label class="form-label">Task Description / Instructions</label><textarea class="form-textarea" id="emp-desc" rows="4" placeholder="Provide detailed instructions, formatting requirements, sources, etc."></textarea></div>
         <div class="form-group form-full"><label class="form-label">Special Requirements</label><input type="text" class="form-input" id="emp-requirements" placeholder="e.g. Include 5 peer-reviewed sources, Turnitin report required"></div>
+        <div class="form-group form-full">
+          <label class="form-label">Instructions Files / Attachments</label>
+          <div class="upload-zone" id="instruction-upload-zone" onclick="document.getElementById('instruction-file-input').click()" ondragover="dragOverInstruction(event)" ondragleave="this.classList.remove('dragover')" ondrop="dropInstructionFiles(event)">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">Attach instruction files for writers to read before accepting</div>
+            <div class="upload-sub">DOCX, PDF, PPT, XLSX, images, or text files</div>
+          </div>
+          <input type="file" id="instruction-file-input" multiple style="display:none" onchange="handleInstructionFiles(this.files)">
+          <div class="file-list" id="instruction-file-list"></div>
+        </div>
       </div>
       <hr class="divider">
       <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
@@ -1176,7 +1220,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Order #</th><th>Subject</th><th>Style</th><th>Pages</th><th>Deadline</th><th>Status</th><th>Amount</th></tr></thead>
+          <thead><tr><th>Order #</th><th>Subject</th><th>Style</th><th>Pages</th><th>Deadline</th><th>Status</th><th>Amount</th><th>Actions</th></tr></thead>
           <tbody id="writer-tasks-table"></tbody>
         </table>
       </div>
@@ -1346,6 +1390,37 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   </div>
 </div>
 
+
+<!-- Rating Modal -->
+<div class="modal-overlay" id="modal-rating">
+  <div class="modal">
+    <div class="modal-title" id="rating-title">Rate User</div>
+    <div class="modal-sub" id="rating-sub">Share honest feedback after the order is completed.</div>
+    <input type="hidden" id="rating-task-id">
+    <input type="hidden" id="rating-target-type">
+    <div class="form-group">
+      <label class="form-label">Rating</label>
+      <div class="rating-stars" id="rating-stars">
+        <button type="button" onclick="setRatingScore(1)">★</button>
+        <button type="button" onclick="setRatingScore(2)">★</button>
+        <button type="button" onclick="setRatingScore(3)">★</button>
+        <button type="button" onclick="setRatingScore(4)">★</button>
+        <button type="button" onclick="setRatingScore(5)">★</button>
+      </div>
+      <input type="hidden" id="rating-score" value="0">
+      <div class="text-muted">Choose 1 to 5 stars.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comment</label>
+      <textarea class="form-textarea" id="rating-comment" rows="4" placeholder="Write a short comment about communication, clarity, quality, or timeliness..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-rating')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRating()">⭐ Save Rating</button>
+    </div>
+  </div>
+</div>
+
 <!-- Notification -->
 <div class="notification" id="notification"><span id="notif-msg"></span></div>
 
@@ -1357,6 +1432,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
 const SUPABASE_URL  = 'https://ughwzaowgpergpizenko.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnaHd6YW93Z3BlcmdwaXplbmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjU0MDMsImV4cCI6MjA5MzQ0MTQwM30.JMdjwtPJ9AWeDAdadHRCF0tDKwQn26lko8YPETQA93g';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const SUBMISSIONS_BUCKET = 'jw-submissions';
 
 // ══════════════════════════════════════════════════════
 //  STATE
@@ -1376,6 +1452,8 @@ let _writerTaskFilter = 'all';
 let _pendingTakeId = null;
 let _pendingRevisionId = null;
 let _uploadedFiles = [];
+let _instructionFiles = [];
+let _selectedRatingScore = 0;
 
 // ── ORDER NUMBER (per employer, with employer initials) ─────────────
 function employerInitials(user = currentUser) {
@@ -1730,7 +1808,7 @@ function buildSidebar() {
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post New Task</div>
       <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
-      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages</div>
+      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
       <div class="nav-section">Finance</div>
       <div class="nav-item" data-page="emp-invoice" onclick="navigate('emp-invoice')"><span class="icon">🧾</span> Invoice</div>
       <div class="nav-item" data-page="emp-payment" onclick="navigate('emp-payment')"><span class="icon">💳</span> Payment</div>
@@ -1740,8 +1818,8 @@ function buildSidebar() {
       <div class="nav-section">Writer</div>
       <div class="nav-item" data-page="writer-dashboard" onclick="navigate('writer-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="writer-available" onclick="navigate('writer-available')"><span class="icon">📥</span> Available Orders <span class="nav-badge" id="avail-badge">0</span></div>
-      <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks</div>
-      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages</div>
+      <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks <span class="nav-badge" id="writer-task-badge">0</span></div>
+      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
       <div class="nav-item" data-page="writer-revisions" onclick="navigate('writer-revisions')"><span class="icon">🔄</span> Revisions <span class="nav-badge-revision" id="revision-nav-badge">0</span></div>
       <div class="nav-section">Work</div>
       <div class="nav-item" data-page="writer-submit" onclick="navigate('writer-submit')"><span class="icon">📤</span> Submit Work</div>
@@ -1754,12 +1832,12 @@ function buildTopbar() {
   const actions = document.getElementById('topbar-actions');
   if (currentUser.role === 'employer') {
     actions.innerHTML = `
-      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages <span class="message-unread-badge" id="topbar-msg-unread-badge">0</span></button>
       <button class="btn btn-primary btn-sm" onclick="navigate('emp-post')">＋ Post Task</button>
     `;
   } else {
     actions.innerHTML = `
-      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages <span class="message-unread-badge" id="topbar-msg-unread-badge">0</span></button>
       <button class="btn btn-primary btn-sm" onclick="navigate('writer-submit')">📤 Submit Work</button>
     `;
   }
@@ -1778,6 +1856,7 @@ function updateUserDisplay() {
 }
 
 function updateBadges() {
+  if (!currentUser) return;
   const myTasks = myTaskList();
   if (currentUser.role === 'employer') {
     const pending = myTasks.filter(t => t.status === 'pending').length;
@@ -1789,11 +1868,17 @@ function updateBadges() {
   } else {
     const avail = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
     const revisions = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'revision').length;
+    const myTaskCount = tasks.filter(t => t.taken_by === currentUser.email).length;
     const ab = document.getElementById('avail-badge');
     if (ab) ab.textContent = avail;
+    const tb = document.getElementById('writer-task-badge');
+    if (tb) tb.textContent = myTaskCount;
     const rb = document.getElementById('revision-nav-badge');
-    if (rb) rb.textContent = revisions || '';
+    if (rb) rb.textContent = revisions;
   }
+  const unread = totalUnreadMessages();
+  setUnreadBadge('msg-unread-badge', unread);
+  setUnreadBadge('topbar-msg-unread-badge', unread);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1894,6 +1979,57 @@ function parseSubmittedFiles(value) {
   return safeParseJSON(value, []).filter(Boolean);
 }
 
+function parseInstructionFiles(value) {
+  return safeParseJSON(value, []).filter(Boolean);
+}
+
+function localRatingKey(taskId) { return 'jw_ratings_' + taskId; }
+function getLocalRatings(taskId) {
+  try { return JSON.parse(localStorage.getItem(localRatingKey(taskId))) || {}; } catch { return {}; }
+}
+function saveLocalRatings(taskId, ratings) {
+  localStorage.setItem(localRatingKey(taskId), JSON.stringify(ratings || {}));
+}
+function getTaskRatings(t) {
+  const raw = t?.ratings;
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && Object.keys(raw).length) return raw;
+  if (raw && typeof raw === 'string') {
+    try { const parsed = JSON.parse(raw) || {}; if (Object.keys(parsed).length) return parsed; } catch {}
+  }
+  return getLocalRatings(t?.id);
+}
+
+function ratingStars(score) {
+  const n = Math.max(0, Math.min(5, Number(score) || 0));
+  return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0,5-n);
+}
+
+function averageRatingForUser(email, targetType) {
+  if (!email) return null;
+  const key = targetType === 'writer' ? 'writer_by_employer' : 'employer_by_writer';
+  const scores = tasks.map(t => getTaskRatings(t)[key])
+    .filter(r => r && String(r.for_email || '').toLowerCase() === String(email).toLowerCase())
+    .map(r => Number(r.score)).filter(Boolean);
+  if (!scores.length) return null;
+  return { avg: scores.reduce((a,b)=>a+b,0)/scores.length, count: scores.length };
+}
+
+function ratingChipForUser(email, targetType) {
+  const r = averageRatingForUser(email, targetType);
+  if (!r) return '<span class="text-muted">No ratings yet</span>';
+  return `<span class="rating-chip">⭐ ${r.avg.toFixed(1)} (${r.count})</span>`;
+}
+
+function taskRatingSummary(t) {
+  const ratings = getTaskRatings(t);
+  const wr = ratings.writer_by_employer;
+  const er = ratings.employer_by_writer;
+  const chunks = [];
+  if (wr) chunks.push(`<div><span class="form-label">Writer Rating</span><br><span class="rating-chip">${ratingStars(wr.score)} ${Number(wr.score).toFixed(1)}</span>${wr.comment ? `<div class="text-muted" style="margin-top:5px;">${esc(wr.comment)}</div>` : ''}</div>`);
+  if (er) chunks.push(`<div><span class="form-label">Employer Rating</span><br><span class="rating-chip">${ratingStars(er.score)} ${Number(er.score).toFixed(1)}</span>${er.comment ? `<div class="text-muted" style="margin-top:5px;">${esc(er.comment)}</div>` : ''}</div>`);
+  return chunks.length ? `<div style="margin-bottom:12px;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">${chunks.join('')}</div>` : '';
+}
+
 function getTaskById(id) {
   return tasks.find(t => String(t.id) === String(id));
 }
@@ -1903,10 +2039,36 @@ function canCurrentUserSeeTask(t) {
   return t.posted_by === currentUser.email || t.taken_by === currentUser.email;
 }
 
+function hasDownloadableFileData(f) {
+  return !!(f && (f.data_url || f.url || f.storage_path || f.path));
+}
+
+function isOfficeFile(f) {
+  const ext = (f?.name || '').split('.').pop().toLowerCase();
+  return ['doc','docx','ppt','pptx','xls','xlsx'].includes(ext);
+}
+
 function isPreviewableFile(f) {
-  const type = (f.type || '').toLowerCase();
-  const ext = (f.name || '').split('.').pop().toLowerCase();
-  return type.startsWith('image/') || type === 'application/pdf' || ['pdf','png','jpg','jpeg','gif','webp','txt','csv'].includes(ext);
+  const type = (f?.type || '').toLowerCase();
+  const ext = (f?.name || '').split('.').pop().toLowerCase();
+  return type.startsWith('image/') || type === 'application/pdf' || ['pdf','png','jpg','jpeg','gif','webp','txt','csv'].includes(ext) || isOfficeFile(f);
+}
+
+async function resolveSubmittedFileUrl(f, expiresIn = 3600) {
+  if (!f) throw new Error('File not found.');
+  if (f.data_url) return f.data_url;
+  if (f.url) return f.url;
+
+  const path = f.storage_path || f.path;
+  const bucket = f.storage_bucket || SUBMISSIONS_BUCKET;
+  if (!path) throw new Error('This older submission only has file metadata. Ask the writer to resubmit the file using the updated site.');
+
+  const { data, error } = await _sb.storage.from(bucket).createSignedUrl(path, expiresIn, {
+    download: f.name || 'submitted-file'
+  });
+  if (error) throw error;
+  if (!data?.signedUrl) throw new Error('Could not create a download link for this file.');
+  return data.signedUrl;
 }
 
 function renderSubmittedFiles(t) {
@@ -1916,17 +2078,17 @@ function renderSubmittedFiles(t) {
     <div class="form-label" style="margin-bottom:8px;">📎 Submitted Files (${files.length})</div>
     <div class="submission-files">
       ${files.map((f,i) => {
-        const hasDownload = !!(f.data_url || f.url);
+        const hasDownload = hasDownloadableFileData(f);
         const ext = (f.name || '').split('.').pop().toUpperCase() || 'FILE';
+        const legacyNote = !hasDownload ? ' · metadata only from older submission' : '';
         return `<div class="submission-file-card">
           <span style="font-size:24px;flex-shrink:0;">${fileIcon(f.name || '')}</span>
           <div class="submission-file-main">
             <div class="submission-file-name">${esc(f.name || 'Submitted file')}</div>
-            <div class="submission-file-meta">${esc(ext)}${f.size ? ' · ' + formatSize(Number(f.size)) : ''}${!hasDownload ? ' · metadata only from older submission' : ''}</div>
+            <div class="submission-file-meta">${esc(ext)}${f.size ? ' · ' + formatSize(Number(f.size)) : ''}${legacyNote}</div>
           </div>
           <div class="submission-file-actions">
-            <button class="btn btn-outline btn-sm" ${hasDownload && isPreviewableFile(f) ? `onclick="previewSubmittedFile('${esc(t.id)}',${i})"` : 'disabled'}>Preview</button>
-            <button class="btn btn-primary btn-sm" ${hasDownload ? `onclick="downloadSubmittedFile('${esc(t.id)}',${i})"` : 'disabled'}>Download</button>
+            <button class="btn btn-primary btn-sm" ${hasDownload ? `onclick="downloadSubmittedFile('${esc(t.id)}',${i})"` : `onclick="notify('⚠️ This old submission has no file data. The writer needs to resubmit it using the updated website.')"`}>Download</button>
           </div>
         </div>`;
       }).join('')}
@@ -1934,41 +2096,143 @@ function renderSubmittedFiles(t) {
   </div>`;
 }
 
-function downloadSubmittedFile(taskId, index) {
+
+function renderInstructionFiles(t) {
+  const files = parseInstructionFiles(t.instruction_files);
+  if (!files.length) return '';
+  return `<div style="margin-bottom:12px;">
+    <div class="form-label" style="margin-bottom:8px;">📌 Instruction Files (${files.length})</div>
+    <div class="instruction-file-list">
+      ${files.map((f,i) => {
+        const hasDownload = hasDownloadableFileData(f);
+        const ext = (f.name || '').split('.').pop().toUpperCase() || 'FILE';
+        const legacyNote = !hasDownload ? ' · metadata only' : '';
+        return `<div class="instruction-file-card">
+          <span style="font-size:22px;flex-shrink:0;">${fileIcon(f.name || '')}</span>
+          <div class="instruction-file-main">
+            <div class="submission-file-name">${esc(f.name || 'Instruction file')}</div>
+            <div class="submission-file-meta">${esc(ext)}${f.size ? ' · ' + formatSize(Number(f.size)) : ''}${legacyNote}</div>
+          </div>
+          <button class="btn btn-primary btn-sm" ${hasDownload ? `onclick="downloadInstructionFile('${esc(t.id)}',${i})"` : `onclick="notify('⚠️ This instruction file has no downloadable data.')"`}>Download</button>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+async function downloadInstructionFile(taskId, index) {
+  const t = getTaskById(taskId);
+  if (!t) { notify('⚠️ Order not found'); return; }
+  if (currentUser?.role !== 'writer' && !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
+  const f = parseInstructionFiles(t.instruction_files)[index];
+  try {
+    const url = await resolveSubmittedFileUrl(f, 3600);
+    const name = f.name || `instruction-file-${index+1}`;
+
+    if (!String(url).startsWith('data:')) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Download request failed.');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+        notify('⬇️ Instruction file download started');
+        return;
+      } catch (fetchErr) { /* direct link fallback below */ }
+    }
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    notify('⬇️ Instruction file download started');
+  } catch (err) {
+    notify('⚠️ ' + (err?.message || 'Could not download this instruction file'));
+  }
+}
+
+async function downloadSubmittedFile(taskId, index) {
   const t = getTaskById(taskId);
   if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
   const f = parseSubmittedFiles(t.submitted_files)[index];
-  if (!f || !(f.data_url || f.url)) { notify('⚠️ This older submission has no downloadable file data'); return; }
-  const a = document.createElement('a');
-  a.href = f.data_url || f.url;
-  a.download = f.name || `submitted-file-${index+1}`;
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  try {
+    const url = await resolveSubmittedFileUrl(f, 3600);
+    const name = f.name || `submitted-file-${index+1}`;
+
+    // Blob download is more reliable than a raw anchor, especially for signed URLs and DOCX files.
+    if (!String(url).startsWith('data:')) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Download request failed.');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+        notify('⬇️ Download started');
+        return;
+      } catch (fetchErr) {
+        // Fallback for browsers/CORS settings that block fetch but allow direct links.
+      }
+    }
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    notify('⬇️ Download started');
+  } catch (err) {
+    notify('⚠️ ' + (err?.message || 'Could not download this file'));
+  }
 }
 
 async function previewSubmittedFile(taskId, index) {
   const t = getTaskById(taskId);
   if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
   const f = parseSubmittedFiles(t.submitted_files)[index];
-  if (!f || !(f.data_url || f.url)) { notify('⚠️ Preview is not available for this older submission'); return; }
-  if (!isPreviewableFile(f)) { downloadSubmittedFile(taskId, index); return; }
-  const url = f.data_url || f.url;
-  const name = esc(f.name || 'Submitted file');
-  const type = (f.type || '').toLowerCase();
-  const ext = (f.name || '').split('.').pop().toLowerCase();
-  const w = window.open('', '_blank');
-  if (!w) { notify('⚠️ Please allow pop-ups to preview the file'); return; }
-  if (type.startsWith('image/') || ['png','jpg','jpeg','gif','webp'].includes(ext)) {
-    w.document.write(`<title>${name}</title><body style="margin:0;background:#0f1923;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${url}" style="max-width:96vw;max-height:96vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);"></body>`);
-  } else if (type === 'application/pdf' || ext === 'pdf') {
-    w.document.write(`<title>${name}</title><iframe src="${url}" style="border:0;width:100vw;height:100vh;"></iframe>`);
-  } else {
-    const text = await fetch(url).then(r => r.text()).catch(() => 'Preview unavailable. Please download the file.');
-    w.document.write(`<title>${name}</title><pre style="white-space:pre-wrap;font:14px/1.55 system-ui;padding:24px;color:#0f1923;">${esc(text)}</pre>`);
+  try {
+    const url = await resolveSubmittedFileUrl(f, 3600);
+    const name = esc(f.name || 'Submitted file');
+    const type = (f.type || '').toLowerCase();
+    const ext = (f.name || '').split('.').pop().toLowerCase();
+    const w = window.open('', '_blank');
+    if (!w) { notify('⚠️ Please allow pop-ups to preview the file'); return; }
+
+    if (type.startsWith('image/') || ['png','jpg','jpeg','gif','webp'].includes(ext)) {
+      w.document.write(`<title>${name}</title><body style="margin:0;background:#0f1923;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${url}" style="max-width:96vw;max-height:96vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);"></body>`);
+    } else if (type === 'application/pdf' || ext === 'pdf') {
+      w.document.write(`<title>${name}</title><iframe src="${url}" style="border:0;width:100vw;height:100vh;"></iframe>`);
+    } else if (isOfficeFile(f) && String(url).startsWith('http')) {
+      const officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
+      w.document.write(`<title>${name}</title><iframe src="${officeUrl}" style="border:0;width:100vw;height:100vh;"></iframe>`);
+    } else if (['txt','csv'].includes(ext) || type.startsWith('text/')) {
+      const text = await fetch(url).then(r => r.text()).catch(() => 'Preview unavailable. Please download the file.');
+      w.document.write(`<title>${name}</title><pre style="white-space:pre-wrap;font:14px/1.55 system-ui;padding:24px;color:#0f1923;">${esc(text)}</pre>`);
+    } else {
+      w.document.write(`<title>${name}</title><body style="font-family:system-ui;padding:32px;background:#f8faf9;color:#0f1923;"><h2 style="margin-top:0;">Preview not available for ${name}</h2><p>This file type is best opened after downloading.</p><button onclick="window.opener.downloadSubmittedFile('${esc(taskId)}',${index})" style="padding:12px 18px;border:0;border-radius:9px;background:#2a9d8f;color:white;font-weight:700;cursor:pointer;">Download file</button></body>`);
+    }
+    w.document.close();
+  } catch (err) {
+    notify('⚠️ ' + (err?.message || 'Preview is not available'));
   }
-  w.document.close();
 }
 
 let _audioCtx = null;
@@ -2032,10 +2296,70 @@ function empClearForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  _instructionFiles = [];
+  const fileInput = document.getElementById('instruction-file-input');
+  if (fileInput) fileInput.value = '';
+  renderInstructionFileList();
   empInitForm();
 }
 
-function empPostTask() {
+
+function handleInstructionFiles(files) {
+  Array.from(files || []).forEach(f => {
+    if (!_instructionFiles.find(u => u.name === f.name && u.size === f.size)) _instructionFiles.push(f);
+  });
+  renderInstructionFileList();
+}
+
+function renderInstructionFileList() {
+  const list = document.getElementById('instruction-file-list');
+  if (!list) return;
+  list.innerHTML = _instructionFiles.map((f,i) => `
+    <div class="file-item">
+      <span class="file-icon">${fileIcon(f.name)}</span>
+      <span class="file-name">${esc(f.name)}</span>
+      <span class="file-size">${formatSize(f.size)}</span>
+      <span class="file-remove" onclick="removeInstructionFile(${i})">✕</span>
+    </div>
+  `).join('');
+}
+
+function removeInstructionFile(i) { _instructionFiles.splice(i,1); renderInstructionFileList(); }
+function dragOverInstruction(e) { e.preventDefault(); document.getElementById('instruction-upload-zone').classList.add('dragover'); }
+function dropInstructionFiles(e) { e.preventDefault(); document.getElementById('instruction-upload-zone').classList.remove('dragover'); handleInstructionFiles(e.dataTransfer.files); }
+
+async function uploadInstructionFileToStorage(file, taskId) {
+  const safeEmail = safeFileSegment(currentUser?.email || 'employer');
+  const safeTask = safeFileSegment(taskId || 'task');
+  const safeName = safeFileSegment(file.name || 'instruction-file');
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const path = `${safeTask}/instructions/${safeEmail}/${unique}-${safeName}`;
+  const { error } = await _sb.storage.from(SUBMISSIONS_BUCKET).upload(path, file, {
+    cacheControl: '3600', upsert: false, contentType: file.type || 'application/octet-stream'
+  });
+  if (error) throw error;
+  return { name:file.name, size:file.size, type:file.type || '', storage_bucket:SUBMISSIONS_BUCKET, storage_path:path, uploaded_at:new Date().toISOString() };
+}
+
+async function storedInstructionFiles(taskId) {
+  if (!_instructionFiles.length) return [];
+  const maxEach = 25 * 1024 * 1024;
+  const tooLarge = _instructionFiles.find(f => f.size > maxEach);
+  if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 25MB each.`);
+  const saved = [];
+  for (const file of _instructionFiles) {
+    try { saved.push(await uploadInstructionFileToStorage(file, taskId)); }
+    catch (storageErr) {
+      console.warn('Instruction file storage upload failed; falling back to JSON file data.', storageErr);
+      const fallbackLimit = 8 * 1024 * 1024;
+      if (file.size > fallbackLimit) throw new Error(`Could not upload ${file.name}. Create the jw-submissions storage bucket and policies, then try again.`);
+      saved.push(await readFileAsDataURL(file));
+    }
+  }
+  return saved;
+}
+
+async function empPostTask() {
   const subject  = document.getElementById('emp-subject').value.trim();
   const words    = parseInt(document.getElementById('emp-words').value) || 0;
   const pages    = parseInt(document.getElementById('emp-pages').value) || 0;
@@ -2047,8 +2371,17 @@ function empPostTask() {
   if (!pages)   { notify('⚠️ Please enter number of pages'); return; }
   if (!deadline) { notify('⚠️ Please set a deadline'); return; }
 
+  const taskId = nextOrderNum();
+  let instructionFiles = [];
+  try {
+    instructionFiles = await storedInstructionFiles(taskId);
+  } catch (err) {
+    notify('❌ ' + (err?.message || 'Could not save instruction files'));
+    return;
+  }
+
   const task = {
-    id: nextOrderNum(),
+    id: taskId,
     subject,
     level: document.getElementById('emp-level').value,
     words, pages, price_per_page: price,
@@ -2065,12 +2398,14 @@ function empPostTask() {
     posted_by_name: currentUser.name,
     taken_by: null,
     taken_by_name: null,
+    instruction_files: instructionFiles,
     submitted_files: [],
     submitted_link: '',
     submitted_text: '',
     submitted_notes: '',
     revision_notes: '',
     revision_at: null,
+    ratings: {},
   };
 
   setLoading(true);
@@ -2162,7 +2497,7 @@ function renderEmpTasks() {
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
           ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}
-          ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button>` : ''}
+          ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
           ${t.payment==='unpaid' && t.total>0 ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
         </div>
       </td>
@@ -2188,7 +2523,10 @@ function empViewTask(id) {
       <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
       <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}</div>
     </div>
-    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.description}</div></div>` : ''}
+    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;white-space:pre-wrap;">${esc(t.description)}</div></div>` : ''}
+    ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Special Requirements</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:#fff3e0;padding:12px;border-radius:8px;">${esc(t.requirements)}</div></div>` : ''}
+    ${renderInstructionFiles(t)}
+    ${taskRatingSummary(t)}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
     ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
     ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
@@ -2202,6 +2540,10 @@ function empViewTask(id) {
   }
   if (currentUser.role === 'employer' && t.status === 'completed') {
     actions.innerHTML += `<button class="btn btn-revision" onclick="closeModal('modal-view-task');openRevisionModal('${t.id}')">🔄 Request Revision</button>`;
+    if (t.taken_by) actions.innerHTML += `<button class="btn btn-primary" onclick="closeModal('modal-view-task');openRatingModal('${t.id}','writer')">⭐ Rate Writer</button>`;
+  }
+  if (currentUser.role === 'writer' && t.status === 'completed' && t.posted_by) {
+    actions.innerHTML += `<button class="btn btn-primary" onclick="closeModal('modal-view-task');openRatingModal('${t.id}','employer')">⭐ Rate Employer</button>`;
   }
   if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0) {
     actions.innerHTML += `<button class="btn btn-success" onclick="empMarkPaid('${t.id}');closeModal('modal-view-task')">✓ Mark Paid</button>`;
@@ -2364,6 +2706,7 @@ function renderAvailableOrders() {
         <div class="order-card-id">${t.id}</div>
         <span class="badge badge-style">${t.style}</span>
       </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Employer: ${esc(t.posted_by_name || t.posted_by || '—')} · ${ratingChipForUser(t.posted_by, 'employer')}</div>
       <div class="order-card-subject">${t.subject}</div>
       <div class="order-card-desc">${t.description || 'No description provided.'}</div>
       <div class="order-card-meta">
@@ -2372,13 +2715,14 @@ function renderAvailableOrders() {
         <div class="order-card-meta-item"><strong>${t.words?.toLocaleString() || '—'}</strong>Words</div>
         <div class="order-card-meta-item" style="color:var(--rust);"><strong style="color:var(--rust);">${fmtDate(t.deadline)}</strong>Deadline</div>
       </div>
-      ${t.requirements ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">📌 ${t.requirements}</div>` : ''}
+      ${t.requirements ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">📌 ${esc(t.requirements)}</div>` : ''}
+      ${parseInstructionFiles(t.instruction_files).length ? `<div style="font-size:11px;color:var(--teal-dark);margin-bottom:12px;font-weight:700;">📎 ${parseInstructionFiles(t.instruction_files).length} instruction file(s) attached</div>` : ''}
       <div class="order-card-footer">
         <div>
           <div class="order-card-amount">KES ${t.total.toLocaleString()} <span>/ ${t.pages} pages</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px;">KES ${t.price_per_page?.toLocaleString()||0}/page</div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openTakeOrderModal('${t.id}')">Accept Order →</button>
+        <button class="btn btn-primary btn-sm" onclick="openTakeOrderModal('${t.id}')">Read Instructions →</button>
       </div>
     </div>
   `).join('')}</div>`;
@@ -2390,17 +2734,28 @@ function openTakeOrderModal(id) {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   _pendingTakeId = id;
+  document.querySelector('#modal-take-order .modal-title').textContent = 'Read Instructions Before Accepting';
+  document.querySelector('#modal-take-order .modal-sub').textContent = 'Review the full brief and any instruction files before taking this order.';
   document.getElementById('take-order-details').innerHTML = `
-    <div style="background:var(--teal-pale);border-radius:10px;padding:16px;margin-bottom:8px;">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--teal-dark);margin-bottom:8px;">${t.id} — ${t.subject}</div>
+    <div style="background:var(--teal-pale);border-radius:10px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--teal-dark);margin-bottom:8px;">${esc(t.id)} — ${esc(t.subject)}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-        <div><span class="text-muted">Level: </span>${t.level}</div>
-        <div><span class="text-muted">Style: </span>${t.style}</div>
-        <div><span class="text-muted">Pages: </span>${t.pages}</div>
+        <div><span class="text-muted">Level: </span>${esc(t.level)}</div>
+        <div><span class="text-muted">Style: </span>${esc(t.style)}</div>
+        <div><span class="text-muted">Pages: </span>${esc(t.pages)}</div>
+        <div><span class="text-muted">Words: </span>${t.words?.toLocaleString() || '—'}</div>
         <div><span class="text-muted">Deadline: </span><span style="color:var(--rust);">${fmtDate(t.deadline)}</span></div>
+        <div><span class="text-muted">Employer: </span>${esc(t.posted_by_name || t.posted_by || '—')}</div>
       </div>
-      <div style="margin-top:12px;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--teal-dark);">KES ${t.total.toLocaleString()}</div>
+      <div style="margin-top:12px;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--teal-dark);">KES ${Number(t.total || 0).toLocaleString()}</div>
     </div>
+    <div style="margin-bottom:12px;">
+      <div class="form-label" style="margin-bottom:6px;">Task Description / Instructions</div>
+      <div style="font-size:13px;color:var(--charcoal);line-height:1.65;background:var(--cream);padding:12px;border-radius:8px;max-height:220px;overflow-y:auto;white-space:pre-wrap;">${esc(t.description || 'No written instructions were provided.')}</div>
+    </div>
+    ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Special Requirements</div><div style="font-size:13px;color:var(--charcoal);line-height:1.55;background:#fff3e0;padding:12px;border-radius:8px;">${esc(t.requirements)}</div></div>` : ''}
+    ${renderInstructionFiles(t)}
+    <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px;">Only accept the order after you are comfortable with the instructions, attached files, deadline, and payment amount.</div>
   `;
   document.getElementById('modal-take-order').classList.add('open');
 }
@@ -2437,7 +2792,7 @@ function renderWriterTasks() {
 
   const tbody = document.getElementById('writer-tasks-table');
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet. Browse Available Orders to find work.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet. Browse Available Orders to find work.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(t => `
@@ -2449,6 +2804,7 @@ function renderWriterTasks() {
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
       <td>${statusBadge(t.status)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View</button>${t.status === 'completed' ? `<button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','employer')">Rate</button>` : ''}</div></td>
     </tr>
   `).join('');
 }
@@ -2538,6 +2894,7 @@ function showSelectedSubmitTask() {
     </div>
     ${t.description ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Instructions:</strong> ${esc(t.description)}</div>` : ''}
     ${t.requirements ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Special requirements:</strong> ${esc(t.requirements)}</div>` : ''}
+    ${renderInstructionFiles(t)}
     ${renderSubmittedFiles(t)}
   </div>`;
 }
@@ -2584,19 +2941,67 @@ function readFileAsDataURL(file) {
       size: file.size,
       type: file.type || '',
       data_url: reader.result,
-      uploaded_at: new Date().toISOString()
+      uploaded_at: new Date().toISOString(),
+      storage_fallback: true
     });
     reader.onerror = () => reject(reader.error || new Error('Could not read file'));
     reader.readAsDataURL(file);
   });
 }
 
-async function storedSubmittedFiles() {
+function safeFileSegment(value) {
+  return String(value || 'file')
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 90) || 'file';
+}
+
+async function uploadSubmittedFileToStorage(file, taskId) {
+  const safeEmail = safeFileSegment(currentUser?.email || 'writer');
+  const safeTask = safeFileSegment(taskId || 'task');
+  const safeName = safeFileSegment(file.name || 'submitted-file');
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const path = `${safeTask}/${safeEmail}/${unique}-${safeName}`;
+
+  const { error } = await _sb.storage.from(SUBMISSIONS_BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type || 'application/octet-stream'
+  });
+  if (error) throw error;
+
+  return {
+    name: file.name,
+    size: file.size,
+    type: file.type || '',
+    storage_bucket: SUBMISSIONS_BUCKET,
+    storage_path: path,
+    uploaded_at: new Date().toISOString()
+  };
+}
+
+async function storedSubmittedFiles(taskId) {
   if (!_uploadedFiles.length) return [];
-  const maxEach = 12 * 1024 * 1024;
+  const maxEach = 25 * 1024 * 1024;
   const tooLarge = _uploadedFiles.find(f => f.size > maxEach);
-  if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 12MB each, or submit a link.`);
-  return await Promise.all(_uploadedFiles.map(readFileAsDataURL));
+  if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 25MB each, or submit a link.`);
+
+  const saved = [];
+  for (const file of _uploadedFiles) {
+    try {
+      saved.push(await uploadSubmittedFileToStorage(file, taskId));
+    } catch (storageErr) {
+      console.warn('Supabase Storage upload failed; falling back to JSON file data.', storageErr);
+      const fallbackLimit = 8 * 1024 * 1024;
+      if (file.size > fallbackLimit) {
+        throw new Error(`Could not upload ${file.name} to Supabase Storage, and it is too large for fallback storage. Create the jw-submissions storage bucket and policies, then try again.`);
+      }
+      saved.push(await readFileAsDataURL(file));
+    }
+  }
+  return saved;
 }
 
 async function writerSubmitWork() {
@@ -2611,7 +3016,7 @@ async function writerSubmitWork() {
   try {
     if (type === 'file') {
       if (!_uploadedFiles.length) { notify('⚠️ Please upload at least one file'); return; }
-      updates.submitted_files = await storedSubmittedFiles();
+      updates.submitted_files = await storedSubmittedFiles(id);
       updates.submitted_link = '';
       updates.submitted_text = '';
     } else if (type === 'link') {
@@ -2707,6 +3112,71 @@ function writerLoadTracker() {
 }
 
 
+
+// ══════════════════════════════════════════════════════
+//  RATINGS
+// ══════════════════════════════════════════════════════
+function setRatingScore(score) {
+  _selectedRatingScore = Number(score) || 0;
+  document.getElementById('rating-score').value = String(_selectedRatingScore);
+  document.querySelectorAll('#rating-stars button').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx < _selectedRatingScore);
+  });
+}
+
+function openRatingModal(taskId, targetType) {
+  const t = getTaskById(taskId);
+  if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ You cannot rate this order'); return; }
+  if (t.status !== 'completed') { notify('⚠️ Ratings are available after the order is completed'); return; }
+  const targetName = targetType === 'writer' ? (t.taken_by_name || t.taken_by || 'Writer') : (t.posted_by_name || t.posted_by || 'Employer');
+  document.getElementById('rating-task-id').value = taskId;
+  document.getElementById('rating-target-type').value = targetType;
+  document.getElementById('rating-title').textContent = `Rate ${targetType === 'writer' ? 'Writer' : 'Employer'}`;
+  document.getElementById('rating-sub').textContent = `${t.id} — ${targetName}`;
+  const key = targetType === 'writer' ? 'writer_by_employer' : 'employer_by_writer';
+  const existing = getTaskRatings(t)[key];
+  document.getElementById('rating-comment').value = existing?.comment || '';
+  setRatingScore(existing?.score || 0);
+  document.getElementById('modal-rating').classList.add('open');
+}
+
+function confirmRating() {
+  const taskId = document.getElementById('rating-task-id').value;
+  const targetType = document.getElementById('rating-target-type').value;
+  const score = Number(document.getElementById('rating-score').value) || 0;
+  const comment = document.getElementById('rating-comment').value.trim();
+  const t = getTaskById(taskId);
+  if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ Order not found'); return; }
+  if (score < 1 || score > 5) { notify('⚠️ Please choose a rating from 1 to 5 stars'); return; }
+  const key = targetType === 'writer' ? 'writer_by_employer' : 'employer_by_writer';
+  const forEmail = targetType === 'writer' ? t.taken_by : t.posted_by;
+  const forName = targetType === 'writer' ? t.taken_by_name : t.posted_by_name;
+  const ratings = getTaskRatings(t);
+  ratings[key] = {
+    score,
+    comment,
+    by_email: currentUser.email,
+    by_name: currentUser.name,
+    by_role: currentUser.role,
+    for_email: forEmail,
+    for_name: forName,
+    target_type: targetType,
+    at: new Date().toISOString()
+  };
+  t.ratings = ratings;
+  dbUpdateTask(t.id, { ratings }).then(() => {
+    closeModal('modal-rating');
+    renderEmpTasks();
+    renderWriterTasks();
+    notify('⭐ Rating saved');
+  }).catch(err => {
+    saveLocalRatings(t.id, ratings);
+    closeModal('modal-rating');
+    notify('⭐ Rating saved locally. Add the ratings JSONB column in Supabase to sync it.');
+    console.warn('Rating sync failed:', err);
+  });
+}
+
 // ══════════════════════════════════════════════════════
 //  MESSAGING
 // ══════════════════════════════════════════════════════
@@ -2732,6 +3202,49 @@ function messageableTasks() {
   if (currentUser.role === 'employer') return myTaskList().filter(t => t.taken_by);
   return tasks.filter(t => t.taken_by === currentUser.email);
 }
+
+function getReadByList(m) {
+  return Array.isArray(m?.read_by) ? m.read_by : [];
+}
+function unreadMessagesForTask(t) {
+  if (!currentUser || !t) return 0;
+  return getTaskMessages(t).filter(m => {
+    if (!m || m.sender_email === currentUser.email) return false;
+    return !getReadByList(m).includes(currentUser.email);
+  }).length;
+}
+function totalUnreadMessages() {
+  return messageableTasks().reduce((sum, t) => sum + unreadMessagesForTask(t), 0);
+}
+function setUnreadBadge(id, count) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = count > 99 ? '99+' : String(count);
+  el.title = count === 1 ? '1 unread message' : `${count} unread messages`;
+  el.classList.add('show');
+}
+function messageOptionLabel(t) {
+  const unread = unreadMessagesForTask(t);
+  return `${t.id} — ${t.subject}${unread ? ` (${unread} unread)` : ''}`;
+}
+function markTaskMessagesRead(t) {
+  if (!currentUser || !t) return getTaskMessages(t);
+  const messages = getTaskMessages(t);
+  let changed = false;
+  const next = messages.map(m => {
+    if (!m || m.sender_email === currentUser.email) return m;
+    const readBy = getReadByList(m);
+    if (readBy.includes(currentUser.email)) return m;
+    changed = true;
+    return { ...m, read_by: [...readBy, currentUser.email] };
+  });
+  if (changed) {
+    setTaskMessages(t, next);
+    updateBadges();
+    dbUpdateTask(t.id, { messages: next }).catch(err => console.warn('Read receipt sync failed:', err));
+  }
+  return next;
+}
 function openMessagesForTask(id) {
   _preselectMessageTaskId = id;
   navigate('messages');
@@ -2739,7 +3252,7 @@ function openMessagesForTask(id) {
 function renderMessagesPage() {
   const sel = document.getElementById('msg-order-select');
   const list = messageableTasks();
-  sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)}</option>`).join('');
+  sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(messageOptionLabel(t))}</option>`).join('');
   if (_preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId)) {
     sel.value = _preselectMessageTaskId;
     _preselectMessageTaskId = null;
@@ -2762,7 +3275,9 @@ function loadMessageThread() {
   }
   title.innerHTML = `${esc(t.id)} — ${esc(t.subject)}`;
   summary.innerHTML = `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadge(t.status)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
-  const messages = getTaskMessages(t);
+  const messages = markTaskMessagesRead(t);
+  const currentOption = Array.from(document.getElementById('msg-order-select').options).find(opt => opt.value === t.id);
+  if (currentOption) currentOption.textContent = messageOptionLabel(t);
   if (!messages.length) {
     thread.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet. Start the conversation below.</p></div>';
   } else {
@@ -2793,11 +3308,13 @@ function sendTaskMessage() {
     sender_name: currentUser.name,
     sender_role: currentUser.role,
     body,
-    at: new Date().toISOString()
+    at: new Date().toISOString(),
+    read_by: [currentUser.email]
   };
   const next = [...messages, msg];
   input.value = '';
   setTaskMessages(t, next);
+  updateBadges();
   loadMessageThread();
   dbUpdateTask(t.id, { messages: next }).then(() => {
     notify('💬 Message sent', 'message');
