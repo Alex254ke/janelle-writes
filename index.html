@@ -639,6 +639,44 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   background: var(--teal-pale); color: var(--teal-dark);
 }
 
+
+
+/* ── CLICKABLE ORDER LINKS / SUBMISSIONS / MESSAGING ─── */
+.order-link {
+  border: 0; background: transparent; color: var(--teal-dark); font: inherit;
+  font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.order-link:hover { color: var(--teal); }
+.submission-files { display: flex; flex-direction: column; gap: 8px; }
+.submission-file-card {
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
+  background:var(--teal-pale); border:1px solid var(--border); border-left:4px solid var(--teal);
+  border-radius:10px; flex-wrap:wrap;
+}
+.submission-file-main { flex:1; min-width:180px; }
+.submission-file-name { font-size:13px; font-weight:700; color:var(--ink); word-break:break-word; }
+.submission-file-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+.submission-file-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.submission-preview-box {
+  border:1px solid var(--border); background:var(--cream); border-radius:12px;
+  padding:14px; margin-top:12px;
+}
+.message-shell { display:grid; grid-template-columns: 330px 1fr; gap:20px; }
+.message-sidebar, .message-panel { background:var(--white); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px; }
+.message-thread { min-height:320px; max-height:460px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:8px; background:var(--cream); border-radius:12px; }
+.message-bubble { max-width:76%; padding:11px 13px; border-radius:13px; border:1px solid var(--border); background:var(--white); }
+.message-bubble.mine { margin-left:auto; background:var(--teal-pale); border-color:var(--teal); }
+.message-meta { font-size:10px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.8px; }
+.message-text { font-size:13px; line-height:1.55; color:var(--charcoal); white-space:pre-wrap; word-break:break-word; }
+.message-composer { display:flex; gap:10px; margin-top:12px; align-items:flex-end; }
+.message-composer textarea { flex:1; min-height:54px; }
+@media (max-width:800px) {
+  .message-shell { grid-template-columns:1fr; }
+  .message-bubble { max-width:92%; }
+  .message-composer { flex-direction:column; align-items:stretch; }
+}
+
 /* ── RESPONSIVE ─── */
 @media (max-width:900px) {
   .auth-visual { display: none; }
@@ -743,8 +781,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
       <div style="margin-top:16px; padding:14px; background:var(--teal-pale); border-radius:9px; font-size:12px; color:var(--slate);">
         <strong>Getting started:</strong><br>
-        Create an Employer account to post orders, and a Writer account to accept them.<br>
-        <em style="color:var(--muted);">All data is stored in your Supabase database.</em>
+        Create an Employer account to post orders, and a Writer account to accept them.
       </div>
     </div>
 
@@ -792,6 +829,29 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       </div>
       <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
     </div>
+
+    <!-- 2FA VERIFICATION STEP -->
+    <div id="twofa-form" style="display:none;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">🔐</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;">A 6-digit verification code has been sent to your email address.<br>Enter it below to finish creating your account.</p>
+      </div>
+      <div id="twofa-email-status" style="background:var(--teal-pale);border:1.5px solid var(--teal);border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal-dark);font-weight:600;margin-bottom:8px;">Email Verification</div>
+        <div id="twofa-code-display" style="display:none;font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ink);letter-spacing:8px;">——</div>
+        <div id="twofa-status-text" style="font-size:13px;color:var(--slate);line-height:1.5;">Sending code…</div>
+        <div id="twofa-countdown" style="font-size:11px;color:var(--muted);margin-top:8px;">Code expires in 5:00</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enter Verification Code</label>
+        <input type="text" class="form-input" id="twofa-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-size:22px;letter-spacing:6px;font-family:'Cormorant Garamond',serif;" onkeydown="if(event.key==='Enter')verify2FA()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="verify2FA()">✓ Verify & Create Account</button>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="btn btn-outline btn-full btn-sm" onclick="resend2FA()" style="font-size:12px;">🔄 Resend Code</button>
+        <button class="btn btn-outline btn-full btn-sm" onclick="cancel2FA()" style="font-size:12px;">← Go Back</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -823,10 +883,12 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   </nav>
 
   <div class="sidebar-footer">
+    <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);font-weight:600;margin-bottom:8px;">🎧 Customer Support</div>
     <div class="contact-links">
       <a class="contact-link" href="https://instagram.com/Janelle_assignments" target="_blank"><span class="ci">📸</span> @Janelle_assignments</a>
       <a class="contact-link" href="https://wa.me/254723156622" target="_blank"><span class="ci">💬</span> +254 723 156 622</a>
       <a class="contact-link" href="mailto:janellewrites979@gmail.com"><span class="ci">✉️</span> janellewrites979@gmail.com</a>
+      <a class="contact-link" href="https://twitter.com/JW_Assignments" target="_blank"><span class="ci">𝕏</span> @JW_Assignments</a>
     </div>
     <div class="btn-logout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
@@ -1130,6 +1192,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
           <select class="form-select" id="writer-submit-select" onchange="toggleSubmitType()">
             <option value="">— Select Order —</option>
           </select></div>
+        <div class="form-group form-full" id="writer-submit-details" style="display:none;"></div>
         <div class="form-group"><label class="form-label">Submission Type</label>
           <select class="form-select" id="writer-submit-type" onchange="toggleSubmitSection()">
             <option value="file">📎 File Upload</option>
@@ -1211,16 +1274,28 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       </div>
     </div>
   </div>
-  <!-- EMPLOYER: MESSAGES -->
-  <div class="page content" id="page-emp-messages">
-    <div class="section-header"><div class="section-title">💬 <span>Messages</span></div></div>
-    <div id="emp-msg-page-wrap"></div>
-  </div>
 
-  <!-- WRITER: MESSAGES -->
-  <div class="page content" id="page-writer-messages">
-    <div class="section-header"><div class="section-title">💬 <span>Messages</span></div></div>
-    <div id="writer-msg-page-wrap"></div>
+
+  <!-- SHARED: MESSAGES -->
+  <div class="page content" id="page-messages">
+    <div class="section-header"><div class="section-title">Order <span>Messages</span></div></div>
+    <div class="message-shell">
+      <div class="message-sidebar">
+        <div class="form-group">
+          <label class="form-label">Select Order</label>
+          <select class="form-select" id="msg-order-select" onchange="loadMessageThread()"><option value="">— Select an assigned order —</option></select>
+        </div>
+        <div id="msg-order-summary" class="text-muted" style="line-height:1.6;">Choose an order to message the assigned writer or employer.</div>
+      </div>
+      <div class="message-panel">
+        <div id="msg-thread-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Messages</div>
+        <div id="msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select an assigned order to start messaging.</p></div></div>
+        <div class="message-composer" id="msg-composer" style="display:none;">
+          <textarea class="form-textarea" id="msg-input" rows="2" placeholder="Write a message..."></textarea>
+          <button class="btn btn-primary" onclick="sendTaskMessage()">Send →</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -1301,49 +1376,33 @@ let _writerTaskFilter = 'all';
 let _pendingTakeId = null;
 let _pendingRevisionId = null;
 let _uploadedFiles = [];
-const _recentlyInserted = new Set(); // deduplicate realtime INSERT events
 
-// ── ORDER NUMBER (per-employer counter) ───────────────
+// ── ORDER NUMBER (per employer, with employer initials) ─────────────
+function employerInitials(user = currentUser) {
+  const name = (user?.name || user?.email || 'JW').trim();
+  const parts = name.includes('@') ? name.split('@')[0].split(/[._\-]+/) : name.split(/\s+/);
+  return (parts.filter(Boolean).map(w => w[0].toUpperCase()).join('') || 'JW').slice(0,3);
+}
+
+function orderSeqFromId(id) {
+  const m = String(id || '').match(/JW-[A-Z]+-(\d{1,})/);
+  return m ? parseInt(m[1], 10) : NaN;
+}
+
 function nextOrderNum() {
-  // Only count orders posted by the current user so each employer starts from 0001
-  const mine = tasks.filter(t => t.posted_by === currentUser.email);
-  const ids = mine.map(t => {
-    const m = t.id.match(/\d+$/);
-    return m ? parseInt(m[0]) : NaN;
-  }).filter(n => !isNaN(n));
-  const next = ids.length ? Math.max(...ids) + 1 : 1;
-  // Initials prefix
-  const initials = currentUser.name.trim().split(/\s+/).map(w => w[0].toUpperCase()).join('').slice(0,3);
-  return 'JW-' + initials + '-' + String(next).padStart(4,'0');
+  const initials = employerInitials();
+  const mine = tasks.filter(t => (t.posted_by || '').toLowerCase() === (currentUser?.email || '').toLowerCase());
+  const nums = mine.map(t => orderSeqFromId(t.id)).filter(n => !isNaN(n));
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  return `JW-${initials}-${String(next).padStart(4,'0')}`;
 }
 
-// ══════════════════════════════════════════════════════
-//  SOUND SYSTEM  (Web Audio API — no external deps)
-// ══════════════════════════════════════════════════════
-let _audioCtx = null;
-function _getAudioCtx() {
-  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return _audioCtx;
+function makeFallbackOrderNum(base) {
+  const email = (currentUser?.email || 'user').toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) hash = ((hash << 5) - hash + email.charCodeAt(i)) | 0;
+  return `${base}-${Math.abs(hash).toString(36).slice(0,3).toUpperCase()}`;
 }
-function _playTone(freqs, duration = 0.18, type = 'sine', vol = 0.22) {
-  try {
-    const ctx = _getAudioCtx();
-    freqs.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = type; osc.frequency.value = freq;
-      const t0 = ctx.currentTime + i * (duration * 0.9);
-      gain.gain.setValueAtTime(vol, t0);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
-      osc.start(t0); osc.stop(t0 + duration);
-    });
-  } catch(e) {}
-}
-// Three distinct sounds
-function soundNewTask()    { _playTone([523, 659, 784], 0.22, 'sine', 0.18); }      // C5-E5-G5 ascending chord = new order posted
-function soundSubmit()     { _playTone([784, 659, 880], 0.20, 'sine', 0.20); }      // G5-E5-A5 bright fanfare = work submitted
-function soundMessage()    { _playTone([880, 1047], 0.14, 'triangle', 0.15); }      // A5-C6 ping = new message
 
 // ══════════════════════════════════════════════════════
 //  DB HELPERS — wraps Supabase calls
@@ -1383,44 +1442,142 @@ async function dbInsertTask(task) {
   return data;
 }
 
+async function dbInsertTaskSafe(task) {
+  try {
+    return await dbInsertTask(task);
+  } catch (err) {
+    const msg = (err?.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique')) {
+      const fallback = { ...task, id: makeFallbackOrderNum(task.id) };
+      return await dbInsertTask(fallback);
+    }
+    throw err;
+  }
+}
+
+function upsertLocalTask(row, atStart = true) {
+  if (!row || !row.id) return;
+  const idx = tasks.findIndex(t => t.id === row.id);
+  if (idx !== -1) tasks[idx] = { ...tasks[idx], ...row };
+  else atStart ? tasks.unshift(row) : tasks.push(row);
+}
+
+function dedupeTasks(list = tasks) {
+  const seen = new Set();
+  return (list || []).filter(t => {
+    if (!t || !t.id || seen.has(t.id)) return false;
+    seen.add(t.id);
+    return true;
+  });
+}
+
 async function dbUpdateTask(id, updates) {
   const { error } = await _sb.from('jw_tasks').update(updates).eq('id', id);
   if (error) throw error;
 }
 
-// ── MESSAGES ──────────────────────────────────────────
-async function dbGetMessages(taskId) {
-  const { data, error } = await _sb.from('jw_messages')
-    .select('*').eq('task_id', taskId).order('created_at', { ascending: true });
-  if (error) throw error;
-  return data || [];
-}
-
-async function dbSendMessage(msg) {
-  const { data, error } = await _sb.from('jw_messages').insert([msg]).select().single();
-  if (error) throw error;
-  return data;
-}
-
-async function dbMarkMessagesRead(taskId, readerEmail) {
-  const { error } = await _sb.from('jw_messages')
-    .update({ read: true })
-    .eq('task_id', taskId)
-    .neq('from_email', readerEmail);
-  if (error) throw error;
-}
-
-async function dbGetUnreadCount(userEmail) {
-  const { data, error } = await _sb.from('jw_messages')
-    .select('id').eq('to_email', userEmail).eq('read', false);
-  if (error) return 0;
-  return (data || []).length;
-}
-
 // Refresh the in-memory tasks cache from Supabase
 async function refreshTasks() {
-  tasks = await dbGetTasks();
+  tasks = dedupeTasks(await dbGetTasks());
   updateBadges();
+}
+
+// ══════════════════════════════════════════════════════
+//  TWO-FACTOR AUTH (2FA) for signup
+// ══════════════════════════════════════════════════════
+let _2faCode = null;
+let _2faPending = null; // { name, email, pass, role }
+let _2faTimer = null;
+let _2faExpiry = 0;
+
+function generate2FACode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function send2FACodeToEmail(email, code, name) {
+  // Requires a Supabase Edge Function named "send-verification-code".
+  // The function should email { email, code, name }. If it is not deployed,
+  // the app falls back to showing the code on-screen so registration still works.
+  const { error } = await _sb.functions.invoke('send-verification-code', {
+    body: { email, code, name, app: 'Janelle Writes' }
+  });
+  if (error) throw error;
+}
+
+async function show2FAStep(pendingUser) {
+  _2faPending = pendingUser;
+  _2faCode = generate2FACode();
+  _2faExpiry = Date.now() + 5 * 60 * 1000; // 5-min expiry
+
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = '';
+  document.getElementById('auth-panel-title').textContent = 'Verify Your Account';
+  document.getElementById('auth-panel-sub').textContent = 'Enter the email code to complete registration';
+  document.getElementById('twofa-input').value = '';
+
+  const codeEl = document.getElementById('twofa-code-display');
+  const statusEl = document.getElementById('twofa-status-text');
+  if (codeEl) { codeEl.textContent = '——'; codeEl.style.display = 'none'; }
+  if (statusEl) statusEl.textContent = `Sending code to ${pendingUser.email}…`;
+
+  try {
+    await send2FACodeToEmail(pendingUser.email, _2faCode, pendingUser.name);
+    if (statusEl) statusEl.textContent = `Code sent to ${pendingUser.email}. Please check your inbox or spam folder.`;
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `Email sending is not configured yet. Temporary setup code shown below:`;
+    if (codeEl) { codeEl.textContent = _2faCode; codeEl.style.display = ''; }
+    console.warn('2FA email fallback:', err);
+  }
+
+  clearInterval(_2faTimer);
+  let secsLeft = 300;
+  const countEl = document.getElementById('twofa-countdown');
+  const updateCount = () => {
+    const m = Math.floor(secsLeft/60), s = secsLeft%60;
+    if (countEl) countEl.textContent = `Code expires in ${m}:${s.toString().padStart(2,'0')}`;
+    secsLeft--;
+    if (secsLeft < 0) {
+      clearInterval(_2faTimer);
+      if (countEl) countEl.textContent = 'Code expired. Please try again.';
+      _2faCode = null;
+    }
+  };
+  updateCount();
+  _2faTimer = setInterval(updateCount, 1000);
+}
+
+function verify2FA() {
+  const entered = (document.getElementById('twofa-input').value||'').trim();
+  if (!_2faCode) { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
+  if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
+  if (entered !== _2faCode) { notify('❌ Incorrect code. Please check and try again.'); return; }
+
+  // Code matched — proceed with account creation
+  clearInterval(_2faTimer);
+  setLoading(true);
+  const u = { email: _2faPending.email, password: _2faPending.pass, name: _2faPending.name, role: _2faPending.role };
+  dbCreateUser(u).then(created => {
+    setLoading(false);
+    currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    _2faPending = null; _2faCode = null;
+    launchApp();
+  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
+}
+
+function cancel2FA() {
+  clearInterval(_2faTimer);
+  _2faPending = null; _2faCode = null;
+  document.getElementById('twofa-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = '';
+  document.getElementById('auth-panel-title').textContent = 'Create Account';
+  document.getElementById('auth-panel-sub').textContent = 'Join Janelle Writes today';
+}
+
+function resend2FA() {
+  if (!_2faPending) return;
+  show2FAStep(_2faPending);
+  notify('✦ New verification code sent.', 'message');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1435,6 +1592,7 @@ function switchAuthTab(tab) {
   document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome Back' : 'Create Account';
   document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in to your account' : 'Join Janelle Writes today';
 }
@@ -1452,7 +1610,10 @@ function doLogin() {
   setLoading(true);
   dbGetUserByEmail(email).then(u => {
     setLoading(false);
-    if (!u || u.password !== pass) { notify('❌ Invalid email or password'); return; }
+    if (!u || u.password !== pass) {
+      notify('❌ Invalid email or password. Please check and try again.');
+      return;
+    }
     currentUser = { id: u.id, email: u.email, name: u.name, role: u.role };
     localStorage.setItem('jw_session', JSON.stringify(currentUser));
     launchApp();
@@ -1467,14 +1628,10 @@ function doSignup() {
   if (pass.length < 6) { notify('⚠️ Password must be at least 6 characters'); return; }
   setLoading(true);
   dbGetUserByEmail(email).then(existing => {
-    if (existing) { setLoading(false); notify('❌ An account with this email already exists'); return; }
-    const u = { email, password: pass, name, role: _selectedRole };
-    return dbCreateUser(u).then(created => {
-      setLoading(false);
-      currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
-      localStorage.setItem('jw_session', JSON.stringify(currentUser));
-      launchApp();
-    });
+    setLoading(false);
+    if (existing) { notify('❌ An account with this email already exists'); return; }
+    // Trigger 2FA step instead of directly creating
+    show2FAStep({ name, email, pass, role: _selectedRole });
   }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
 }
 
@@ -1492,6 +1649,7 @@ function showForgotPassword() {
 function showLogin() {
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('login-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Welcome Back';
   document.getElementById('auth-panel-sub').textContent = 'Sign in to your account to continue';
@@ -1572,7 +1730,7 @@ function buildSidebar() {
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post New Task</div>
       <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
-      <div class="nav-item" data-page="emp-messages" onclick="navigate('emp-messages')"><span class="icon">💬</span> Messages <span class="nav-badge" id="msg-nav-badge" style="display:none;background:var(--info);">0</span></div>
+      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages</div>
       <div class="nav-section">Finance</div>
       <div class="nav-item" data-page="emp-invoice" onclick="navigate('emp-invoice')"><span class="icon">🧾</span> Invoice</div>
       <div class="nav-item" data-page="emp-payment" onclick="navigate('emp-payment')"><span class="icon">💳</span> Payment</div>
@@ -1583,8 +1741,8 @@ function buildSidebar() {
       <div class="nav-item" data-page="writer-dashboard" onclick="navigate('writer-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="writer-available" onclick="navigate('writer-available')"><span class="icon">📥</span> Available Orders <span class="nav-badge" id="avail-badge">0</span></div>
       <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks</div>
+      <div class="nav-item" data-page="messages" onclick="navigate('messages')"><span class="icon">💬</span> Messages</div>
       <div class="nav-item" data-page="writer-revisions" onclick="navigate('writer-revisions')"><span class="icon">🔄</span> Revisions <span class="nav-badge-revision" id="revision-nav-badge">0</span></div>
-      <div class="nav-item" data-page="writer-messages" onclick="navigate('writer-messages')"><span class="icon">💬</span> Messages <span class="nav-badge" id="msg-nav-badge-w" style="display:none;background:var(--info);">0</span></div>
       <div class="nav-section">Work</div>
       <div class="nav-item" data-page="writer-submit" onclick="navigate('writer-submit')"><span class="icon">📤</span> Submit Work</div>
       <div class="nav-item" data-page="writer-tracker" onclick="navigate('writer-tracker')"><span class="icon">📡</span> Tracker</div>
@@ -1596,12 +1754,12 @@ function buildTopbar() {
   const actions = document.getElementById('topbar-actions');
   if (currentUser.role === 'employer') {
     actions.innerHTML = `
-      <button class="btn btn-outline btn-sm" onclick="navigate('emp-invoice')">🧾 Invoice</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('emp-post')">＋ Post Task</button>
     `;
   } else {
     actions.innerHTML = `
-      <button class="btn btn-outline btn-sm" onclick="navigate('writer-available')">📥 Available Orders</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('messages')">💬 Messages</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('writer-submit')">📤 Submit Work</button>
     `;
   }
@@ -1647,14 +1805,14 @@ const pageTitles = {
   'emp-tasks': 'My Orders',
   'emp-invoice': 'Invoice & Billing',
   'emp-payment': 'M-Pesa Payment',
-  'emp-messages': 'Messages',
+  'messages': 'Messages',
   'writer-dashboard': 'Dashboard',
   'writer-available': 'Available Orders',
   'writer-tasks': 'My Tasks',
   'writer-submit': 'Submit Work',
   'writer-revisions': 'Revisions',
   'writer-tracker': 'Task Tracker',
-  'writer-messages': 'Messages',
+  'messages': 'Messages',
 };
 
 function navigate(page) {
@@ -1672,14 +1830,13 @@ function navigate(page) {
     case 'emp-tasks':       renderEmpTasks(); break;
     case 'emp-invoice':     renderEmpInvoice(); break;
     case 'emp-payment':     empPopulatePaySelect(); renderEmpPaySummary(); break;
-    case 'emp-messages':    renderMessagesPage('employer'); break;
+    case 'messages':        renderMessagesPage(); break;
     case 'writer-dashboard': renderWriterDashboard(); break;
     case 'writer-available': renderAvailableOrders(); break;
     case 'writer-tasks':    renderWriterTasks(); break;
     case 'writer-submit':   populateWriterSubmitSelect(); break;
     case 'writer-revisions': renderRevisions(); break;
     case 'writer-tracker':  populateWriterTrackerSelect(); break;
-    case 'writer-messages': renderMessagesPage('writer'); break;
   }
 }
 
@@ -1723,11 +1880,131 @@ function payBadge(p) {
     : '<span class="badge badge-unpaid">Unpaid</span>';
 }
 
+function esc(v) {
+  return String(v ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+}
+
+function safeParseJSON(value, fallback = []) {
+  if (Array.isArray(value)) return value;
+  if (!value) return fallback;
+  try { return JSON.parse(value); } catch { return fallback; }
+}
+
+function parseSubmittedFiles(value) {
+  return safeParseJSON(value, []).filter(Boolean);
+}
+
+function getTaskById(id) {
+  return tasks.find(t => String(t.id) === String(id));
+}
+
+function canCurrentUserSeeTask(t) {
+  if (!currentUser || !t) return false;
+  return t.posted_by === currentUser.email || t.taken_by === currentUser.email;
+}
+
+function isPreviewableFile(f) {
+  const type = (f.type || '').toLowerCase();
+  const ext = (f.name || '').split('.').pop().toLowerCase();
+  return type.startsWith('image/') || type === 'application/pdf' || ['pdf','png','jpg','jpeg','gif','webp','txt','csv'].includes(ext);
+}
+
+function renderSubmittedFiles(t) {
+  const files = parseSubmittedFiles(t.submitted_files);
+  if (!files.length) return '';
+  return `<div style="margin-bottom:12px;">
+    <div class="form-label" style="margin-bottom:8px;">📎 Submitted Files (${files.length})</div>
+    <div class="submission-files">
+      ${files.map((f,i) => {
+        const hasDownload = !!(f.data_url || f.url);
+        const ext = (f.name || '').split('.').pop().toUpperCase() || 'FILE';
+        return `<div class="submission-file-card">
+          <span style="font-size:24px;flex-shrink:0;">${fileIcon(f.name || '')}</span>
+          <div class="submission-file-main">
+            <div class="submission-file-name">${esc(f.name || 'Submitted file')}</div>
+            <div class="submission-file-meta">${esc(ext)}${f.size ? ' · ' + formatSize(Number(f.size)) : ''}${!hasDownload ? ' · metadata only from older submission' : ''}</div>
+          </div>
+          <div class="submission-file-actions">
+            <button class="btn btn-outline btn-sm" ${hasDownload && isPreviewableFile(f) ? `onclick="previewSubmittedFile('${esc(t.id)}',${i})"` : 'disabled'}>Preview</button>
+            <button class="btn btn-primary btn-sm" ${hasDownload ? `onclick="downloadSubmittedFile('${esc(t.id)}',${i})"` : 'disabled'}>Download</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function downloadSubmittedFile(taskId, index) {
+  const t = getTaskById(taskId);
+  if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
+  const f = parseSubmittedFiles(t.submitted_files)[index];
+  if (!f || !(f.data_url || f.url)) { notify('⚠️ This older submission has no downloadable file data'); return; }
+  const a = document.createElement('a');
+  a.href = f.data_url || f.url;
+  a.download = f.name || `submitted-file-${index+1}`;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function previewSubmittedFile(taskId, index) {
+  const t = getTaskById(taskId);
+  if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
+  const f = parseSubmittedFiles(t.submitted_files)[index];
+  if (!f || !(f.data_url || f.url)) { notify('⚠️ Preview is not available for this older submission'); return; }
+  if (!isPreviewableFile(f)) { downloadSubmittedFile(taskId, index); return; }
+  const url = f.data_url || f.url;
+  const name = esc(f.name || 'Submitted file');
+  const type = (f.type || '').toLowerCase();
+  const ext = (f.name || '').split('.').pop().toLowerCase();
+  const w = window.open('', '_blank');
+  if (!w) { notify('⚠️ Please allow pop-ups to preview the file'); return; }
+  if (type.startsWith('image/') || ['png','jpg','jpeg','gif','webp'].includes(ext)) {
+    w.document.write(`<title>${name}</title><body style="margin:0;background:#0f1923;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${url}" style="max-width:96vw;max-height:96vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);"></body>`);
+  } else if (type === 'application/pdf' || ext === 'pdf') {
+    w.document.write(`<title>${name}</title><iframe src="${url}" style="border:0;width:100vw;height:100vh;"></iframe>`);
+  } else {
+    const text = await fetch(url).then(r => r.text()).catch(() => 'Preview unavailable. Please download the file.');
+    w.document.write(`<title>${name}</title><pre style="white-space:pre-wrap;font:14px/1.55 system-ui;padding:24px;color:#0f1923;">${esc(text)}</pre>`);
+  }
+  w.document.close();
+}
+
+let _audioCtx = null;
+function playSound(type = 'default') {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    _audioCtx = _audioCtx || new Ctx();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const tones = {
+      order: [660, 880],
+      submit: [520, 740, 980],
+      message: [420, 640],
+      default: [520]
+    }[type] || [520];
+    tones.forEach((freq, i) => {
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, _audioCtx.currentTime + i * 0.11);
+      gain.gain.exponentialRampToValueAtTime(0.08, _audioCtx.currentTime + i * 0.11 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, _audioCtx.currentTime + i * 0.11 + 0.12);
+      osc.connect(gain).connect(_audioCtx.destination);
+      osc.start(_audioCtx.currentTime + i * 0.11);
+      osc.stop(_audioCtx.currentTime + i * 0.11 + 0.14);
+    });
+  } catch (err) { /* browsers can block sound before first interaction */ }
+}
+
 let notifTimer;
-function notify(msg) {
+function notify(msg, soundType = 'default') {
   const el = document.getElementById('notification');
   document.getElementById('notif-msg').textContent = msg;
   el.classList.add('show');
+  if (soundType) playSound(soundType);
   clearTimeout(notifTimer);
   notifTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
@@ -1797,14 +2074,13 @@ function empPostTask() {
   };
 
   setLoading(true);
-  dbInsertTask(task).then(saved => {
+  dbInsertTaskSafe(task).then(saved => {
     setLoading(false);
-    _recentlyInserted.add(saved.id); // prevent realtime duplicate
-    tasks.unshift(saved);
-    soundNewTask();
+    upsertLocalTask(saved);
+    tasks = dedupeTasks(tasks);
     empClearForm();
     updateBadges();
-    notify('✦ Task ' + saved.id + ' posted successfully!');
+    notify('✦ Task ' + saved.id + ' posted successfully!', 'order');
     navigate('emp-tasks');
   }).catch(err => { setLoading(false); notify('❌ Error posting task: ' + err.message); });
 }
@@ -1835,7 +2111,7 @@ function renderEmpDashboard() {
   }
   tbody.innerHTML = recent.map(t => `
     <tr onclick="empViewTask('${t.id}')" style="cursor:pointer;">
-      <td><strong>${t.id}</strong></td>
+      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);">${fmtDate(t.deadline)}</td>
@@ -1872,12 +2148,9 @@ function renderEmpTasks() {
     tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><p>No orders found.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(t => {
-    const hasFiles = (()=>{ try { const f=Array.isArray(t.submitted_files)?t.submitted_files:(t.submitted_files?JSON.parse(t.submitted_files):[]); return f.length; } catch{return 0;} })();
-    const hasSub = hasFiles || t.submitted_link || t.submitted_text;
-    return `
+  tbody.innerHTML = list.map(t => `
     <tr>
-      <td><strong style="color:var(--teal);cursor:pointer;text-decoration:underline dotted;" onclick="empViewTask('${t.id}')">${t.id}</strong></td>
+      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
@@ -1886,15 +2159,15 @@ function renderEmpTasks() {
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View${hasSub ? ` <span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:2px;">📎</span>` : ''}</button>
-          <button class="btn btn-outline btn-sm" onclick="openMsgPanel('${t.id}','${t.taken_by||''}','${t.taken_by_name||''}')" title="Message writer">💬</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
+          ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button>` : ''}
           ${t.payment==='unpaid' && t.total>0 ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
         </div>
       </td>
-    </tr>`;
-  }).join('');
+    </tr>
+  `).join('');
   updateBadges();
 }
 
@@ -1903,47 +2176,6 @@ function empViewTask(id) {
   if (!t) return;
   const modal = document.getElementById('modal-view-task');
   document.getElementById('vtm-title').textContent = t.id + ' — ' + t.subject;
-
-  // Parse files
-  let files = [];
-  try { files = Array.isArray(t.submitted_files) ? t.submitted_files : (t.submitted_files ? JSON.parse(t.submitted_files) : []); } catch{}
-
-  const fileHtml = files.length ? `
-    <div style="margin-bottom:14px;">
-      <div class="form-label" style="margin-bottom:8px;">📎 Submitted Files (${files.length})</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        ${files.map((f,i) => {
-          const ext = (f.name||'').split('.').pop().toLowerCase();
-          const iconMap = {pdf:'📄',doc:'📝',docx:'📝',txt:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp3:'🎵',mp4:'🎬',wav:'🎵',zip:'📦',rar:'📦',xlsx:'📊',pptx:'📊',csv:'📊'};
-          const icon = iconMap[ext] || '📎';
-          const fmtSz = b => !b ? '' : b<1024 ? b+'B' : b<1048576 ? (b/1024).toFixed(1)+'KB' : (b/1048576).toFixed(1)+'MB';
-          const hasData = !!f.data;
-          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--teal-pale);border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:8px;">
-            <span style="font-size:22px;flex-shrink:0;">${icon}</span>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</div>
-              ${f.size ? `<div style="font-size:11px;color:var(--muted);">${fmtSz(f.size)}</div>` : ''}
-            </div>
-            <span style="font-size:11px;background:var(--teal-dark);color:#fff;padding:2px 7px;border-radius:10px;flex-shrink:0;font-weight:600;">${ext.toUpperCase()}</span>
-            ${hasData ? `<button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="downloadFile(${i},'${id}')">⬇ Download</button>` : '<span style="font-size:11px;color:var(--muted);">Upload only — no stored data</span>'}
-          </div>
-          ${hasData && ['jpg','jpeg','png','gif'].includes(ext) ? `<div style="border-radius:8px;overflow:hidden;max-height:200px;margin-top:4px;border:1px solid var(--border);"><img src="${f.data}" style="width:100%;max-height:200px;object-fit:contain;display:block;" alt="${f.name}"></div>` : ''}
-          ${hasData && ext==='pdf' ? `<div style="margin-top:4px;"><iframe src="${f.data}" style="width:100%;height:260px;border:1px solid var(--border);border-radius:8px;" title="${f.name}"></iframe></div>` : ''}
-          ${hasData && ext==='txt' ? `<div style="margin-top:4px;background:var(--cream);padding:10px;border-radius:8px;font-size:12px;max-height:140px;overflow-y:auto;border:1px solid var(--border);white-space:pre-wrap;" id="txt-preview-${i}-${id}">Loading preview…</div>
-          <script>
-            (function(){
-              const data='${f.data}';
-              try{
-                const txt=atob(data.split(',')[1]);
-                document.getElementById('txt-preview-${i}-${id}').textContent=txt.slice(0,2000)+(txt.length>2000?'…':'');
-              }catch(e){}
-            })();
-          <\/script>` : ''}
-          `;
-        }).join('')}
-      </div>
-    </div>` : '';
-
   document.getElementById('vtm-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
       <div class="text-muted">Status</div><div>${statusBadge(t.status)}</div>
@@ -1956,45 +2188,25 @@ function empViewTask(id) {
       <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
       <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}</div>
     </div>
-    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Instructions</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.description}</div></div>` : ''}
-    ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Requirements</div><div style="font-size:13px;color:var(--charcoal);background:var(--cream);padding:10px;border-radius:8px;">${t.requirements}</div></div>` : ''}
-    ${fileHtml}
-    ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
-    ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:160px;overflow-y:auto;white-space:pre-wrap;">${t.submitted_text}</div></div>` : ''}
+    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.description}</div></div>` : ''}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
+    ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
+    ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
+    ${renderSubmittedFiles(t)}
     ${t.revision_notes ? `<div class="revision-banner"><span class="revision-banner-icon">🔄</span><div><div class="revision-banner-title">Revision Requested</div><div class="revision-banner-sub">${t.revision_notes}</div></div></div>` : ''}
   `;
-  // Store current task id for downloadFile()
-  modal._currentTaskId = id;
   const actions = document.getElementById('vtm-actions');
   actions.innerHTML = `<button class="btn btn-outline" onclick="closeModal('modal-view-task')">Close</button>`;
-  if (t.taken_by) {
-    actions.innerHTML += `<button class="btn btn-outline" onclick="closeModal('modal-view-task');openMsgPanel('${t.id}','${t.taken_by}','${t.taken_by_name||'Writer'}')">💬 Message Writer</button>`;
+  if (t.taken_by && canCurrentUserSeeTask(t)) {
+    actions.innerHTML += `<button class="btn btn-outline" onclick="closeModal('modal-view-task');openMessagesForTask('${t.id}')">💬 Message</button>`;
   }
-  if (t.status === 'completed') {
+  if (currentUser.role === 'employer' && t.status === 'completed') {
     actions.innerHTML += `<button class="btn btn-revision" onclick="closeModal('modal-view-task');openRevisionModal('${t.id}')">🔄 Request Revision</button>`;
   }
-  if (t.payment === 'unpaid' && t.total > 0) {
+  if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0) {
     actions.innerHTML += `<button class="btn btn-success" onclick="empMarkPaid('${t.id}');closeModal('modal-view-task')">✓ Mark Paid</button>`;
   }
   modal.classList.add('open');
-}
-
-// Download a file by index from task submitted_files
-function downloadFile(fileIndex, taskId) {
-  const t = tasks.find(t => t.id === taskId);
-  if (!t) return;
-  let files = [];
-  try { files = Array.isArray(t.submitted_files) ? t.submitted_files : JSON.parse(t.submitted_files); } catch{}
-  const f = files[fileIndex];
-  if (!f || !f.data) { notify('⚠️ File data not available for download'); return; }
-  const a = document.createElement('a');
-  a.href = f.data;
-  a.download = f.name;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  notify('⬇ Downloading ' + f.name + '…');
 }
 
 function empMarkPaid(id) {
@@ -2018,7 +2230,7 @@ function renderEmpInvoice() {
   if (!mine.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No orders yet.</p></div></td></tr>'; return; }
   tbody.innerHTML = mine.map(t => `
     <tr>
-      <td style="font-size:13px;font-weight:600;">${t.id}</td>
+      <td style="font-size:13px;font-weight:600;"><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
       <td style="font-size:13px;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="font-size:13px;">${t.pages}</td>
@@ -2225,97 +2437,20 @@ function renderWriterTasks() {
 
   const tbody = document.getElementById('writer-tasks-table');
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet. Browse Available Orders to find work.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet. Browse Available Orders to find work.</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(t => {
-    let files = [];
-    try { files = Array.isArray(t.submitted_files) ? t.submitted_files : (t.submitted_files ? JSON.parse(t.submitted_files) : []); } catch{}
-    const hasSub = files.length || t.submitted_link || t.submitted_text;
-    return `
+  tbody.innerHTML = list.map(t => `
     <tr>
-      <td><strong style="color:var(--teal);cursor:pointer;text-decoration:underline dotted;" onclick="writerViewTask('${t.id}')">${t.id}</strong></td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
+      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td>${t.pages}</td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
       <td>${statusBadge(t.status)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
-      <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="writerViewTask('${t.id}')">Details</button>
-          ${hasSub ? `<button class="btn btn-primary btn-sm" onclick="writerViewSubmission('${t.id}')">📎 Files</button>` : ''}
-          <button class="btn btn-outline btn-sm" onclick="openMsgPanel('${t.id}','${t.posted_by||''}','${t.posted_by_name||'Employer'}')" title="Message employer">💬</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function writerViewTask(id) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  const modal = document.getElementById('modal-view-task');
-  document.getElementById('vtm-title').textContent = t.id + ' — ' + t.subject;
-  document.getElementById('vtm-body').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-      <div class="text-muted">Status</div><div>${statusBadge(t.status)}</div>
-      <div class="text-muted">Level</div><div>${t.level}</div>
-      <div class="text-muted">Style</div><div><span class="badge badge-style">${t.style}</span></div>
-      <div class="text-muted">Pages</div><div>${t.pages}</div>
-      <div class="text-muted">Words</div><div>${t.words?.toLocaleString() || '—'}</div>
-      <div class="text-muted">Deadline</div><div style="color:var(--rust);font-weight:500;">${fmtDate(t.deadline)}</div>
-      <div class="text-muted">Amount</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">KES ${t.total.toLocaleString()}</div>
-      <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
-    </div>
-    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">📋 Task Instructions</div><div style="font-size:13px;color:var(--charcoal);line-height:1.7;background:var(--cream);padding:14px;border-radius:8px;">${t.description}</div></div>` : ''}
-    ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">📌 Requirements</div><div style="font-size:13px;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.requirements}</div></div>` : ''}
-    ${t.revision_notes ? `<div class="revision-banner"><span class="revision-banner-icon">🔄</span><div><div class="revision-banner-title">Revision Requested</div><div class="revision-banner-sub">${t.revision_notes}</div></div></div>` : ''}
-  `;
-  const actions = document.getElementById('vtm-actions');
-  actions.innerHTML = `
-    <button class="btn btn-outline" onclick="closeModal('modal-view-task')">Close</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-view-task');openMsgPanel('${t.id}','${t.posted_by||''}','${t.posted_by_name||'Employer'}')">💬 Message Employer</button>
-    <button class="btn btn-primary" onclick="closeModal('modal-view-task');navigate('writer-submit')">📤 Submit Work</button>
-  `;
-  modal.classList.add('open');
-}
-
-function writerViewSubmission(id) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  let files = [];
-  try { files = Array.isArray(t.submitted_files) ? t.submitted_files : (t.submitted_files ? JSON.parse(t.submitted_files) : []); } catch{}
-  const modal = document.getElementById('modal-view-task');
-  document.getElementById('vtm-title').textContent = '📎 Submitted Files — ' + t.id;
-  const fmtSz = b => !b ? '' : b<1024 ? b+'B' : b<1048576 ? (b/1024).toFixed(1)+'KB' : (b/1048576).toFixed(1)+'MB';
-  const iconMap = {pdf:'📄',doc:'📝',docx:'📝',txt:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp3:'🎵',mp4:'🎬',wav:'🎵',zip:'📦',rar:'📦',xlsx:'📊',pptx:'📊',csv:'📊'};
-  document.getElementById('vtm-body').innerHTML = `
-    ${!files.length && !t.submitted_link && !t.submitted_text ? '<div class="empty-state"><p>No files submitted yet.</p></div>' : ''}
-    ${files.length ? `<div style="display:flex;flex-direction:column;gap:8px;">
-      ${files.map((f,i) => {
-        const ext = (f.name||'').split('.').pop().toLowerCase();
-        const icon = iconMap[ext] || '📎';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--teal-pale);border-left:4px solid var(--teal);border-radius:8px;border:1px solid var(--border);">
-          <span style="font-size:22px;">${icon}</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:600;">${f.name}</div>
-            ${f.size?`<div style="font-size:11px;color:var(--muted);">${fmtSz(f.size)}</div>`:''}
-          </div>
-          <span style="font-size:10px;background:var(--teal-dark);color:#fff;padding:2px 7px;border-radius:10px;">${ext.toUpperCase()}</span>
-          ${f.data ? `<button class="btn btn-primary btn-sm" onclick="downloadFile(${i},'${id}')">⬇ Download</button>` : ''}
-        </div>
-        ${f.data && ['jpg','jpeg','png','gif'].includes(ext) ? `<img src="${f.data}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid var(--border);margin-top:4px;" alt="${f.name}">` : ''}
-        ${f.data && ext==='pdf' ? `<iframe src="${f.data}" style="width:100%;height:220px;border:1px solid var(--border);border-radius:8px;margin-top:4px;" title="${f.name}"></iframe>` : ''}
-        `;
-      }).join('')}
-    </div>` : ''}
-    ${t.submitted_link ? `<div style="margin-top:10px;padding:12px;background:var(--cream);border-radius:8px;border:1px solid var(--border);"><div class="form-label" style="margin-bottom:4px;">Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);word-break:break-all;">${t.submitted_link}</a></div>` : ''}
-    ${t.submitted_text ? `<div style="margin-top:10px;"><div class="form-label" style="margin-bottom:4px;">Submitted Text</div><div style="font-size:12px;background:var(--cream);padding:12px;border-radius:8px;max-height:160px;overflow-y:auto;white-space:pre-wrap;">${t.submitted_text}</div></div>` : ''}
-    ${t.submitted_notes ? `<div style="margin-top:10px;background:var(--teal-pale);padding:10px;border-radius:8px;font-size:13px;border-left:3px solid var(--teal);"><strong>Your Notes:</strong> ${t.submitted_notes}</div>` : ''}
-  `;
-  document.getElementById('vtm-actions').innerHTML = `<button class="btn btn-outline" onclick="closeModal('modal-view-task')">Close</button>`;
-  modal.classList.add('open');
+    </tr>
+  `).join('');
 }
 
 // ══════════════════════════════════════════════════════
@@ -2381,18 +2516,35 @@ function toggleSubmitSection() {
   document.getElementById('sw-text-group').style.display  = type === 'text' ? '' : 'none';
 }
 
-function toggleSubmitType() {} // alias
+function toggleSubmitType() {
+  toggleSubmitSection();
+  showSelectedSubmitTask();
+}
+
+function showSelectedSubmitTask() {
+  const box = document.getElementById('writer-submit-details');
+  if (!box) return;
+  const id = document.getElementById('writer-submit-select').value;
+  const t = getTaskById(id);
+  if (!t) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = '';
+  box.innerHTML = `<div class="submission-preview-box">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;color:var(--ink);"><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button> — ${esc(t.subject)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(t.level)} · ${esc(t.style)} · ${Number(t.pages || 0)} pages · Due ${fmtDate(t.deadline)}</div>
+      </div>
+      ${statusBadge(t.status)}
+    </div>
+    ${t.description ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Instructions:</strong> ${esc(t.description)}</div>` : ''}
+    ${t.requirements ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Special requirements:</strong> ${esc(t.requirements)}</div>` : ''}
+    ${renderSubmittedFiles(t)}
+  </div>`;
+}
 
 function handleFiles(files) {
-  Array.from(files).forEach(f => {
-    if (_uploadedFiles.find(u => u.name === f.name)) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      _uploadedFiles.push({ name: f.name, size: f.size, type: f.type, data: e.target.result });
-      renderFileList();
-    };
-    reader.readAsDataURL(f);
-  });
+  Array.from(files).forEach(f => { if (!_uploadedFiles.find(u => u.name === f.name)) _uploadedFiles.push(f); });
+  renderFileList();
 }
 
 function renderFileList() {
@@ -2424,7 +2576,30 @@ function formatSize(b) {
 function dragOver(e) { e.preventDefault(); document.getElementById('sw-upload-zone').classList.add('dragover'); }
 function dropFiles(e) { e.preventDefault(); document.getElementById('sw-upload-zone').classList.remove('dragover'); handleFiles(e.dataTransfer.files); }
 
-function writerSubmitWork() {
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      name: file.name,
+      size: file.size,
+      type: file.type || '',
+      data_url: reader.result,
+      uploaded_at: new Date().toISOString()
+    });
+    reader.onerror = () => reject(reader.error || new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function storedSubmittedFiles() {
+  if (!_uploadedFiles.length) return [];
+  const maxEach = 12 * 1024 * 1024;
+  const tooLarge = _uploadedFiles.find(f => f.size > maxEach);
+  if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 12MB each, or submit a link.`);
+  return await Promise.all(_uploadedFiles.map(readFileAsDataURL));
+}
+
+async function writerSubmitWork() {
   const id    = document.getElementById('writer-submit-select').value;
   const type  = document.getElementById('writer-submit-type').value;
   const notes = document.getElementById('sw-notes').value.trim();
@@ -2433,27 +2608,46 @@ function writerSubmitWork() {
   if (!t) return;
 
   const updates = { submitted_notes: notes, status: 'completed' };
-  if (type === 'file') {
-    updates.submitted_files = _uploadedFiles.map(f => ({ name: f.name, size: f.size }));
-  } else if (type === 'link') {
-    updates.submitted_link = document.getElementById('sw-link').value.trim();
-  } else {
-    updates.submitted_text = document.getElementById('sw-text').value.trim();
+  try {
+    if (type === 'file') {
+      if (!_uploadedFiles.length) { notify('⚠️ Please upload at least one file'); return; }
+      updates.submitted_files = await storedSubmittedFiles();
+      updates.submitted_link = '';
+      updates.submitted_text = '';
+    } else if (type === 'link') {
+      const link = document.getElementById('sw-link').value.trim();
+      if (!link) { notify('⚠️ Please paste the document link'); return; }
+      updates.submitted_link = link;
+      updates.submitted_files = [];
+      updates.submitted_text = '';
+    } else {
+      const text = document.getElementById('sw-text').value.trim();
+      if (!text) { notify('⚠️ Please paste your completed work'); return; }
+      updates.submitted_text = text;
+      updates.submitted_files = [];
+      updates.submitted_link = '';
+    }
+  } catch (err) {
+    notify('❌ ' + err.message);
+    return;
   }
 
+  setLoading(true);
   dbUpdateTask(id, updates).then(() => {
+    setLoading(false);
     Object.assign(t, updates);
-    soundSubmit();
     _uploadedFiles = [];
     renderFileList();
+    document.getElementById('sw-file-input').value = '';
     document.getElementById('sw-notes').value = '';
     if (document.getElementById('sw-link')) document.getElementById('sw-link').value = '';
     if (document.getElementById('sw-text')) document.getElementById('sw-text').value = '';
+    showSelectedSubmitTask();
     populateWriterSubmitSelect();
     renderWriterDashboard();
     updateBadges();
-    notify('✦ Work submitted for ' + id + '!');
-  }).catch(err => notify('❌ ' + err.message));
+    notify('✦ Work submitted for ' + id + '!', 'submit');
+  }).catch(err => { setLoading(false); notify('❌ ' + err.message); });
 }
 
 // ══════════════════════════════════════════════════════
@@ -2512,6 +2706,113 @@ function writerLoadTracker() {
   `).join('');
 }
 
+
+// ══════════════════════════════════════════════════════
+//  MESSAGING
+// ══════════════════════════════════════════════════════
+let _preselectMessageTaskId = null;
+
+function localMsgKey(taskId) { return 'jw_messages_' + taskId; }
+function getLocalMessages(taskId) {
+  try { return JSON.parse(localStorage.getItem(localMsgKey(taskId))) || []; } catch { return []; }
+}
+function saveLocalMessages(taskId, messages) {
+  localStorage.setItem(localMsgKey(taskId), JSON.stringify(messages || []));
+}
+function getTaskMessages(t) {
+  const dbMessages = safeParseJSON(t?.messages, []);
+  return dbMessages.length ? dbMessages : getLocalMessages(t?.id);
+}
+function setTaskMessages(t, messages) {
+  t.messages = messages;
+  saveLocalMessages(t.id, messages);
+}
+function messageableTasks() {
+  if (!currentUser) return [];
+  if (currentUser.role === 'employer') return myTaskList().filter(t => t.taken_by);
+  return tasks.filter(t => t.taken_by === currentUser.email);
+}
+function openMessagesForTask(id) {
+  _preselectMessageTaskId = id;
+  navigate('messages');
+}
+function renderMessagesPage() {
+  const sel = document.getElementById('msg-order-select');
+  const list = messageableTasks();
+  sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)}</option>`).join('');
+  if (_preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId)) {
+    sel.value = _preselectMessageTaskId;
+    _preselectMessageTaskId = null;
+  }
+  loadMessageThread();
+}
+function loadMessageThread() {
+  const id = document.getElementById('msg-order-select').value;
+  const t = getTaskById(id);
+  const summary = document.getElementById('msg-order-summary');
+  const thread = document.getElementById('msg-thread');
+  const composer = document.getElementById('msg-composer');
+  const title = document.getElementById('msg-thread-title');
+  if (!t || !canCurrentUserSeeTask(t)) {
+    summary.innerHTML = 'Choose an order to message the assigned writer or employer.';
+    title.textContent = 'Messages';
+    thread.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Select an assigned order to start messaging.</p></div>';
+    composer.style.display = 'none';
+    return;
+  }
+  title.innerHTML = `${esc(t.id)} — ${esc(t.subject)}`;
+  summary.innerHTML = `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadge(t.status)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
+  const messages = getTaskMessages(t);
+  if (!messages.length) {
+    thread.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet. Start the conversation below.</p></div>';
+  } else {
+    thread.innerHTML = messages.map(m => {
+      const mine = m.sender_email === currentUser.email;
+      const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
+      return `<div class="message-bubble ${mine ? 'mine' : ''}">
+        <div class="message-meta">${esc(m.sender_name || m.sender_email || 'User')} · ${esc(m.sender_role || '')} · ${esc(when)}</div>
+        <div class="message-text">${esc(m.body || '')}</div>
+      </div>`;
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+  }
+  composer.style.display = '';
+}
+function sendTaskMessage() {
+  const id = document.getElementById('msg-order-select').value;
+  const t = getTaskById(id);
+  const input = document.getElementById('msg-input');
+  const body = input.value.trim();
+  if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ Select an assigned order first'); return; }
+  if (!body) { notify('⚠️ Type a message first'); return; }
+  const messages = getTaskMessages(t);
+  const msg = {
+    id: 'msg-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+    task_id: t.id,
+    sender_email: currentUser.email,
+    sender_name: currentUser.name,
+    sender_role: currentUser.role,
+    body,
+    at: new Date().toISOString()
+  };
+  const next = [...messages, msg];
+  input.value = '';
+  setTaskMessages(t, next);
+  loadMessageThread();
+  dbUpdateTask(t.id, { messages: next }).then(() => {
+    notify('💬 Message sent', 'message');
+  }).catch(err => {
+    notify('💬 Message saved locally. Add a messages JSONB column in Supabase to sync it across accounts.', 'message');
+    console.warn('Message sync failed:', err);
+  });
+}
+function taskParticipant(t) {
+  return currentUser && (t.posted_by === currentUser.email || t.taken_by === currentUser.email);
+}
+function latestMessage(messages) {
+  return messages && messages.length ? messages[messages.length - 1] : null;
+}
+
 // ══════════════════════════════════════════════════════
 //  REAL-TIME SYNC via Supabase Realtime
 // ══════════════════════════════════════════════════════
@@ -2522,22 +2823,28 @@ function subscribeRealtime() {
   _realtimeSub = _sb.channel('jw_tasks_changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_tasks' }, payload => {
       const { eventType, new: newRow, old: oldRow } = payload;
+      const previous = newRow ? tasks.find(t => t.id === newRow.id) : null;
+
       if (eventType === 'INSERT') {
-        // Skip if we already added this task locally after posting
-        if (_recentlyInserted.has(newRow.id)) { _recentlyInserted.delete(newRow.id); return; }
-        tasks.unshift(newRow);
-        // Sound: new task posted (notify writer)
-        if (currentUser.role === 'writer') { soundNewTask(); notify('📥 New order posted: ' + newRow.id); }
+        upsertLocalTask(newRow);
+        if (currentUser?.role === 'writer' && newRow.posted_by !== currentUser.email && newRow.status === 'pending') {
+          notify('🔔 New work posted: ' + newRow.id, 'order');
+        }
       } else if (eventType === 'UPDATE') {
-        const idx = tasks.findIndex(t => t.id === newRow.id);
-        if (idx !== -1) tasks[idx] = newRow; else tasks.unshift(newRow);
-        // Sound: work submitted (notify employer)
-        if (currentUser.role === 'employer' && newRow.status === 'completed' && newRow.posted_by === currentUser.email) {
-          soundSubmit(); notify('✦ Work submitted on order ' + newRow.id + '!');
+        const prevMessages = getTaskMessages(previous || {});
+        upsertLocalTask(newRow);
+        const nextMessages = getTaskMessages(newRow || {});
+        if (currentUser?.role === 'employer' && newRow.posted_by === currentUser.email && previous?.status !== 'completed' && newRow.status === 'completed') {
+          notify('📤 Writer submitted work for ' + newRow.id, 'submit');
+        }
+        const last = latestMessage(nextMessages);
+        if (last && nextMessages.length > prevMessages.length && last.sender_email !== currentUser?.email && taskParticipant(newRow)) {
+          notify('💬 New message on ' + newRow.id, 'message');
         }
       } else if (eventType === 'DELETE') {
         tasks = tasks.filter(t => t.id !== oldRow.id);
       }
+      tasks = dedupeTasks(tasks);
       // Re-render active page
       const activePage = document.querySelector('.page.active');
       if (!activePage || !currentUser) return;
@@ -2546,40 +2853,20 @@ function subscribeRealtime() {
       if (pid === 'page-writer-dashboard') renderWriterDashboard();
       if (pid === 'page-writer-tasks') renderWriterTasks();
       if (pid === 'page-writer-revisions') renderRevisions();
-      if (pid === 'page-writer-submit') populateWriterSubmitSelect();
+      if (pid === 'page-writer-submit') { populateWriterSubmitSelect(); showSelectedSubmitTask(); }
       if (pid === 'page-writer-tracker') populateWriterTrackerSelect();
       if (pid === 'page-emp-dashboard') renderEmpDashboard();
       if (pid === 'page-emp-tasks') renderEmpTasks();
       if (pid === 'page-emp-invoice') renderEmpInvoice();
       if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); }
+      if (pid === 'page-messages') renderMessagesPage();
       updateBadges();
-    })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jw_messages' }, payload => {
-      const msg = payload.new;
-      if (msg.to_email === currentUser.email) {
-        soundMessage();
-        notify('💬 New message on order ' + msg.task_id + ': ' + msg.from_name);
-        refreshMsgBadge();
-        // If messaging panel is open for this task, refresh it
-        const msgPane = document.getElementById('msg-thread-wrap');
-        if (msgPane && msgPane.dataset.taskId === msg.task_id) {
-          loadMessageThread(msg.task_id);
-        }
-      }
     })
     .subscribe();
 }
 
-function refreshMsgBadge() {
-  dbGetUnreadCount(currentUser.email).then(count => {
-    const b = document.getElementById('msg-nav-badge');
-    if (b) { b.textContent = count || ''; b.style.display = count ? '' : 'none'; }
-    const bw = document.getElementById('msg-nav-badge-w');
-    if (bw) { bw.textContent = count || ''; bw.style.display = count ? '' : 'none'; }
-  }).catch(()=>{});
-}
-
 // ══════════════════════════════════════════════════════
+//  INIT// ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
 (function init() {
