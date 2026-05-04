@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Janelle Writes! — Professional Writing Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<!-- Supabase JS client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --ink: #0f1923;
@@ -740,10 +742,9 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       </div>
       <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
       <div style="margin-top:16px; padding:14px; background:var(--teal-pale); border-radius:9px; font-size:12px; color:var(--slate);">
-        <strong>Demo accounts:</strong><br>
-        Employer: employer@demo.com / demo123<br>
-        Writer: writer@demo.com / demo123<br>
-        <em style="color:var(--muted);">Or create a new account above.</em>
+        <strong>Getting started:</strong><br>
+        Create an Employer account to post orders, and a Writer account to accept them.<br>
+        <em style="color:var(--muted);">All data is stored in your Supabase database.</em>
       </div>
     </div>
 
@@ -1264,25 +1265,25 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
 
 <script>
 // ══════════════════════════════════════════════════════
-//  STATE & STORAGE
+//  SUPABASE CONFIG — paste your values from:
+//  Supabase Dashboard → Project Settings → API
 // ══════════════════════════════════════════════════════
-function load(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch { return def; } }
-function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xyzabc.supabase.co
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY'; // eyJhbGci...
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// Users: { email, password, name, role }
-let users = load('jw_users', [
-  { email:'employer@demo.com', password:'demo123', name:'Demo Employer', role:'employer' },
-  { email:'writer@demo.com',   password:'demo123', name:'Demo Writer',   role:'writer'   }
-]);
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+// In-memory cache — loaded from Supabase on login / refresh
+let tasks = [];
+let currentUser = null; // { id, email, name, role }
 
-// Tasks: { id, subject, level, words, pages, pricePerPage, total, style, deadline, desc,
-//          requirements, date, status, payment, mpesaCode,
-//          postedBy (email), takenBy (email|null), takenByName,
-//          submittedFiles, submittedLink, submittedText, submittedNotes,
-//          revisionNotes, revisionAt }
-let tasks = load('jw_tasks', []);
+// Restore session from localStorage (just UI session, data re-fetched)
+(function restoreSession() {
+  try { currentUser = JSON.parse(localStorage.getItem('jw_session')) || null; } catch { currentUser = null; }
+})();
 
-let currentUser = load('jw_session', null);
 let _taskFilter = 'all';
 let _empTaskFilter = 'all';
 let _writerTaskFilter = 'all';
@@ -1290,11 +1291,60 @@ let _pendingTakeId = null;
 let _pendingRevisionId = null;
 let _uploadedFiles = [];
 
-// ── ORDER NUMBER ──────────────────────────────────
+// ── ORDER NUMBER ──────────────────────────────────────
 function nextOrderNum() {
   const ids = tasks.map(t => parseInt(t.id.replace('JW-',''))).filter(n=>!isNaN(n));
   const next = ids.length ? Math.max(...ids) + 1 : 1;
   return 'JW-' + String(next).padStart(4,'0');
+}
+
+// ══════════════════════════════════════════════════════
+//  DB HELPERS — wraps Supabase calls
+// ══════════════════════════════════════════════════════
+async function dbGetUsers() {
+  const { data, error } = await _sb.from('jw_users').select('*');
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbGetUserByEmail(email) {
+  const { data, error } = await _sb.from('jw_users').select('*').eq('email', email).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function dbCreateUser(user) {
+  const { data, error } = await _sb.from('jw_users').insert([user]).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpdateUser(email, updates) {
+  const { error } = await _sb.from('jw_users').update(updates).eq('email', email);
+  if (error) throw error;
+}
+
+async function dbGetTasks() {
+  const { data, error } = await _sb.from('jw_tasks').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbInsertTask(task) {
+  const { data, error } = await _sb.from('jw_tasks').insert([task]).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpdateTask(id, updates) {
+  const { error } = await _sb.from('jw_tasks').update(updates).eq('id', id);
+  if (error) throw error;
+}
+
+// Refresh the in-memory tasks cache from Supabase
+async function refreshTasks() {
+  tasks = await dbGetTasks();
+  updateBadges();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1323,11 +1373,14 @@ function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-password').value;
   if (!email || !pass) { notify('⚠️ Please fill in all fields'); return; }
-  const u = users.find(u => u.email === email && u.password === pass);
-  if (!u) { notify('❌ Invalid email or password'); return; }
-  currentUser = u;
-  save('jw_session', u);
-  launchApp();
+  setLoading(true);
+  dbGetUserByEmail(email).then(u => {
+    setLoading(false);
+    if (!u || u.password !== pass) { notify('❌ Invalid email or password'); return; }
+    currentUser = { id: u.id, email: u.email, name: u.name, role: u.role };
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    launchApp();
+  }).catch(err => { setLoading(false); notify('❌ Login error: ' + err.message); });
 }
 
 function doSignup() {
@@ -1336,13 +1389,17 @@ function doSignup() {
   const pass  = document.getElementById('signup-password').value;
   if (!name || !email || !pass) { notify('⚠️ Please fill in all fields'); return; }
   if (pass.length < 6) { notify('⚠️ Password must be at least 6 characters'); return; }
-  if (users.find(u => u.email === email)) { notify('❌ An account with this email already exists'); return; }
-  const u = { email, password: pass, name, role: _selectedRole };
-  users.push(u);
-  save('jw_users', users);
-  currentUser = u;
-  save('jw_session', u);
-  launchApp();
+  setLoading(true);
+  dbGetUserByEmail(email).then(existing => {
+    if (existing) { setLoading(false); notify('❌ An account with this email already exists'); return; }
+    const u = { email, password: pass, name, role: _selectedRole };
+    return dbCreateUser(u).then(created => {
+      setLoading(false);
+      currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
+      localStorage.setItem('jw_session', JSON.stringify(currentUser));
+      launchApp();
+    });
+  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
 }
 
 function showForgotPassword() {
@@ -1369,30 +1426,43 @@ function showLogin() {
 function doForgotPassword() {
   const email = document.getElementById('forgot-email').value.trim().toLowerCase();
   if (!email) { notify('⚠️ Please enter your email address'); return; }
-  const u = users.find(u => u.email === email);
   const resultEl = document.getElementById('forgot-result');
-  if (!u) {
-    resultEl.style.display = '';
-    resultEl.style.background = '#fce8e6';
-    resultEl.style.borderLeftColor = 'var(--danger)';
-    resultEl.style.color = 'var(--danger)';
-    resultEl.innerHTML = '❌ No account found with that email address. Please check and try again, or <strong>create a new account</strong>.';
-    return;
-  }
-  // Generate a simple reset password and save it
-  const newPass = 'Reset' + Math.floor(100000 + Math.random() * 900000);
-  u.password = newPass;
-  save('jw_users', users);
-  resultEl.style.display = '';
-  resultEl.style.background = '#e0f5f3';
-  resultEl.style.borderLeftColor = 'var(--teal)';
-  resultEl.style.color = 'var(--teal-dark)';
-  resultEl.innerHTML = `✅ Password reset! Your new temporary password is:<br><br><strong style="font-size:18px;letter-spacing:2px;font-family:monospace;">${newPass}</strong><br><br>Please sign in and change it soon.`;
+  setLoading(true);
+  dbGetUserByEmail(email).then(u => {
+    setLoading(false);
+    if (!u) {
+      resultEl.style.display = '';
+      resultEl.style.background = '#fce8e6';
+      resultEl.style.borderLeftColor = 'var(--danger)';
+      resultEl.style.color = 'var(--danger)';
+      resultEl.innerHTML = '❌ No account found with that email address.';
+      return;
+    }
+    const newPass = 'Reset' + Math.floor(100000 + Math.random() * 900000);
+    return dbUpdateUser(email, { password: newPass }).then(() => {
+      resultEl.style.display = '';
+      resultEl.style.background = '#e0f5f3';
+      resultEl.style.borderLeftColor = 'var(--teal)';
+      resultEl.style.color = 'var(--teal-dark)';
+      resultEl.innerHTML = `✅ Password reset! Your new temporary password is:<br><br><strong style="font-size:18px;letter-spacing:2px;font-family:monospace;">${newPass}</strong><br><br>Please sign in and change it soon.`;
+    });
+  }).catch(err => { setLoading(false); notify('❌ Error: ' + err.message); });
 }
 
 
+// ── LOADING HELPER ────────────────────────────────────
+function setLoading(on) {
+  document.querySelectorAll('.btn-primary').forEach(b => {
+    if (on) { b.dataset.origText = b.innerHTML; b.innerHTML = '⏳ Loading…'; b.disabled = true; }
+    else { if (b.dataset.origText) { b.innerHTML = b.dataset.origText; delete b.dataset.origText; } b.disabled = false; }
+  });
+}
+
+function doLogout() {
   currentUser = null;
+  tasks = [];
   localStorage.removeItem('jw_session');
+  if (_realtimeSub) { _realtimeSub.unsubscribe(); _realtimeSub = null; }
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app-shell').style.display = 'none';
   document.getElementById('login-email').value = '';
@@ -1406,12 +1476,13 @@ function launchApp() {
   buildSidebar();
   buildTopbar();
   updateUserDisplay();
-  if (currentUser.role === 'employer') {
-    navigate('emp-dashboard');
-  } else {
-    navigate('writer-dashboard');
-  }
+  // Load tasks from Supabase then navigate
+  refreshTasks().then(() => {
+    if (currentUser.role === 'employer') navigate('emp-dashboard');
+    else navigate('writer-dashboard');
+  });
   notify('✦ Welcome, ' + currentUser.name + '!');
+  subscribeRealtime();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1480,8 +1551,8 @@ function updateBadges() {
     const rb = document.getElementById('emp-revision-badge');
     if (rb) rb.textContent = revisions;
   } else {
-    const avail = tasks.filter(t => !t.takenBy && t.status === 'pending').length;
-    const revisions = tasks.filter(t => t.takenBy === currentUser.email && t.status === 'revision').length;
+    const avail = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
+    const revisions = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'revision').length;
     const ab = document.getElementById('avail-badge');
     if (ab) ab.textContent = avail;
     const rb = document.getElementById('revision-nav-badge');
@@ -1546,7 +1617,7 @@ function closeMobileMenu() {
 // ══════════════════════════════════════════════════════
 function myTaskList() {
   if (!currentUser) return [];
-  return tasks.filter(t => t.postedBy === currentUser.email);
+  return tasks.filter(t => t.posted_by === currentUser.email);
 }
 
 function fmtDate(s) {
@@ -1621,34 +1692,37 @@ function empPostTask() {
     id: nextOrderNum(),
     subject,
     level: document.getElementById('emp-level').value,
-    words, pages, pricePerPage: price,
+    words, pages, price_per_page: price,
     total: pages * price,
     style: document.getElementById('emp-style').value,
     deadline,
-    desc,
+    description: desc,
     requirements: document.getElementById('emp-requirements').value.trim(),
-    date: document.getElementById('emp-date').value,
+    order_date: document.getElementById('emp-date').value,
     status: 'pending',
     payment: 'unpaid',
-    mpesaCode: '',
-    postedBy: currentUser.email,
-    postedByName: currentUser.name,
-    takenBy: null,
-    takenByName: null,
-    submittedFiles: [],
-    submittedLink: '',
-    submittedText: '',
-    submittedNotes: '',
-    revisionNotes: '',
-    revisionAt: null,
+    mpesa_code: '',
+    posted_by: currentUser.email,
+    posted_by_name: currentUser.name,
+    taken_by: null,
+    taken_by_name: null,
+    submitted_files: [],
+    submitted_link: '',
+    submitted_text: '',
+    submitted_notes: '',
+    revision_notes: '',
+    revision_at: null,
   };
 
-  tasks.push(task);
-  save('jw_tasks', tasks);
-  empClearForm();
-  updateBadges();
-  notify('✦ Task ' + task.id + ' posted successfully!');
-  navigate('emp-tasks');
+  setLoading(true);
+  dbInsertTask(task).then(saved => {
+    setLoading(false);
+    tasks.unshift(saved);
+    empClearForm();
+    updateBadges();
+    notify('✦ Task ' + saved.id + ' posted successfully!');
+    navigate('emp-tasks');
+  }).catch(err => { setLoading(false); notify('❌ Error posting task: ' + err.message); });
 }
 
 // ══════════════════════════════════════════════════════
@@ -1721,7 +1795,7 @@ function renderEmpTasks() {
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
       <td>${statusBadge(t.status)}</td>
-      <td style="font-size:12px;color:var(--muted);">${t.takenByName || '<em>Unassigned</em>'}</td>
+      <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
@@ -1751,13 +1825,13 @@ function empViewTask(id) {
       <div class="text-muted">Deadline</div><div style="color:var(--rust);font-weight:500;">${fmtDate(t.deadline)}</div>
       <div class="text-muted">Amount</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">KES ${t.total.toLocaleString()}</div>
       <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
-      <div class="text-muted">Writer</div><div>${t.takenByName || '<em>Unassigned</em>'}</div>
+      <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}</div>
     </div>
-    ${t.desc ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.desc}</div></div>` : ''}
-    ${t.submittedNotes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submittedNotes}</div></div>` : ''}
-    ${t.submittedLink ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submittedLink}" target="_blank" style="color:var(--teal);font-size:13px;">${t.submittedLink}</a></div>` : ''}
-    ${t.submittedText ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submittedText}</div></div>` : ''}
-    ${t.revisionNotes ? `<div class="revision-banner"><span class="revision-banner-icon">🔄</span><div><div class="revision-banner-title">Revision Requested</div><div class="revision-banner-sub">${t.revisionNotes}</div></div></div>` : ''}
+    ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.description}</div></div>` : ''}
+    ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
+    ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;">${t.submitted_link}</a></div>` : ''}
+    ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
+    ${t.revision_notes ? `<div class="revision-banner"><span class="revision-banner-icon">🔄</span><div><div class="revision-banner-title">Revision Requested</div><div class="revision-banner-sub">${t.revision_notes}</div></div></div>` : ''}
   `;
   const actions = document.getElementById('vtm-actions');
   actions.innerHTML = `<button class="btn btn-outline" onclick="closeModal('modal-view-task')">Close</button>`;
@@ -1773,11 +1847,12 @@ function empViewTask(id) {
 function empMarkPaid(id) {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
-  t.payment = 'paid';
-  save('jw_tasks', tasks);
-  renderEmpTasks();
-  renderEmpDashboard();
-  notify('✓ Payment marked as paid for ' + id);
+  dbUpdateTask(id, { payment: 'paid' }).then(() => {
+    t.payment = 'paid';
+    renderEmpTasks();
+    renderEmpDashboard();
+    notify('✓ Payment marked as paid for ' + id);
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 // ══════════════════════════════════════════════════════
@@ -1794,7 +1869,7 @@ function renderEmpInvoice() {
       <td style="font-size:13px;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="font-size:13px;">${t.pages}</td>
-      <td style="font-size:13px;">KES ${t.pricePerPage?.toLocaleString() || 0}</td>
+      <td style="font-size:13px;">KES ${t.price_per_page?.toLocaleString() || 0}</td>
       <td style="text-align:right;font-size:13px;font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>${payBadge(t.payment)}</td>
     </tr>
@@ -1821,14 +1896,17 @@ function empRecordPayment() {
   if (!id) { notify('⚠️ Please select an order'); return; }
   const t = tasks.find(t => t.id === id);
   if (!t) return;
-  t.payment = 'paid';
-  if (code) t.mpesaCode = code.toUpperCase();
-  save('jw_tasks', tasks);
-  empPopulatePaySelect();
-  renderEmpPaySummary();
-  renderEmpDashboard();
-  document.getElementById('emp-pay-code').value = '';
-  notify('✓ Payment recorded for ' + id);
+  const updates = { payment: 'paid' };
+  if (code) updates.mpesa_code = code.toUpperCase();
+  dbUpdateTask(id, updates).then(() => {
+    t.payment = 'paid';
+    if (code) t.mpesa_code = code.toUpperCase();
+    empPopulatePaySelect();
+    renderEmpPaySummary();
+    renderEmpDashboard();
+    document.getElementById('emp-pay-code').value = '';
+    notify('✓ Payment recorded for ' + id);
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 function renderEmpPaySummary() {
@@ -1840,7 +1918,7 @@ function renderEmpPaySummary() {
       <div>
         <div style="font-size:13px;font-weight:600;">${t.id}</div>
         <div style="font-size:11px;color:var(--muted);">${t.subject}</div>
-        ${t.mpesaCode ? `<div style="font-size:11px;color:var(--teal);">Code: ${t.mpesaCode}</div>` : ''}
+        ${t.mpesa_code ? `<div style="font-size:11px;color:var(--teal);">Code: ${t.mpesa_code}</div>` : ''}
       </div>
       <div style="text-align:right;">
         <div style="font-weight:700;">KES ${t.total.toLocaleString()}</div>
@@ -1866,22 +1944,24 @@ function confirmRevision() {
   if (!notes) { notify('⚠️ Please provide revision notes'); return; }
   const t = tasks.find(t => t.id === id);
   if (!t) return;
-  t.status       = 'revision';
-  t.revisionNotes = notes;
-  t.revisionAt   = new Date().toISOString();
-  save('jw_tasks', tasks);
-  closeModal('modal-revision');
-  renderEmpTasks();
-  updateBadges();
-  notify('🔄 Task ' + id + ' sent back for revision');
+  const now = new Date().toISOString();
+  dbUpdateTask(id, { status: 'revision', revision_notes: notes, revision_at: now }).then(() => {
+    t.status = 'revision';
+    t.revision_notes = notes;
+    t.revision_at = now;
+    closeModal('modal-revision');
+    renderEmpTasks();
+    updateBadges();
+    notify('🔄 Task ' + id + ' sent back for revision');
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 // ══════════════════════════════════════════════════════
 //  WRITER: DASHBOARD
 // ══════════════════════════════════════════════════════
 function renderWriterDashboard() {
-  const available = tasks.filter(t => !t.takenBy && t.status === 'pending').length;
-  const myTasks = tasks.filter(t => t.takenBy === currentUser.email);
+  const available = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
+  const myTasks = tasks.filter(t => t.taken_by === currentUser.email);
   const done = myTasks.filter(t => t.status === 'completed').length;
   const revision = myTasks.filter(t => t.status === 'revision').length;
 
@@ -1902,8 +1982,8 @@ function renderAvailableOrders() {
   const filterStyle = document.getElementById('avail-filter-style')?.value || '';
   const filterLevel = document.getElementById('avail-filter-level')?.value || '';
 
-  let list = tasks.filter(t => !t.takenBy && t.status === 'pending');
-  if (search) list = list.filter(t => t.id.toLowerCase().includes(search) || t.subject.toLowerCase().includes(search) || (t.desc||'').toLowerCase().includes(search));
+  let list = tasks.filter(t => !t.taken_by && t.status === 'pending');
+  if (search) list = list.filter(t => t.id.toLowerCase().includes(search) || t.subject.toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search));
   if (filterStyle) list = list.filter(t => t.style === filterStyle);
   if (filterLevel) list = list.filter(t => t.level === filterLevel);
 
@@ -1920,7 +2000,7 @@ function renderAvailableOrders() {
         <span class="badge badge-style">${t.style}</span>
       </div>
       <div class="order-card-subject">${t.subject}</div>
-      <div class="order-card-desc">${t.desc || 'No description provided.'}</div>
+      <div class="order-card-desc">${t.description || 'No description provided.'}</div>
       <div class="order-card-meta">
         <div class="order-card-meta-item"><strong>${t.level}</strong>Level</div>
         <div class="order-card-meta-item"><strong>${t.pages} pages</strong>Length</div>
@@ -1931,7 +2011,7 @@ function renderAvailableOrders() {
       <div class="order-card-footer">
         <div>
           <div class="order-card-amount">KES ${t.total.toLocaleString()} <span>/ ${t.pages} pages</span></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">KES ${t.pricePerPage?.toLocaleString()||0}/page</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">KES ${t.price_per_page?.toLocaleString()||0}/page</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openTakeOrderModal('${t.id}')">Accept Order →</button>
       </div>
@@ -1963,17 +2043,17 @@ function openTakeOrderModal(id) {
 function confirmTakeOrder() {
   const t = tasks.find(t => t.id === _pendingTakeId);
   if (!t) return;
-  // Check not already taken
-  if (t.takenBy) { notify('⚠️ This order was just taken by someone else'); closeModal('modal-take-order'); renderAvailableOrders(); return; }
-  t.takenBy = currentUser.email;
-  t.takenByName = currentUser.name;
-  t.status = 'progress';
-  save('jw_tasks', tasks);
-  closeModal('modal-take-order');
-  renderAvailableOrders();
-  renderWriterDashboard();
-  updateBadges();
-  notify('✦ You accepted order ' + t.id + '!');
+  if (t.taken_by) { notify('⚠️ This order was just taken by someone else'); closeModal('modal-take-order'); renderAvailableOrders(); return; }
+  dbUpdateTask(t.id, { taken_by: currentUser.email, taken_by_name: currentUser.name, status: 'progress' }).then(() => {
+    t.taken_by = currentUser.email;
+    t.taken_by_name = currentUser.name;
+    t.status = 'progress';
+    closeModal('modal-take-order');
+    renderAvailableOrders();
+    renderWriterDashboard();
+    updateBadges();
+    notify('✦ You accepted order ' + t.id + '!');
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 // ══════════════════════════════════════════════════════
@@ -1987,7 +2067,7 @@ function writerSwitchTab(el, filter) {
 }
 
 function renderWriterTasks() {
-  let list = tasks.filter(t => t.takenBy === currentUser.email);
+  let list = tasks.filter(t => t.taken_by === currentUser.email);
   if (_writerTaskFilter !== 'all') list = list.filter(t => t.status === _writerTaskFilter);
 
   const tbody = document.getElementById('writer-tasks-table');
@@ -2012,7 +2092,7 @@ function renderWriterTasks() {
 //  WRITER: REVISIONS
 // ══════════════════════════════════════════════════════
 function renderRevisions() {
-  const revisions = tasks.filter(t => t.takenBy === currentUser.email && t.status === 'revision');
+  const revisions = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'revision');
   const wrap = document.getElementById('revision-list');
   if (!revisions.length) {
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🎉</div><p>No revisions right now — great work!</p></div>`;
@@ -2031,10 +2111,10 @@ function renderRevisions() {
         <div class="revision-banner-icon">🔄</div>
         <div>
           <div class="revision-banner-title">Employer Feedback</div>
-          <div class="revision-banner-sub" style="font-size:13px;">${t.revisionNotes}</div>
+          <div class="revision-banner-sub" style="font-size:13px;">${t.revision_notes}</div>
         </div>
       </div>
-      ${t.revisionAt ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Sent back: ${fmtDate(t.revisionAt)}</div>` : ''}
+      ${t.revision_at ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Sent back: ${fmtDate(t.revision_at)}</div>` : ''}
       <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--teal-dark);margin-bottom:14px;">KES ${t.total.toLocaleString()}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-primary btn-sm" onclick="startRevision('${t.id}')">✍️ Start Revision</button>
@@ -2046,12 +2126,13 @@ function renderRevisions() {
 function startRevision(id) {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
-  t.status = 'progress';
-  save('jw_tasks', tasks);
-  renderRevisions();
-  updateBadges();
-  notify('✦ Task ' + id + ' moved back to In Progress. Good luck!');
-  navigate('writer-submit');
+  dbUpdateTask(id, { status: 'progress' }).then(() => {
+    t.status = 'progress';
+    renderRevisions();
+    updateBadges();
+    notify('✦ Task ' + id + ' moved back to In Progress. Good luck!');
+    navigate('writer-submit');
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 // ══════════════════════════════════════════════════════
@@ -2059,7 +2140,7 @@ function startRevision(id) {
 // ══════════════════════════════════════════════════════
 function populateWriterSubmitSelect() {
   const sel = document.getElementById('writer-submit-select');
-  const myTasks = tasks.filter(t => t.takenBy === currentUser.email && (t.status === 'progress' || t.status === 'pending'));
+  const myTasks = tasks.filter(t => t.taken_by === currentUser.email && (t.status === 'progress' || t.status === 'pending'));
   sel.innerHTML = '<option value="">— Select Order —</option>' + myTasks.map(t => `<option value="${t.id}">${t.id} — ${t.subject}</option>`).join('');
 }
 
@@ -2114,26 +2195,27 @@ function writerSubmitWork() {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
 
-  t.submittedNotes = notes;
-  t.status = 'completed';
+  const updates = { submitted_notes: notes, status: 'completed' };
   if (type === 'file') {
-    t.submittedFiles = _uploadedFiles.map(f => ({ name: f.name, size: f.size }));
+    updates.submitted_files = _uploadedFiles.map(f => ({ name: f.name, size: f.size }));
   } else if (type === 'link') {
-    t.submittedLink = document.getElementById('sw-link').value.trim();
+    updates.submitted_link = document.getElementById('sw-link').value.trim();
   } else {
-    t.submittedText = document.getElementById('sw-text').value.trim();
+    updates.submitted_text = document.getElementById('sw-text').value.trim();
   }
 
-  save('jw_tasks', tasks);
-  _uploadedFiles = [];
-  renderFileList();
-  document.getElementById('sw-notes').value = '';
-  document.getElementById('sw-link') && (document.getElementById('sw-link').value = '');
-  document.getElementById('sw-text') && (document.getElementById('sw-text').value = '');
-  populateWriterSubmitSelect();
-  renderWriterDashboard();
-  updateBadges();
-  notify('✦ Work submitted for ' + id + '!');
+  dbUpdateTask(id, updates).then(() => {
+    Object.assign(t, updates);
+    _uploadedFiles = [];
+    renderFileList();
+    document.getElementById('sw-notes').value = '';
+    if (document.getElementById('sw-link')) document.getElementById('sw-link').value = '';
+    if (document.getElementById('sw-text')) document.getElementById('sw-text').value = '';
+    populateWriterSubmitSelect();
+    renderWriterDashboard();
+    updateBadges();
+    notify('✦ Work submitted for ' + id + '!');
+  }).catch(err => notify('❌ ' + err.message));
 }
 
 // ══════════════════════════════════════════════════════
@@ -2141,7 +2223,7 @@ function writerSubmitWork() {
 // ══════════════════════════════════════════════════════
 function populateWriterTrackerSelect() {
   const sel = document.getElementById('writer-tracker-select');
-  const myTasks = tasks.filter(t => t.takenBy === currentUser.email);
+  const myTasks = tasks.filter(t => t.taken_by === currentUser.email);
   sel.innerHTML = '<option value="">— Choose an order —</option>' + myTasks.map(t => `<option value="${t.id}">${t.id} — ${t.subject}</option>`).join('');
 }
 
@@ -2172,7 +2254,7 @@ function writerLoadTracker() {
 
   const steps = [
     { label:'Order Posted', sub:'Employer created the task', done: true },
-    { label:'Writer Assigned', sub:'You accepted the order', done: t.takenBy != null },
+    { label:'Writer Assigned', sub:'You accepted the order', done: t.taken_by != null },
     { label:'In Progress', sub:'Work being completed', done: ['progress','completed','revision'].includes(t.status) },
     { label:'Submitted', sub:'Work delivered to employer', done: ['completed','revision'].includes(t.status) },
     { label:'Final Review', sub:'Employer reviewing submission', done: t.status === 'completed' },
@@ -2193,42 +2275,46 @@ function writerLoadTracker() {
 }
 
 // ══════════════════════════════════════════════════════
-//  REAL-TIME SYNC (cross-tab via storage events + polling)
+//  REAL-TIME SYNC via Supabase Realtime
 // ══════════════════════════════════════════════════════
-function syncFromStorage() {
-  if (!currentUser) return;
-  const freshTasks = load('jw_tasks', []);
-  // Only re-render if data actually changed
-  if (JSON.stringify(freshTasks) !== JSON.stringify(tasks)) {
-    tasks = freshTasks;
-    const activePage = document.querySelector('.page.active');
-    if (!activePage) return;
-    const pid = activePage.id;
-    if (pid === 'page-writer-available') renderAvailableOrders();
-    if (pid === 'page-writer-dashboard') renderWriterDashboard();
-    if (pid === 'page-writer-tasks') renderWriterTasks();
-    if (pid === 'page-writer-revisions') renderRevisions();
-    if (pid === 'page-writer-submit') populateWriterSubmitSelect();
-    if (pid === 'page-writer-tracker') populateWriterTrackerSelect();
-    if (pid === 'page-emp-dashboard') renderEmpDashboard();
-    if (pid === 'page-emp-tasks') renderEmpTasks();
-    if (pid === 'page-emp-invoice') renderEmpInvoice();
-    if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); }
-    updateBadges();
-  }
+let _realtimeSub = null;
+
+function subscribeRealtime() {
+  if (_realtimeSub) { _realtimeSub.unsubscribe(); }
+  _realtimeSub = _sb.channel('jw_tasks_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_tasks' }, payload => {
+      const { eventType, new: newRow, old: oldRow } = payload;
+      if (eventType === 'INSERT') {
+        tasks.unshift(newRow);
+      } else if (eventType === 'UPDATE') {
+        const idx = tasks.findIndex(t => t.id === newRow.id);
+        if (idx !== -1) tasks[idx] = newRow; else tasks.unshift(newRow);
+      } else if (eventType === 'DELETE') {
+        tasks = tasks.filter(t => t.id !== oldRow.id);
+      }
+      // Re-render active page
+      const activePage = document.querySelector('.page.active');
+      if (!activePage || !currentUser) return;
+      const pid = activePage.id;
+      if (pid === 'page-writer-available') renderAvailableOrders();
+      if (pid === 'page-writer-dashboard') renderWriterDashboard();
+      if (pid === 'page-writer-tasks') renderWriterTasks();
+      if (pid === 'page-writer-revisions') renderRevisions();
+      if (pid === 'page-writer-submit') populateWriterSubmitSelect();
+      if (pid === 'page-writer-tracker') populateWriterTrackerSelect();
+      if (pid === 'page-emp-dashboard') renderEmpDashboard();
+      if (pid === 'page-emp-tasks') renderEmpTasks();
+      if (pid === 'page-emp-invoice') renderEmpInvoice();
+      if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); }
+      updateBadges();
+    })
+    .subscribe();
 }
 
-// Listen for localStorage changes from other tabs (real-time)
-window.addEventListener('storage', function(e) {
-  if (e.key === 'jw_tasks') syncFromStorage();
-});
-
-// Polling fallback every 5 seconds (catches same-tab and cross-tab changes)
-setInterval(syncFromStorage, 5000);
-
-
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
 (function init() {
-  // Auto-login if session exists
   if (currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
     launchApp();
