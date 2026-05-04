@@ -980,8 +980,8 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
   <!-- Form Panel -->
   <div class="auth-panel">
     <div class="auth-panel-header">
-      <div class="auth-panel-title" id="auth-panel-title">Welcome Back</div>
-      <div class="auth-panel-sub" id="auth-panel-sub">Sign in to your account to continue</div>
+      <div class="auth-panel-title" id="auth-panel-title">Welcome to Janelle Writes</div>
+      <div class="auth-panel-sub" id="auth-panel-sub">Sign in or create an account to continue</div>
     </div>
 
     <div class="auth-tabs">
@@ -1062,7 +1062,6 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
       </div>
       <div id="twofa-email-status" style="background:var(--teal-pale);border:1.5px solid var(--teal);border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal-dark);font-weight:600;margin-bottom:8px;">Email Verification</div>
-        <div id="twofa-code-display" style="display:none;font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ink);letter-spacing:8px;">——</div>
         <div id="twofa-status-text" style="font-size:13px;color:var(--slate);line-height:1.5;">Sending code…</div>
         <div id="twofa-countdown" style="font-size:11px;color:var(--muted);margin-top:8px;">Code expires in 5:00</div>
       </div>
@@ -1759,50 +1758,56 @@ async function refreshTasks() {
 }
 
 // ══════════════════════════════════════════════════════
-//  TWO-FACTOR AUTH (2FA) for signup
+//  EMAIL VERIFICATION for signup
+//  Uses Supabase Auth email OTP so the verification code is sent by email
+//  and is never displayed on the platform.
 // ══════════════════════════════════════════════════════
-let _2faCode = null;
 let _2faPending = null; // { name, email, pass, role }
 let _2faTimer = null;
 let _2faExpiry = 0;
 
-function generate2FACode() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+async function send2FACodeToEmail(email, name) {
+  // Supabase sends the OTP/code by email. The browser never generates or displays it.
+  const { error } = await _sb.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: window.location.href
+    }
+  });
+  if (error) throw error;
 }
 
-async function send2FACodeToEmail(email, code, name) {
-  // Requires a Supabase Edge Function named "send-verification-code".
-  // The function should email { email, code, name }. If it is not deployed,
-  // the app falls back to showing the code on-screen so registration still works.
-  const { error } = await _sb.functions.invoke('send-verification-code', {
-    body: { email, code, name, app: 'Janelle Writes' }
+async function verifyEmailCode(email, token) {
+  const { error } = await _sb.auth.verifyOtp({
+    email,
+    token,
+    type: 'email'
   });
   if (error) throw error;
 }
 
 async function show2FAStep(pendingUser) {
   _2faPending = pendingUser;
-  _2faCode = generate2FACode();
-  _2faExpiry = Date.now() + 5 * 60 * 1000; // 5-min expiry
+  _2faExpiry = Date.now() + 5 * 60 * 1000; // 5-min expiry shown to the user
 
   document.getElementById('signup-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = '';
-  document.getElementById('auth-panel-title').textContent = 'Verify Your Account';
-  document.getElementById('auth-panel-sub').textContent = 'Enter the email code to complete registration';
+  document.getElementById('auth-panel-title').textContent = 'Verify Your Email';
+  document.getElementById('auth-panel-sub').textContent = 'Enter the code sent to your email to finish registration';
   document.getElementById('twofa-input').value = '';
 
-  const codeEl = document.getElementById('twofa-code-display');
   const statusEl = document.getElementById('twofa-status-text');
-  if (codeEl) { codeEl.textContent = '——'; codeEl.style.display = 'none'; }
-  if (statusEl) statusEl.textContent = `Sending code to ${pendingUser.email}…`;
+  if (statusEl) statusEl.textContent = `Sending verification code to ${pendingUser.email}…`;
 
   try {
-    await send2FACodeToEmail(pendingUser.email, _2faCode, pendingUser.name);
-    if (statusEl) statusEl.textContent = `Code sent to ${pendingUser.email}. Please check your inbox or spam folder.`;
+    await send2FACodeToEmail(pendingUser.email, pendingUser.name);
+    if (statusEl) statusEl.textContent = `A verification code has been sent to ${pendingUser.email}. Please check your inbox or spam folder.`;
   } catch (err) {
-    if (statusEl) statusEl.innerHTML = `Email sending is not configured yet. Temporary setup code shown below:`;
-    if (codeEl) { codeEl.textContent = _2faCode; codeEl.style.display = ''; }
-    console.warn('2FA email fallback:', err);
+    if (statusEl) statusEl.innerHTML = `We could not send the verification email. Please confirm that Email OTP is enabled in Supabase Auth, then try again.`;
+    notify('❌ Verification email could not be sent. Check your Supabase email settings.');
+    console.error('Email verification error:', err);
+    return;
   }
 
   clearInterval(_2faTimer);
@@ -1814,36 +1819,40 @@ async function show2FAStep(pendingUser) {
     secsLeft--;
     if (secsLeft < 0) {
       clearInterval(_2faTimer);
-      if (countEl) countEl.textContent = 'Code expired. Please try again.';
-      _2faCode = null;
+      if (countEl) countEl.textContent = 'Code expired. Please request a new code.';
     }
   };
   updateCount();
   _2faTimer = setInterval(updateCount, 1000);
 }
 
-function verify2FA() {
+async function verify2FA() {
   const entered = (document.getElementById('twofa-input').value||'').trim();
-  if (!_2faCode) { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
-  if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
-  if (entered !== _2faCode) { notify('❌ Incorrect code. Please check and try again.'); return; }
+  if (!_2faPending) { notify('⚠️ Please start signup again.'); cancel2FA(); return; }
+  if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please request a new code.'); return; }
+  if (!/^\d{6}$/.test(entered)) { notify('⚠️ Enter the 6-digit code sent to your email.'); return; }
 
-  // Code matched — proceed with account creation
-  clearInterval(_2faTimer);
   setLoading(true);
-  const u = { email: _2faPending.email, password: _2faPending.pass, name: _2faPending.name, role: _2faPending.role };
-  dbCreateUser(u).then(created => {
+  try {
+    await verifyEmailCode(_2faPending.email, entered);
+    const u = { email: _2faPending.email, password: _2faPending.pass, name: _2faPending.name, role: _2faPending.role };
+    const created = await dbCreateUser(u);
     setLoading(false);
+    clearInterval(_2faTimer);
     currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
     localStorage.setItem('jw_session', JSON.stringify(currentUser));
-    _2faPending = null; _2faCode = null;
+    _2faPending = null;
     launchApp();
-  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
+  } catch (err) {
+    setLoading(false);
+    notify('❌ Incorrect or expired verification code. Please check your email and try again.');
+    console.error('Verification failed:', err);
+  }
 }
 
 function cancel2FA() {
   clearInterval(_2faTimer);
-  _2faPending = null; _2faCode = null;
+  _2faPending = null;
   document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('signup-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Create Account';
@@ -1853,7 +1862,7 @@ function cancel2FA() {
 function resend2FA() {
   if (!_2faPending) return;
   show2FAStep(_2faPending);
-  notify('✦ New verification code sent.', 'message');
+  notify('✦ A new verification code has been sent.', 'message');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1869,8 +1878,8 @@ function switchAuthTab(tab) {
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = 'none';
-  document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome Back' : 'Create Account';
-  document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in to your account' : 'Join Janelle Writes today';
+  document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome to Janelle Writes' : 'Create Account';
+  document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in or create an account to continue' : 'Join Janelle Writes today';
 }
 
 function selectRole(r) {
@@ -1906,7 +1915,7 @@ function doSignup() {
   dbGetUserByEmail(email).then(existing => {
     setLoading(false);
     if (existing) { notify('❌ An account with this email already exists'); return; }
-    // Trigger 2FA step instead of directly creating
+    // Trigger email verification instead of directly creating
     show2FAStep({ name, email, pass, role: _selectedRole });
   }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
 }
@@ -1927,8 +1936,8 @@ function showLogin() {
   document.getElementById('signup-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('login-form').style.display = '';
-  document.getElementById('auth-panel-title').textContent = 'Welcome Back';
-  document.getElementById('auth-panel-sub').textContent = 'Sign in to your account to continue';
+  document.getElementById('auth-panel-title').textContent = 'Welcome to Janelle Writes';
+  document.getElementById('auth-panel-sub').textContent = 'Sign in or create an account to continue';
   document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   _authMode = 'login';
 }
