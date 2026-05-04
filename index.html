@@ -552,6 +552,11 @@ body.nav-open { overflow:hidden; }
   position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.stat-card.clickable-stat { cursor:pointer; }
+.stat-card.clickable-stat:focus-visible {
+  outline:3px solid rgba(42,157,143,0.24);
+  outline-offset:3px;
+}
 .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
 .stat-card.teal::before { background: var(--teal); }
 .stat-card.slate::before { background: var(--slate); }
@@ -2249,16 +2254,10 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
     </div>
 
     <div class="stats-grid">
-      <div class="stat-card teal"><div class="stat-icon">📥</div><div class="stat-value" id="writer-d-available">0</div><div class="stat-label">Available</div></div>
-      <div class="stat-card slate"><div class="stat-icon">✍️</div><div class="stat-value" id="writer-d-taken">0</div><div class="stat-label">My Tasks</div></div>
-      <div class="stat-card rust"><div class="stat-icon">✅</div><div class="stat-value" id="writer-d-completed">0</div><div class="stat-label">Completed</div></div>
-      <div class="stat-card revision"><div class="stat-icon">🔄</div><div class="stat-value" id="writer-d-revision">0</div><div class="stat-label">Revisions</div></div>
-    </div>
-
-    <div class="quick-actions">
-      <div class="qa-card" onclick="navigate('writer-available')"><div class="qa-icon">📥</div><div class="qa-title">Available Orders</div><div class="qa-sub">Find new work to take</div></div>
-      <div class="qa-card" onclick="navigate('writer-submit')"><div class="qa-icon">📤</div><div class="qa-title">Submit Work</div><div class="qa-sub">Deliver completed tasks</div></div>
-      <div class="qa-card" onclick="navigate('writer-revisions')"><div class="qa-icon">🔄</div><div class="qa-title">Revisions</div><div class="qa-sub">Tasks sent back for review</div></div>
+      <div class="stat-card teal clickable-stat" onclick="navigate('writer-available')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-available')"><div class="stat-icon">📥</div><div class="stat-value" id="writer-d-available">0</div><div class="stat-label">Available</div></div>
+      <div class="stat-card slate clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✍️</div><div class="stat-value" id="writer-d-taken">0</div><div class="stat-label">My Tasks</div></div>
+      <div class="stat-card rust clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✅</div><div class="stat-value" id="writer-d-completed">0</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card revision clickable-stat" onclick="navigate('writer-revisions')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-revisions')"><div class="stat-icon">🔄</div><div class="stat-value" id="writer-d-revision">0</div><div class="stat-label">Revisions</div></div>
     </div>
   </div>
 
@@ -5458,6 +5457,53 @@ function subscribeRealtime() {
     })
     .subscribe();
 }
+
+
+// ══════════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS: ENTER = OK / SEND
+// ══════════════════════════════════════════════════════
+function isVisible(el) {
+  return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden');
+}
+
+function handleAuthEnterKey(e) {
+  if (e.key !== 'Enter') return;
+  const authScreen = document.getElementById('auth-screen');
+  if (!authScreen || getComputedStyle(authScreen).display === 'none') return;
+  const target = e.target;
+  if (!target || target.tagName === 'TEXTAREA') return;
+
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const forgotForm = document.getElementById('forgot-form');
+  const twofaForm = document.getElementById('twofa-form');
+
+  e.preventDefault();
+  if (isVisible(loginForm)) {
+    doLogin();
+  } else if (isVisible(signupForm)) {
+    doSignup();
+  } else if (isVisible(forgotForm)) {
+    doForgotPassword();
+  } else if (isVisible(twofaForm)) {
+    verify2FA();
+  }
+}
+
+function handleMessageEnterKey(e) {
+  if (e.key !== 'Enter') return;
+  const target = e.target;
+  if (!target || target.id !== 'msg-input') return;
+
+  // Enter sends the message. Shift + Enter still allows a new line.
+  if (!e.shiftKey) {
+    e.preventDefault();
+    sendTaskMessage();
+  }
+}
+
+document.addEventListener('keydown', handleAuthEnterKey);
+document.addEventListener('keydown', handleMessageEnterKey);
 
 // ══════════════════════════════════════════════════════
 //  INIT// ══════════════════════════════════════════════════════
