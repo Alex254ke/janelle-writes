@@ -1058,7 +1058,7 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
     <div id="twofa-form" style="display:none;">
       <div style="text-align:center;margin-bottom:24px;">
         <div style="font-size:48px;margin-bottom:12px;">🔐</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6;">A 6-digit verification code has been sent to your email address.<br>Enter it below to finish creating your account.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;">A verification code has been sent to your email address.<br>Enter it below to finish creating your account.</p>
       </div>
       <div id="twofa-email-status" style="background:var(--teal-pale);border:1.5px solid var(--teal);border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal-dark);font-weight:600;margin-bottom:8px;">Email Verification</div>
@@ -1067,7 +1067,7 @@ thead { background:linear-gradient(135deg,#0f1923,#172b3a); }
       </div>
       <div class="form-group">
         <label class="form-label">Enter Verification Code</label>
-        <input type="text" class="form-input" id="twofa-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-size:22px;letter-spacing:6px;font-family:'Cormorant Garamond',serif;" onkeydown="if(event.key==='Enter')verify2FA()">
+        <input type="text" class="form-input" id="twofa-input" placeholder="Email code" maxlength="10" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-size:22px;letter-spacing:4px;font-family:'Cormorant Garamond',serif;" onkeydown="if(event.key==='Enter')verify2FA()">
       </div>
       <button class="btn btn-primary btn-full" onclick="verify2FA()">✓ Verify & Create Account</button>
       <div style="display:flex;gap:10px;margin-top:12px;">
@@ -1759,8 +1759,8 @@ async function refreshTasks() {
 
 // ══════════════════════════════════════════════════════
 //  EMAIL VERIFICATION for signup
-//  Supabase decides whether to email a code or a magic link from the
-//  Magic Link email template. The app never displays the verification code.
+//  Uses Supabase password signup + Confirm Signup email template.
+//  The app never displays the verification code on-screen.
 // ══════════════════════════════════════════════════════
 let _2faPending = null; // { name, email, pass, role }
 let _2faTimer = null;
@@ -1773,23 +1773,40 @@ function getAuthRedirectURL() {
   return href;
 }
 
-async function send2FACodeToEmail(email, name) {
+async function send2FACodeToEmail(pendingUser) {
   const redirectTo = getAuthRedirectURL();
-  const options = { shouldCreateUser: true };
+  const options = {
+    data: {
+      full_name: pendingUser.name,
+      role: pendingUser.role
+    }
+  };
   if (redirectTo) options.emailRedirectTo = redirectTo;
 
-  // Supabase sends a 6-digit code only when the Magic Link email template
-  // uses {{ .Token }} instead of {{ .ConfirmationURL }}.
-  const { error } = await _sb.auth.signInWithOtp({ email, options });
+  // For password-based registration, Supabase sends the code from
+  // Authentication → Email Templates → Confirm signup. That template must use
+  // {{ .Token }} instead of {{ .ConfirmationURL }}. Do not hard-code the length; some projects may send longer numeric tokens.
+  const { data, error } = await _sb.auth.signUp({
+    email: pendingUser.email,
+    password: pendingUser.pass,
+    options
+  });
+
   if (error) throw error;
+
+  // If a session is returned immediately, email confirmation is disabled in Supabase.
+  // Stop here so the platform does not silently bypass email verification.
+  if (data && data.session) {
+    throw new Error('Supabase email confirmation is disabled. Enable Confirm email in Authentication settings so a signup code can be emailed.');
+  }
 }
 
 async function verifyEmailCode(email, token) {
-  // Hosted Supabase email OTP normally verifies with type: 'email'.
-  // Some project/template settings may require 'signup', so we retry once.
-  let result = await _sb.auth.verifyOtp({ email, token, type: 'email' });
+  // Signup confirmation codes verify with type: 'signup'.
+  // Retry 'email' only for older projects that still send a magic-link OTP token.
+  let result = await _sb.auth.verifyOtp({ email, token, type: 'signup' });
   if (result.error) {
-    result = await _sb.auth.verifyOtp({ email, token, type: 'signup' });
+    result = await _sb.auth.verifyOtp({ email, token, type: 'email' });
   }
   if (result.error) throw result.error;
 }
@@ -1808,7 +1825,7 @@ async function finishVerifiedSignup(pendingUser) {
 
 function handleSupabaseMagicLinkReturn() {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const cameFromMagicLink = hash.get('access_token') && (hash.get('type') === 'magiclink' || hash.get('type') === 'email');
+  const cameFromMagicLink = hash.get('access_token') && (hash.get('type') === 'magiclink' || hash.get('type') === 'email' || hash.get('type') === 'signup');
   if (!cameFromMagicLink) return false;
 
   // Remove access tokens from the address bar immediately.
@@ -1836,7 +1853,7 @@ async function show2FAStep(pendingUser) {
   document.getElementById('signup-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Verify Your Email';
-  document.getElementById('auth-panel-sub').textContent = 'Enter the code sent to your email to finish registration';
+  document.getElementById('auth-panel-sub').textContent = 'Enter the email code to finish registration';
   document.getElementById('twofa-input').value = '';
 
   const statusEl = document.getElementById('twofa-status-text');
@@ -1844,11 +1861,11 @@ async function show2FAStep(pendingUser) {
   if (statusEl) statusEl.textContent = `Sending verification code to ${pendingUser.email}…`;
 
   try {
-    await send2FACodeToEmail(pendingUser.email, pendingUser.name);
-    if (statusEl) statusEl.innerHTML = `A 6-digit verification code has been sent to <strong>${pendingUser.email}</strong>. Please check your inbox or spam folder. If the email shows a sign-in link instead of a code, update the Supabase Magic Link email template to use <strong>{{ .Token }}</strong> and remove the confirmation-link button.`;
+    await send2FACodeToEmail(pendingUser);
+    if (statusEl) statusEl.innerHTML = `A verification code has been sent to <strong>${pendingUser.email}</strong>. Please check your inbox or spam folder, then enter the exact code from the email.`;
   } catch (err) {
-    if (statusEl) statusEl.innerHTML = `We could not send the verification email. Please confirm that Email OTP is enabled in Supabase Auth, then try again.`;
-    notify('❌ Verification email could not be sent. Check your Supabase email settings.');
+    if (statusEl) statusEl.innerHTML = `We could not send the verification email. Please enable Supabase email confirmations and make sure the <strong>Confirm signup</strong> template uses <strong>{{ .Token }}</strong>. Check the browser console for the exact Supabase error.`;
+    notify('❌ Verification email could not be sent. Check Supabase Confirm signup settings.');
     console.error('Email verification error:', err);
     return;
   }
@@ -1873,7 +1890,7 @@ async function verify2FA() {
   const entered = (document.getElementById('twofa-input').value||'').trim();
   if (!_2faPending) { notify('⚠️ Please start signup again.'); cancel2FA(); return; }
   if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please request a new code.'); return; }
-  if (!/^\d{6}$/.test(entered)) { notify('⚠️ Enter the 6-digit code sent to your email.'); return; }
+  if (!/^\d{6,10}$/.test(entered)) { notify('⚠️ Enter the verification code sent to your email.'); return; }
 
   setLoading(true);
   try {
@@ -1900,7 +1917,7 @@ function cancel2FA() {
 function resend2FA() {
   if (!_2faPending) return;
   show2FAStep(_2faPending);
-  notify('✦ A new verification code has been sent.', 'message');
+  notify('✦ A new signup verification code has been sent.', 'message');
 }
 
 // ══════════════════════════════════════════════════════
