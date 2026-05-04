@@ -743,8 +743,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
       <div style="margin-top:16px; padding:14px; background:var(--teal-pale); border-radius:9px; font-size:12px; color:var(--slate);">
         <strong>Getting started:</strong><br>
-        Create an Employer account to post orders, and a Writer account to accept them.<br>
-        <em style="color:var(--muted);">All data is stored in your Supabase database.</em>
+        Create an Employer account to post orders, and a Writer account to accept them.
       </div>
     </div>
 
@@ -792,6 +791,28 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
       </div>
       <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
     </div>
+
+    <!-- 2FA VERIFICATION STEP -->
+    <div id="twofa-form" style="display:none;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">🔐</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;">We generated a verification code for your account.<br>In a live environment this would be emailed to you.</p>
+      </div>
+      <div style="background:var(--teal-pale);border:1.5px solid var(--teal);border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal-dark);font-weight:600;margin-bottom:8px;">Your Verification Code</div>
+        <div id="twofa-code-display" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ink);letter-spacing:8px;">——</div>
+        <div id="twofa-countdown" style="font-size:11px;color:var(--muted);margin-top:8px;">Code expires in 5:00</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enter Verification Code</label>
+        <input type="text" class="form-input" id="twofa-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="text-align:center;font-size:22px;letter-spacing:6px;font-family:'Cormorant Garamond',serif;" onkeydown="if(event.key==='Enter')verify2FA()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="verify2FA()">✓ Verify & Create Account</button>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="btn btn-outline btn-full btn-sm" onclick="resend2FA()" style="font-size:12px;">🔄 Resend Code</button>
+        <button class="btn btn-outline btn-full btn-sm" onclick="cancel2FA()" style="font-size:12px;">← Go Back</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -823,10 +844,12 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
   </nav>
 
   <div class="sidebar-footer">
+    <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);font-weight:600;margin-bottom:8px;">🎧 Customer Support</div>
     <div class="contact-links">
       <a class="contact-link" href="https://instagram.com/Janelle_assignments" target="_blank"><span class="ci">📸</span> @Janelle_assignments</a>
       <a class="contact-link" href="https://wa.me/254723156622" target="_blank"><span class="ci">💬</span> +254 723 156 622</a>
       <a class="contact-link" href="mailto:janellewrites979@gmail.com"><span class="ci">✉️</span> janellewrites979@gmail.com</a>
+      <a class="contact-link" href="https://twitter.com/JW_Assignments" target="_blank"><span class="ci">𝕏</span> @JW_Assignments</a>
     </div>
     <div class="btn-logout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
@@ -1291,11 +1314,19 @@ let _pendingTakeId = null;
 let _pendingRevisionId = null;
 let _uploadedFiles = [];
 
-// ── ORDER NUMBER ──────────────────────────────────────
+// ── ORDER NUMBER (with employer initials) ─────────────
 function nextOrderNum() {
-  const ids = tasks.map(t => parseInt(t.id.replace('JW-',''))).filter(n=>!isNaN(n));
+  const ids = tasks.map(t => {
+    // Support old JW-NNNN and new JW-XX-NNNN formats
+    const m = t.id.match(/JW-(?:[A-Z]+-)?(\d+)/);
+    return m ? parseInt(m[1]) : NaN;
+  }).filter(n => !isNaN(n));
   const next = ids.length ? Math.max(...ids) + 1 : 1;
-  return 'JW-' + String(next).padStart(4,'0');
+  // Extract initials from current user's name
+  const initials = currentUser && currentUser.name
+    ? currentUser.name.trim().split(/\s+/).map(w => w[0].toUpperCase()).join('').slice(0,3)
+    : 'JW';
+  return 'JW-' + initials + '-' + String(next).padStart(4,'0');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1348,6 +1379,152 @@ async function refreshTasks() {
 }
 
 // ══════════════════════════════════════════════════════
+//  RATE LIMITING — max 5 attempts per 10 min window
+// ══════════════════════════════════════════════════════
+const RL_KEY = 'jw_login_rl';
+const RL_MAX = 5;
+const RL_WINDOW_MS = 10 * 60 * 1000; // 10 min
+const RL_LOCK_MS   = 10 * 60 * 1000; // 10 min lockout
+
+function rlGet() {
+  try { return JSON.parse(localStorage.getItem(RL_KEY)) || { attempts:[], lockedUntil:0 }; } catch { return { attempts:[], lockedUntil:0 }; }
+}
+function rlSave(d) { localStorage.setItem(RL_KEY, JSON.stringify(d)); }
+
+function rlCheck() {
+  // Returns { locked:true, secsLeft:N } or { locked:false }
+  const d = rlGet();
+  const now = Date.now();
+  if (d.lockedUntil && now < d.lockedUntil) {
+    return { locked:true, secsLeft: Math.ceil((d.lockedUntil - now)/1000) };
+  }
+  return { locked:false };
+}
+
+function rlRecordFail() {
+  const d = rlGet();
+  const now = Date.now();
+  // Drop attempts outside the window
+  d.attempts = (d.attempts||[]).filter(t => now - t < RL_WINDOW_MS);
+  d.attempts.push(now);
+  if (d.attempts.length >= RL_MAX) {
+    d.lockedUntil = now + RL_LOCK_MS;
+    d.attempts = [];
+    rlSave(d);
+    return true; // just got locked
+  }
+  rlSave(d);
+  return false;
+}
+
+function rlClear() {
+  localStorage.removeItem(RL_KEY);
+}
+
+// Countdown display for lockout
+let _rlTimer = null;
+function showLockoutMsg(secsLeft) {
+  clearInterval(_rlTimer);
+  const btn = document.querySelector('#login-form .btn-primary');
+  let remaining = secsLeft;
+  const updateBtn = () => {
+    if (!btn) return;
+    const m = Math.floor(remaining/60), s = remaining%60;
+    btn.innerHTML = `🔒 Locked — ${m}:${s.toString().padStart(2,'0')} remaining`;
+    btn.disabled = true;
+    btn.style.background = 'var(--danger)';
+    remaining--;
+    if (remaining < 0) {
+      clearInterval(_rlTimer);
+      btn.innerHTML = 'Sign In →';
+      btn.disabled = false;
+      btn.style.background = '';
+    }
+  };
+  updateBtn();
+  _rlTimer = setInterval(updateBtn, 1000);
+}
+
+// ══════════════════════════════════════════════════════
+//  TWO-FACTOR AUTH (2FA) for signup
+// ══════════════════════════════════════════════════════
+let _2faCode = null;
+let _2faPending = null; // { name, email, pass, role }
+let _2faTimer = null;
+let _2faExpiry = 0;
+
+function generate2FACode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function show2FAStep(pendingUser) {
+  _2faPending = pendingUser;
+  _2faCode = generate2FACode();
+  _2faExpiry = Date.now() + 5 * 60 * 1000; // 5-min expiry
+
+  // Show the 2FA panel
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = '';
+  document.getElementById('auth-panel-title').textContent = 'Verify Your Account';
+  document.getElementById('auth-panel-sub').textContent = 'Enter the 6-digit code to complete registration';
+
+  // Display code in the "email" box (simulated — in prod, send via real email)
+  document.getElementById('twofa-code-display').textContent = _2faCode;
+  document.getElementById('twofa-input').value = '';
+
+  // Countdown
+  clearInterval(_2faTimer);
+  let secsLeft = 300;
+  const countEl = document.getElementById('twofa-countdown');
+  const updateCount = () => {
+    const m = Math.floor(secsLeft/60), s = secsLeft%60;
+    if (countEl) countEl.textContent = `Code expires in ${m}:${s.toString().padStart(2,'0')}`;
+    secsLeft--;
+    if (secsLeft < 0) {
+      clearInterval(_2faTimer);
+      if (countEl) countEl.textContent = 'Code expired. Please try again.';
+      _2faCode = null;
+    }
+  };
+  updateCount();
+  _2faTimer = setInterval(updateCount, 1000);
+}
+
+function verify2FA() {
+  const entered = (document.getElementById('twofa-input').value||'').trim();
+  if (!_2faCode) { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
+  if (Date.now() > _2faExpiry)  { notify('⚠️ Code expired. Please sign up again.'); cancel2FA(); return; }
+  if (entered !== _2faCode) { notify('❌ Incorrect code. Please check and try again.'); return; }
+
+  // Code matched — proceed with account creation
+  clearInterval(_2faTimer);
+  setLoading(true);
+  const u = { email: _2faPending.email, password: _2faPending.pass, name: _2faPending.name, role: _2faPending.role };
+  dbCreateUser(u).then(created => {
+    setLoading(false);
+    currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    _2faPending = null; _2faCode = null;
+    launchApp();
+  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
+}
+
+function cancel2FA() {
+  clearInterval(_2faTimer);
+  _2faPending = null; _2faCode = null;
+  document.getElementById('twofa-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = '';
+  document.getElementById('auth-panel-title').textContent = 'Create Account';
+  document.getElementById('auth-panel-sub').textContent = 'Join Janelle Writes today';
+}
+
+function resend2FA() {
+  if (!_2faPending) return;
+  show2FAStep(_2faPending);
+  notify('✦ New verification code generated.');
+}
+
+// ══════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════
 let _authMode = 'login';
@@ -1359,6 +1536,7 @@ function switchAuthTab(tab) {
   document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome Back' : 'Create Account';
   document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in to your account' : 'Join Janelle Writes today';
 }
@@ -1370,13 +1548,29 @@ function selectRole(r) {
 }
 
 function doLogin() {
+  // Rate limit check
+  const rl = rlCheck();
+  if (rl.locked) { showLockoutMsg(rl.secsLeft); notify('🔒 Too many failed attempts. Try again later.'); return; }
+
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-password').value;
   if (!email || !pass) { notify('⚠️ Please fill in all fields'); return; }
   setLoading(true);
   dbGetUserByEmail(email).then(u => {
     setLoading(false);
-    if (!u || u.password !== pass) { notify('❌ Invalid email or password'); return; }
+    if (!u || u.password !== pass) {
+      const justLocked = rlRecordFail();
+      const d = rlGet();
+      const attemptsLeft = RL_MAX - (d.attempts||[]).length;
+      if (justLocked) {
+        showLockoutMsg(Math.ceil(RL_LOCK_MS/1000));
+        notify('🔒 Account temporarily locked after too many failed attempts.');
+      } else {
+        notify(`❌ Invalid email or password. ${attemptsLeft} attempt${attemptsLeft===1?'':'s'} remaining before lockout.`);
+      }
+      return;
+    }
+    rlClear(); // success — reset counter
     currentUser = { id: u.id, email: u.email, name: u.name, role: u.role };
     localStorage.setItem('jw_session', JSON.stringify(currentUser));
     launchApp();
@@ -1391,14 +1585,10 @@ function doSignup() {
   if (pass.length < 6) { notify('⚠️ Password must be at least 6 characters'); return; }
   setLoading(true);
   dbGetUserByEmail(email).then(existing => {
-    if (existing) { setLoading(false); notify('❌ An account with this email already exists'); return; }
-    const u = { email, password: pass, name, role: _selectedRole };
-    return dbCreateUser(u).then(created => {
-      setLoading(false);
-      currentUser = { id: created.id, email: created.email, name: created.name, role: created.role };
-      localStorage.setItem('jw_session', JSON.stringify(currentUser));
-      launchApp();
-    });
+    setLoading(false);
+    if (existing) { notify('❌ An account with this email already exists'); return; }
+    // Trigger 2FA step instead of directly creating
+    show2FAStep({ name, email, pass, role: _selectedRole });
   }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
 }
 
@@ -1416,6 +1606,7 @@ function showForgotPassword() {
 function showLogin() {
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('login-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Welcome Back';
   document.getElementById('auth-panel-sub').textContent = 'Sign in to your account to continue';
@@ -1800,7 +1991,7 @@ function renderEmpTasks() {
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View</button>
+          <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=Array.isArray(t.submitted_files)?t.submitted_files:(t.submitted_files?JSON.parse(t.submitted_files):[]); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button>` : ''}
           ${t.payment==='unpaid' && t.total>0 ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
         </div>
@@ -1829,8 +2020,31 @@ function empViewTask(id) {
     </div>
     ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;">${t.description}</div></div>` : ''}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
-    ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;">${t.submitted_link}</a></div>` : ''}
+    ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
     ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
+    ${(()=>{
+      const files = Array.isArray(t.submitted_files) ? t.submitted_files : (t.submitted_files ? JSON.parse(t.submitted_files) : []);
+      if (!files.length) return '';
+      const iconMap = {pdf:'📄',doc:'📝',docx:'📝',txt:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp3:'🎵',mp4:'🎬',wav:'🎵',zip:'📦',rar:'📦',xlsx:'📊',pptx:'📊',csv:'📊'};
+      const fmtSz = b => !b ? '' : b<1024 ? b+'B' : b<1048576 ? (b/1024).toFixed(1)+'KB' : (b/1048576).toFixed(1)+'MB';
+      return `<div style="margin-bottom:12px;">
+        <div class="form-label" style="margin-bottom:8px;">📎 Submitted Files (${files.length})</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${files.map(f=>{
+            const ext=(f.name||'').split('.').pop().toLowerCase();
+            const icon=iconMap[ext]||'📎';
+            return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--teal-pale);border:1px solid var(--teal);border-radius:8px;border-left:4px solid var(--teal);">
+              <span style="font-size:22px;flex-shrink:0;">${icon}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.name}</div>
+                ${f.size?`<div style="font-size:11px;color:var(--muted);">${fmtSz(f.size)}</div>`:''}
+              </div>
+              <span style="font-size:11px;background:var(--teal);color:#fff;padding:3px 8px;border-radius:12px;flex-shrink:0;font-weight:600;">${ext.toUpperCase()}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    })()}
     ${t.revision_notes ? `<div class="revision-banner"><span class="revision-banner-icon">🔄</span><div><div class="revision-banner-title">Revision Requested</div><div class="revision-banner-sub">${t.revision_notes}</div></div></div>` : ''}
   `;
   const actions = document.getElementById('vtm-actions');
