@@ -3271,12 +3271,16 @@ function setLoading(on) {
 function doLogout() {
   currentUser = null;
   tasks = [];
+  _currentPage = null;
+  _backLogoutArmed = false;
+  _appHistoryReady = false;
   localStorage.removeItem('jw_session');
   if (_realtimeSub) { _realtimeSub.unsubscribe(); _realtimeSub = null; }
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app-shell').style.display = 'none';
   document.getElementById('login-email').value = '';
   document.getElementById('login-password').value = '';
+  try { history.replaceState({ jwApp: false, page: 'login' }, '', window.location.pathname + window.location.search + '#login'); } catch (err) {}
   notify('👋 Signed out successfully');
 }
 
@@ -3304,16 +3308,92 @@ function updateDarkModeButton() {
   if (btn) btn.setAttribute('aria-label', enabled ? 'Switch to light mode' : 'Switch to dark mode');
 }
 
+
+// ══════════════════════════════════════════════════════
+//  BACK BUTTON / EXIT GUARD
+//  Keeps browser/mobile back from closing the app accidentally.
+// ══════════════════════════════════════════════════════
+let _currentPage = null;
+let _backLogoutArmed = false;
+let _appHistoryReady = false;
+let _suppressHistoryPush = false;
+
+function getHomePage() {
+  if (!currentUser) return 'login';
+  return currentUser.role === 'employer' ? 'emp-dashboard' : 'writer-dashboard';
+}
+
+function appRouteUrl(page) {
+  return window.location.pathname + window.location.search + '#' + encodeURIComponent(page || getHomePage());
+}
+
+function resetBackLogoutWarning() {
+  _backLogoutArmed = false;
+}
+
+function setAppHistory(page, mode = 'push') {
+  if (!currentUser || _suppressHistoryPush) return;
+  const state = { jwApp: true, page: page || getHomePage(), ts: Date.now() };
+  try {
+    if (mode === 'replace') history.replaceState(state, '', appRouteUrl(state.page));
+    else history.pushState(state, '', appRouteUrl(state.page));
+  } catch (err) {
+    console.warn('History update failed:', err);
+  }
+}
+
+function initBackButtonGuard() {
+  if (!currentUser) return;
+  _appHistoryReady = true;
+  resetBackLogoutWarning();
+  setAppHistory(getHomePage(), 'replace');
+  setAppHistory(getHomePage(), 'push');
+}
+
+function handleBackButtonAction(event) {
+  if (!currentUser || !_appHistoryReady) return;
+
+  const home = getHomePage();
+
+  // If the user is inside any app page, one back press returns to dashboard/home.
+  if (_currentPage && _currentPage !== home) {
+    resetBackLogoutWarning();
+    _suppressHistoryPush = true;
+    navigate(home, { skipHistory: true, fromBackButton: true });
+    _suppressHistoryPush = false;
+    setAppHistory(home, 'push');
+    notify('↩ Back to dashboard');
+    return;
+  }
+
+  // If already at dashboard, the first back press is a warning only.
+  if (!_backLogoutArmed) {
+    _backLogoutArmed = true;
+    setAppHistory(home, 'push');
+    notify('⚠️ Press back again to log out and return to the login page.');
+    return;
+  }
+
+  // Third action: user intentionally confirmed by pressing back again.
+  _backLogoutArmed = false;
+  _appHistoryReady = false;
+  try { history.replaceState({ jwApp: false, page: 'login' }, '', window.location.pathname + window.location.search + '#login'); } catch (err) {}
+  doLogout();
+}
+
+window.addEventListener('popstate', handleBackButtonAction);
+
 function launchApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
   buildSidebar();
   buildTopbar();
   updateUserDisplay();
+  initBackButtonGuard();
   // Load tasks from Supabase then navigate
   refreshTasks().then(() => {
-    if (currentUser.role === 'employer') navigate('emp-dashboard');
-    else navigate('writer-dashboard');
+    const home = getHomePage();
+    navigate(home, { replaceHistory: true });
   });
   notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
@@ -3448,13 +3528,16 @@ const pageTitles = {
   'messages': 'Messages',
 };
 
-function navigate(page) {
+function navigate(page, options = {}) {
+  _currentPage = page;
+  if (page !== getHomePage()) resetBackLogoutWarning();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
   document.getElementById('page-title').textContent = pageTitles[page] || 'Janelle Writes';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
   closeMobileMenu();
+  if (currentUser && !options.skipHistory) setAppHistory(page, options.replaceHistory ? 'replace' : 'push');
 
   // Page-specific init
   switch(page) {
