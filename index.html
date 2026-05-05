@@ -665,12 +665,38 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
 .badge-progress { background:#e8f0fe; color:#1a56b0; }
 .badge-completed { background:#e0f5f3; color:var(--teal-dark); }
 .badge-revision { background:#f3e5f5; color:var(--revision); }
+.badge-late { background:#fce8e6; color:var(--danger); }
 .badge-paid { background:#e0f5f3; color:var(--success); }
 .badge-unpaid { background:#fce8e6; color:var(--danger); }
 .badge-style { background:var(--teal-pale); color:var(--teal-dark); }
 .badge-employer { background:#fff3e0; color:var(--warning); }
 .badge-writer { background:#e0f5f3; color:var(--teal-dark); }
 .dot { width:6px; height:6px; border-radius:50%; background:currentColor; display:inline-block; flex-shrink:0; }
+
+
+.lateness-note {
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:6px; padding:5px 9px; border-radius:999px;
+  background:#fce8e6; color:var(--danger); font-size:11px; font-weight:700;
+}
+.lateness-panel {
+  background:linear-gradient(135deg,#fff7f5,#ffffff);
+  border:1px solid rgba(192,57,43,0.18);
+  border-left:4px solid var(--danger);
+  border-radius:12px;
+  padding:14px;
+  margin:12px 0;
+}
+.lateness-panel-title {
+  font-size:11px; font-weight:800; letter-spacing:1.2px;
+  text-transform:uppercase; color:var(--danger); margin-bottom:6px;
+}
+.lateness-panel-text { font-size:13px; color:var(--charcoal); line-height:1.55; }
+body.dark-mode .lateness-panel, body.dark .lateness-panel {
+  background:rgba(192,57,43,0.10);
+  border-color:rgba(255,138,128,0.24);
+}
+body.dark-mode .lateness-panel-text, body.dark .lateness-panel-text { color:#eef6f5; }
 
 /* ── CARDS / FORMS ─── */
 .card { background:var(--white); border-radius:12px; box-shadow:var(--shadow); border:1px solid var(--border); padding:28px; }
@@ -2372,6 +2398,7 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
       <div class="stat-card slate clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✍️</div><div class="stat-value" id="writer-d-taken">0</div><div class="stat-label">My Tasks</div></div>
       <div class="stat-card rust clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✅</div><div class="stat-value" id="writer-d-completed">0</div><div class="stat-label">Completed</div></div>
       <div class="stat-card revision clickable-stat" onclick="navigate('writer-revisions')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-revisions')"><div class="stat-icon">🔄</div><div class="stat-value" id="writer-d-revision">0</div><div class="stat-label">Revisions</div></div>
+      <div class="stat-card rust"><div class="stat-icon">⏰</div><div class="stat-value" id="writer-d-late-rate">0%</div><div class="stat-label">Lateness Rate</div></div>
     </div>
   </div>
 
@@ -2402,6 +2429,7 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
     <div class="tabs">
       <div class="tab active" onclick="writerSwitchTab(this,'all')">All</div>
       <div class="tab" onclick="writerSwitchTab(this,'progress')">In Progress</div>
+      <div class="tab" onclick="writerSwitchTab(this,'late')">Late <span class="tab-badge" id="writer-late-tab-badge">0</span></div>
       <div class="tab" onclick="writerSwitchTab(this,'completed')">Completed</div>
       <div class="tab" onclick="writerSwitchTab(this,'disputed')">Disputed <span class="tab-badge" id="writer-dispute-tab-badge">0</span></div>
     </div>
@@ -2935,6 +2963,7 @@ async function dbUpdateTask(id, updates) {
 // Refresh the in-memory tasks cache from Supabase
 async function refreshTasks() {
   tasks = dedupeTasks(await dbGetTasks());
+  await autoMarkLateTasks(true);
   updateBadges();
 }
 
@@ -3568,6 +3597,7 @@ function launchApp() {
   });
   notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
+  startLateTaskWatcher();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3646,11 +3676,14 @@ function updateBadges() {
   if (currentUser.role === 'employer') {
     const pending = myTasks.filter(t => t.status === 'pending').length;
     const revisions = myTasks.filter(t => t.status === 'revision').length;
+    const late = myTasks.filter(t => taskIsLate(t)).length;
     const disputes = myTasks.filter(t => hasOpenDispute(t)).length;
     const el = document.getElementById('emp-pending-badge');
     if (el) el.textContent = pending;
     const rb = document.getElementById('emp-revision-badge');
     if (rb) rb.textContent = revisions;
+    const lb = document.getElementById('emp-late-tab-badge');
+    if (lb) lb.textContent = late;
     const db = document.getElementById('emp-dispute-badge');
     if (db) db.textContent = disputes;
     const dtb = document.getElementById('emp-dispute-tab-badge');
@@ -3658,6 +3691,7 @@ function updateBadges() {
   } else {
     const avail = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
     const revisions = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'revision').length;
+    const late = tasks.filter(t => t.taken_by === currentUser.email && taskIsLate(t)).length;
     const disputes = tasks.filter(t => t.taken_by === currentUser.email && hasOpenDispute(t)).length;
     const myTaskCount = tasks.filter(t => t.taken_by === currentUser.email).length;
     const ab = document.getElementById('avail-badge');
@@ -3666,6 +3700,8 @@ function updateBadges() {
     if (tb) tb.textContent = myTaskCount;
     const rb = document.getElementById('revision-nav-badge');
     if (rb) rb.textContent = revisions;
+    const lb = document.getElementById('writer-late-tab-badge');
+    if (lb) lb.textContent = late;
     const db = document.getElementById('writer-dispute-badge');
     if (db) db.textContent = disputes;
     const dtb = document.getElementById('writer-dispute-tab-badge');
@@ -3710,6 +3746,7 @@ function navigate(page, options = {}) {
   closeMobileMenu();
   if (currentUser && !options.skipHistory) setAppHistory(page, options.replaceHistory ? 'replace' : 'push');
 
+  autoMarkLateTasks(true);
   // Page-specific init
   switch(page) {
     case 'emp-dashboard':   renderEmpDashboard(); break;
@@ -3754,12 +3791,139 @@ function fmtDate(s) {
   try { return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch { return s; }
 }
 
+
+// ══════════════════════════════════════════════════════
+//  AUTOMATIC LATENESS TRACKING
+// ══════════════════════════════════════════════════════
+let _lateWatcherStarted = false;
+let _lateAutoMarkRunning = false;
+
+function taskTiming(t) {
+  const ratings = (typeof t.ratings === 'string') ? safeParseJSON(t.ratings, {}) : (t.ratings || {});
+  return ratings.__timing || {};
+}
+
+function setTaskTiming(t, timing) {
+  const ratings = (typeof t.ratings === 'string') ? safeParseJSON(t.ratings, {}) : (t.ratings || {});
+  return { ...ratings, __timing: { ...(ratings.__timing || {}), ...(timing || {}) } };
+}
+
+function hasSubmittedWork(t) {
+  return !!(t.submitted_link || t.submitted_text || (parseSubmittedFiles(t.submitted_files || []).length));
+}
+
+function parseTaskDeadline(t) {
+  if (!t || !t.deadline) return null;
+  const d = new Date(t.deadline);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function isPastDeadline(t, when = new Date()) {
+  const d = parseTaskDeadline(t);
+  return !!(d && when.getTime() > d.getTime());
+}
+
+function minutesLate(t, when = new Date()) {
+  const d = parseTaskDeadline(t);
+  if (!d) return 0;
+  return Math.max(0, Math.ceil((when.getTime() - d.getTime()) / 60000));
+}
+
+function formatLateDuration(mins) {
+  mins = Number(mins || 0);
+  if (mins < 60) return mins + ' min late';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h < 24) return h + ' hr' + (h === 1 ? '' : 's') + (m ? ' ' + m + ' min' : '') + ' late';
+  const d = Math.floor(h / 24);
+  const rem = h % 24;
+  return d + ' day' + (d === 1 ? '' : 's') + (rem ? ' ' + rem + ' hr' : '') + ' late';
+}
+
+function taskIsLate(t) {
+  const timing = taskTiming(t);
+  if (timing.late === true) return true;
+  if (t.status === 'late') return true;
+  if (t.taken_by && !hasSubmittedWork(t) && !['completed','revision','cancelled'].includes(t.status) && isPastDeadline(t)) return true;
+  return false;
+}
+
+function wasSubmittedLate(t) {
+  const timing = taskTiming(t);
+  if (timing.submitted_late === true || timing.late === true) return true;
+  if (!timing.submitted_at || !t.deadline) return false;
+  return new Date(timing.submitted_at).getTime() > new Date(t.deadline).getTime();
+}
+
+function statusBadgeForTask(t) {
+  const base = statusBadge(t.status);
+  if (taskIsLate(t) || wasSubmittedLate(t)) {
+    const mins = taskTiming(t).late_minutes || minutesLate(t, taskTiming(t).submitted_at ? new Date(taskTiming(t).submitted_at) : new Date());
+    return base + ' <span class="badge badge-late"><span class="dot"></span>' + formatLateDuration(mins) + '</span>';
+  }
+  return base;
+}
+
+function renderLatenessPanel(t) {
+  if (!(taskIsLate(t) || wasSubmittedLate(t))) return '';
+  const timing = taskTiming(t);
+  const mins = timing.late_minutes || minutesLate(t, timing.submitted_at ? new Date(timing.submitted_at) : new Date());
+  const submitted = timing.submitted_at ? 'Submitted: ' + fmtDate(timing.submitted_at) + '. ' : '';
+  return `<div class="lateness-panel">
+    <div class="lateness-panel-title">Automatic lateness record</div>
+    <div class="lateness-panel-text">${submitted}Deadline: ${fmtDate(t.deadline)}. This task is marked as <strong>${formatLateDuration(mins)}</strong>.</div>
+  </div>`;
+}
+
+function writerLatenessStats(email) {
+  const measured = tasks.filter(t => t.taken_by === email && (hasSubmittedWork(t) || taskTiming(t).submitted_at || ['completed','revision'].includes(t.status) || taskIsLate(t)));
+  const late = measured.filter(t => wasSubmittedLate(t) || taskIsLate(t));
+  const rate = measured.length ? Math.round((late.length / measured.length) * 100) : 0;
+  return { total: measured.length, late: late.length, rate };
+}
+
+function autoMarkLateTasks(silent = true) {
+  if (_lateAutoMarkRunning) return Promise.resolve();
+  if (!Array.isArray(tasks) || !tasks.length) return Promise.resolve();
+  const now = new Date();
+  const toMark = tasks.filter(t => t.taken_by && !hasSubmittedWork(t) && !['completed','revision','cancelled'].includes(t.status) && isPastDeadline(t, now) && !taskTiming(t).late);
+  if (!toMark.length) return Promise.resolve();
+
+  _lateAutoMarkRunning = true;
+  const updates = toMark.map(t => {
+    const timing = {
+      late: true,
+      late_marked_at: now.toISOString(),
+      late_minutes: minutesLate(t, now),
+      auto_marked: true
+    };
+    const ratings = setTaskTiming(t, timing);
+    const updates = { status: 'late', ratings };
+    Object.assign(t, updates);
+    return dbUpdateTask(t.id, updates).catch(err => console.warn('Late mark sync failed for', t.id, err));
+  });
+
+  return Promise.all(updates).then(() => {
+    _lateAutoMarkRunning = false;
+    updateBadges();
+    if (!silent && toMark.length) notify('⏰ ' + toMark.length + ' overdue task(s) marked late automatically.');
+  }).catch(() => { _lateAutoMarkRunning = false; });
+}
+
+function startLateTaskWatcher() {
+  if (_lateWatcherStarted) return;
+  _lateWatcherStarted = true;
+  autoMarkLateTasks(true);
+  setInterval(() => autoMarkLateTasks(true), 60000);
+}
+
 function statusBadge(s) {
   const map = {
     pending: '<span class="badge badge-pending"><span class="dot"></span>Pending</span>',
     progress: '<span class="badge badge-progress"><span class="dot"></span>In Progress</span>',
     completed: '<span class="badge badge-completed"><span class="dot"></span>Completed</span>',
     revision: '<span class="badge badge-revision"><span class="dot"></span>Revision</span>',
+    late: '<span class="badge badge-late"><span class="dot"></span>Late</span>',
     disputed: '<span class="badge badge-disputed"><span class="dot"></span>Disputed</span>',
   };
   return map[s] || s;
@@ -4294,7 +4458,7 @@ async function empPostTask() {
 function renderEmpDashboard() {
   const mine = myTaskList();
   const total = mine.length;
-  const active = mine.filter(t => t.status === 'pending' || t.status === 'progress').length;
+  const active = mine.filter(t => t.status === 'pending' || t.status === 'progress' || t.status === 'late').length;
   const done = mine.filter(t => t.status === 'completed').length;
   const unpaid = mine.filter(t => t.payment === 'unpaid').reduce((s,t) => s+t.total, 0);
 
@@ -4318,7 +4482,7 @@ function renderEmpDashboard() {
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);">${fmtDate(t.deadline)}</td>
-      <td>${statusBadge(t.status)}</td>
+      <td>${statusBadgeForTask(t)}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
     </tr>
@@ -4342,7 +4506,7 @@ function renderEmpTasks() {
   const search = (document.getElementById('emp-search')?.value || '').toLowerCase();
   const filterPay = document.getElementById('emp-filter-pay')?.value || '';
   let list = mine;
-  if (_empTaskFilter !== 'all') list = _empTaskFilter === 'disputed' ? list.filter(t => hasOpenDispute(t)) : list.filter(t => t.status === _empTaskFilter);
+  if (_empTaskFilter !== 'all') list = _empTaskFilter === 'disputed' ? list.filter(t => hasOpenDispute(t)) : (_empTaskFilter === 'late' ? list.filter(t => taskIsLate(t)) : list.filter(t => t.status === _empTaskFilter));
   if (search) list = list.filter(t => t.id.toLowerCase().includes(search) || t.subject.toLowerCase().includes(search));
   if (filterPay) list = list.filter(t => t.payment === filterPay);
 
@@ -4357,7 +4521,7 @@ function renderEmpTasks() {
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
-      <td>${statusBadge(t.status)}</td>
+      <td>${statusBadgeForTask(t)}</td>
       <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
@@ -4383,7 +4547,7 @@ function empViewTask(id) {
   document.getElementById('vtm-title').textContent = t.id + ' — ' + t.subject;
   document.getElementById('vtm-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-      <div class="text-muted">Status</div><div>${statusBadge(t.status)}</div>
+      <div class="text-muted">Status</div><div>${statusBadgeForTask(t)}</div>
       <div class="text-muted">Level</div><div>${t.level}</div>
       <div class="text-muted">Style</div><div><span class="badge badge-style">${t.style}</span></div>
       <div class="text-muted">Pages</div><div>${t.pages}</div>
@@ -4398,6 +4562,7 @@ function empViewTask(id) {
     ${renderInstructionFiles(t)}
     ${taskRatingSummary(t)}
     ${renderDisputeSummary(t)}
+    ${renderLatenessPanel(t)}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
     ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
     ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
@@ -4544,6 +4709,7 @@ function renderWriterDashboard() {
   const myTasks = tasks.filter(t => t.taken_by === currentUser.email);
   const done = myTasks.filter(t => t.status === 'completed').length;
   const revision = myTasks.filter(t => t.status === 'revision').length;
+  const lateStats = writerLatenessStats(currentUser.email);
 
   document.getElementById('writer-stat-taken').textContent = myTasks.length;
   document.getElementById('writer-stat-done').textContent = done;
@@ -4552,6 +4718,8 @@ function renderWriterDashboard() {
   document.getElementById('writer-d-taken').textContent = myTasks.length;
   document.getElementById('writer-d-completed').textContent = done;
   document.getElementById('writer-d-revision').textContent = revision;
+  const lateRateEl = document.getElementById('writer-d-late-rate');
+  if (lateRateEl) lateRateEl.textContent = lateStats.rate + '%';
 }
 
 // ══════════════════════════════════════════════════════
@@ -4637,10 +4805,18 @@ function confirmTakeOrder() {
   const t = tasks.find(t => t.id === _pendingTakeId);
   if (!t) return;
   if (t.taken_by) { notify('⚠️ This order was just taken by someone else'); closeModal('modal-take-order'); renderAvailableOrders(); return; }
-  dbUpdateTask(t.id, { taken_by: currentUser.email, taken_by_name: currentUser.name, status: 'progress' }).then(() => {
+  const alreadyLate = isPastDeadline(t);
+  const takeUpdates = {
+    taken_by: currentUser.email,
+    taken_by_name: currentUser.name,
+    status: alreadyLate ? 'late' : 'progress',
+    ratings: alreadyLate ? setTaskTiming(t, { late: true, late_marked_at: new Date().toISOString(), late_minutes: minutesLate(t), auto_marked: true }) : (t.ratings || {})
+  };
+  dbUpdateTask(t.id, takeUpdates).then(() => {
     t.taken_by = currentUser.email;
     t.taken_by_name = currentUser.name;
-    t.status = 'progress';
+    t.status = takeUpdates.status;
+    t.ratings = takeUpdates.ratings;
     closeModal('modal-take-order');
     renderAvailableOrders();
     renderWriterDashboard();
@@ -4661,7 +4837,7 @@ function writerSwitchTab(el, filter) {
 
 function renderWriterTasks() {
   let list = tasks.filter(t => t.taken_by === currentUser.email);
-  if (_writerTaskFilter !== 'all') list = _writerTaskFilter === 'disputed' ? list.filter(t => hasOpenDispute(t)) : list.filter(t => t.status === _writerTaskFilter);
+  if (_writerTaskFilter !== 'all') list = _writerTaskFilter === 'disputed' ? list.filter(t => hasOpenDispute(t)) : (_writerTaskFilter === 'late' ? list.filter(t => taskIsLate(t)) : list.filter(t => t.status === _writerTaskFilter));
 
   const tbody = document.getElementById('writer-tasks-table');
   if (!list.length) {
@@ -4675,7 +4851,7 @@ function renderWriterTasks() {
       <td><span class="badge badge-style">${t.style}</span></td>
       <td>${t.pages}</td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
-      <td>${statusBadge(t.status)}</td>
+      <td>${statusBadgeForTask(t)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View</button>${!hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>`}${t.status === 'completed' ? `<button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','employer')">Rate</button>` : ''}</div></td>
     </tr>
@@ -4932,7 +5108,7 @@ function startRevision(id) {
 // ══════════════════════════════════════════════════════
 function populateWriterSubmitSelect() {
   const sel = document.getElementById('writer-submit-select');
-  const myTasks = tasks.filter(t => t.taken_by === currentUser.email && (t.status === 'progress' || t.status === 'pending'));
+  const myTasks = tasks.filter(t => t.taken_by === currentUser.email && (t.status === 'progress' || t.status === 'pending' || t.status === 'late'));
   sel.innerHTML = '<option value="">— Select Order —</option>' + myTasks.map(t => `<option value="${t.id}">${t.id} — ${t.subject}</option>`).join('');
 }
 
@@ -4961,12 +5137,13 @@ function showSelectedSubmitTask() {
         <div style="font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;color:var(--ink);"><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button> — ${esc(t.subject)}</div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(t.level)} · ${esc(t.style)} · ${Number(t.pages || 0)} pages · Due ${fmtDate(t.deadline)}</div>
       </div>
-      ${statusBadge(t.status)}
+      ${statusBadgeForTask(t)}
     </div>
     ${t.description ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Instructions:</strong> ${esc(t.description)}</div>` : ''}
     ${t.requirements ? `<div style="font-size:13px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;"><strong>Special requirements:</strong> ${esc(t.requirements)}</div>` : ''}
     ${renderInstructionFiles(t)}
     ${renderSubmittedFiles(t)}
+    ${renderLatenessPanel(t)}
   </div>`;
 }
 
@@ -5083,7 +5260,19 @@ async function writerSubmitWork() {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
 
-  const updates = { submitted_notes: notes, status: 'completed' };
+  const submittedAt = new Date();
+  const wasLate = isPastDeadline(t, submittedAt) || taskIsLate(t);
+  const lateMins = wasLate ? minutesLate(t, submittedAt) : 0;
+  const updates = {
+    submitted_notes: notes,
+    status: 'completed',
+    ratings: setTaskTiming(t, {
+      submitted_at: submittedAt.toISOString(),
+      submitted_late: wasLate,
+      late: wasLate,
+      late_minutes: lateMins
+    })
+  };
   try {
     if (type === 'file') {
       if (!_uploadedFiles.length) { notify('⚠️ Please upload at least one file'); return; }
@@ -5603,7 +5792,7 @@ function loadMessageThread() {
     return;
   }
   title.innerHTML = `${esc(t.id)} — ${esc(t.subject)}`;
-  summary.innerHTML = `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadge(t.status)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
+  summary.innerHTML = `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
   const messages = markTaskMessagesRead(t);
   const currentOption = Array.from(document.getElementById('msg-order-select').options).find(opt => opt.value === t.id);
   if (currentOption) currentOption.textContent = messageOptionLabel(t);
