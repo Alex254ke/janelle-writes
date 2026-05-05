@@ -1856,6 +1856,20 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
 </head>
 <body>
 
+<!-- SESSION IDLE WARNING MODAL -->
+<div id="session-modal" class="session-modal" aria-hidden="true">
+  <div class="session-modal-card" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
+    <div class="session-modal-icon">⏳</div>
+    <h3 id="session-modal-title">Still working?</h3>
+    <p>Your session will close in <strong id="session-countdown">60</strong> seconds to keep your account safe.</p>
+    <div class="session-modal-actions">
+      <button class="btn btn-primary" type="button" onclick="handleSessionRefresh()">Keep Working</button>
+      <button class="btn btn-outline" type="button" onclick="handleSessionLogout()">Logout</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ══════════════════════════════════════════════
      AUTH SCREEN
 ══════════════════════════════════════════════ -->
@@ -3461,6 +3475,151 @@ function doForgotPassword() {
 
 
 // ── LOADING HELPER ────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+//  IDLE SESSION GUARD
+//  Shows warning after inactivity, then logs out if user does not continue.
+// ══════════════════════════════════════════════════════
+const SESSION_IDLE_TIME_MS = 14 * 60 * 1000;  // 14 minutes before warning
+const SESSION_WARNING_SECONDS = 60;           // 60-second countdown
+
+let _sessionIdleTimer = null;
+let _sessionCountdownTimer = null;
+let _sessionCountdownLeft = SESSION_WARNING_SECONDS;
+let _sessionActivityBound = false;
+
+function isAppSessionActive() {
+  const appShell = document.getElementById('app-shell');
+  return !!currentUser && !!appShell && appShell.style.display !== 'none';
+}
+
+function getSessionModal() {
+  return document.getElementById('session-modal');
+}
+
+function isSessionModalOpen() {
+  return getSessionModal()?.classList.contains('open');
+}
+
+function updateSessionCountdown() {
+  const el = document.getElementById('session-countdown');
+  if (el) el.textContent = String(_sessionCountdownLeft);
+}
+
+function hideSessionModal() {
+  const modal = getSessionModal();
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  clearInterval(_sessionCountdownTimer);
+  _sessionCountdownTimer = null;
+}
+
+function showSessionWarning() {
+  if (!isAppSessionActive()) return;
+  const modal = getSessionModal();
+  if (!modal) return;
+
+  _sessionCountdownLeft = SESSION_WARNING_SECONDS;
+  updateSessionCountdown();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+
+  clearInterval(_sessionCountdownTimer);
+  _sessionCountdownTimer = setInterval(() => {
+    _sessionCountdownLeft -= 1;
+    updateSessionCountdown();
+    if (_sessionCountdownLeft <= 0) handleSessionLogout();
+  }, 1000);
+}
+
+function resetSessionIdleTimer() {
+  if (!isAppSessionActive()) return;
+  clearTimeout(_sessionIdleTimer);
+  _sessionIdleTimer = setTimeout(showSessionWarning, SESSION_IDLE_TIME_MS);
+}
+
+async function handleSessionRefresh() {
+  hideSessionModal();
+
+  try {
+    // This app primarily uses jw_session, but if Supabase Auth has a browser session,
+    // refresh it safely using the client-side refresh token.
+    if (typeof _sb !== 'undefined' && _sb?.auth) {
+      const { data } = await _sb.auth.getSession();
+      if (data?.session) {
+        const { error } = await _sb.auth.refreshSession();
+        if (error) throw error;
+      }
+    }
+    notify('✅ Session extended. You can keep working.');
+  } catch (err) {
+    console.warn('Supabase session refresh failed:', err);
+    notify('⚠️ Could not refresh the secure session. Please sign in again.');
+    handleSessionLogout();
+    return;
+  }
+
+  resetSessionIdleTimer();
+}
+
+async function handleSessionLogout() {
+  stopSessionGuard();
+  try {
+    if (typeof _sb !== 'undefined' && _sb?.auth) {
+      await _sb.auth.signOut();
+    }
+  } catch (err) {
+    console.warn('Supabase sign out warning:', err);
+  }
+  doLogout();
+}
+
+function stopSessionGuard() {
+  clearTimeout(_sessionIdleTimer);
+  clearInterval(_sessionCountdownTimer);
+  _sessionIdleTimer = null;
+  _sessionCountdownTimer = null;
+  hideSessionModal();
+}
+
+function bindSessionActivityListeners() {
+  if (_sessionActivityBound) return;
+  _sessionActivityBound = true;
+
+  const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+  activityEvents.forEach(eventName => {
+    document.addEventListener(eventName, (event) => {
+      if (!isAppSessionActive()) return;
+
+      // Once the warning is visible, do not hide it by accidental movement.
+      // The user must choose Keep Working or Logout.
+      if (isSessionModalOpen()) return;
+
+      resetSessionIdleTimer();
+    }, { capture:true, passive:true });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!isSessionModalOpen()) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSessionRefresh();
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      handleSessionLogout();
+    }
+  }, true);
+}
+
+function initSessionGuard() {
+  bindSessionActivityListeners();
+  hideSessionModal();
+  resetSessionIdleTimer();
+}
+
 function setLoading(on) {
   document.querySelectorAll('.btn-primary').forEach(b => {
     if (on) { b.dataset.origText = b.innerHTML; b.innerHTML = '⏳ Loading…'; b.disabled = true; }
@@ -3469,6 +3628,7 @@ function setLoading(on) {
 }
 
 function doLogout() {
+  if (typeof stopSessionGuard === 'function') stopSessionGuard();
   currentUser = null;
   tasks = [];
   _currentPage = null;
@@ -3590,6 +3750,7 @@ function launchApp() {
   buildTopbar();
   updateUserDisplay();
   initBackButtonGuard();
+  initSessionGuard();
   // Load tasks from Supabase then navigate
   refreshTasks().then(() => {
     const home = getHomePage();
