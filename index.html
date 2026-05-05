@@ -71,6 +71,42 @@ document.addEventListener('click', function(e) {
   }
 });
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPasswordToggles();
+});
+
+
+function bootPasswordToggles() {
+  try {
+    initPasswordToggles();
+    setTimeout(initPasswordToggles, 80);
+    setTimeout(initPasswordToggles, 300);
+  } catch (err) {
+    console.warn('Password toggle init warning:', err);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootPasswordToggles);
+} else {
+  bootPasswordToggles();
+}
+
+window.addEventListener('load', bootPasswordToggles);
+
+
+// Keep password toggles attached even if the auth form is re-rendered later.
+if (!window.__jwPasswordToggleObserver) {
+  window.__jwPasswordToggleObserver = true;
+  const __jwPwObserver = new MutationObserver(() => {
+    if (document.getElementById('login-password') || document.getElementById('signup-password')) {
+      bootPasswordToggles();
+    }
+  });
+  __jwPwObserver.observe(document.body, { childList: true, subtree: true });
+}
+
 </script>
 <style>
 :root {
@@ -2183,6 +2219,103 @@ body.dark-mode .partner-profile-mini {
   color:#8ee4d6;
 }
 
+
+/* ── PASSWORD VISIBILITY TOGGLE ─────────────────── */
+.password-field-wrap {
+  position: relative;
+}
+.password-field-wrap .form-input {
+  padding-right: 48px;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--slate);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+.password-toggle-btn:hover {
+  background: var(--teal-pale);
+  color: var(--teal-dark);
+}
+.password-toggle-btn:active {
+  transform: translateY(-50%) scale(.96);
+}
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.2;
+}
+body.dark-mode .password-toggle-btn {
+  color: #b8ccca;
+}
+body.dark-mode .password-toggle-btn:hover {
+  background: rgba(82,196,184,0.14);
+  color: #8ee4d6;
+}
+
+
+/* Hide browser-native reveal icons so our custom icon appears consistently */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+.password-field-wrap {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+}
+.password-field-wrap .form-input {
+  width: 100% !important;
+  padding-right: 52px !important;
+}
+.password-toggle-btn {
+  z-index: 5 !important;
+  pointer-events: auto !important;
+}
+
+
+/* ── PREFERRED WRITER ASSIGNMENT ─────────────────── */
+.preferred-writer-note {
+  margin-top:8px;
+  font-size:11px;
+  line-height:1.5;
+  color:var(--muted);
+}
+.preferred-writer-select-wrap {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+}
+.preferred-writer-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:var(--teal-pale);
+  color:var(--teal-dark);
+  font-size:11px;
+  font-weight:800;
+  border:1px solid rgba(42,157,143,0.18);
+}
+body.dark-mode .preferred-writer-badge {
+  background:rgba(82,196,184,0.12);
+  color:#8ee4d6;
+  border-color:rgba(142,228,214,0.18);
+}
+
 </style>
 </head>
 <body>
@@ -2519,6 +2652,17 @@ body.dark-mode .partner-profile-mini {
         <div class="form-group"><label class="form-label">Deadline</label><input type="datetime-local" class="form-input" id="emp-deadline"></div>
         <div class="form-group form-full"><label class="form-label">Task Description / Instructions</label><textarea class="form-textarea" id="emp-desc" rows="4" placeholder="Provide detailed instructions, formatting requirements, sources, etc."></textarea></div>
         <div class="form-group form-full"><label class="form-label">Special Requirements</label><input type="text" class="form-input" id="emp-requirements" placeholder="e.g. Include 5 peer-reviewed sources, Turnitin report required"></div>
+        <div class="form-group form-full">
+          <label class="form-label">Preferred Writer <span style="color:var(--muted);font-weight:600;">(optional)</span></label>
+          <div class="preferred-writer-select-wrap">
+            <select class="form-select" id="emp-preferred-writer">
+              <option value="">Post publicly for available writers</option>
+            </select>
+            <div class="preferred-writer-note" id="emp-preferred-writer-note">
+              Choose a writer you have worked with before. If selected, the order goes directly to that writer's My Tasks page instead of Available Orders.
+            </div>
+          </div>
+        </div>
         <div class="form-group form-full">
           <label class="form-label">Instructions Files / Attachments</label>
           <div class="upload-zone" id="instruction-upload-zone" onclick="document.getElementById('instruction-file-input').click()" ondragover="dragOverInstruction(event)" ondragleave="this.classList.remove('dragover')" ondrop="dropInstructionFiles(event)">
@@ -3346,6 +3490,51 @@ function handleSupabaseMagicLinkReturn() {
   return false;
 }
 
+
+// Password show / hide toggle for login and signup forms.
+function passwordToggleIcon(isVisible) {
+  return isVisible
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58"></path><path d="M9.88 4.24A10.94 10.94 0 0 1 12 4c7 0 10 8 10 8a18.7 18.7 0 0 1-2.35 3.57"></path><path d="M6.61 6.61C3.98 8.38 2 12 2 12s3 8 10 8a10.7 10.7 0 0 0 5.39-1.46"></path></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+}
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  if (btn) {
+    btn.innerHTML = passwordToggleIcon(show);
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    btn.setAttribute('title', show ? 'Hide password' : 'Show password');
+  }
+  input.focus();
+}
+
+function enhancePasswordField(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input || input.dataset.passwordToggleEnhanced === '1') return;
+  input.dataset.passwordToggleEnhanced = '1';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'password-field-wrap';
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'password-toggle-btn';
+  btn.setAttribute('aria-label', 'Show password');
+  btn.setAttribute('title', 'Show password');
+  btn.innerHTML = passwordToggleIcon(false);
+  btn.onclick = () => togglePasswordVisibility(inputId, btn);
+  wrapper.appendChild(btn);
+}
+
+function initPasswordToggles() {
+  ['login-password', 'signup-password'].forEach(enhancePasswordField);
+}
+
 // ══════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════
@@ -3364,6 +3553,7 @@ function switchAuthTab(tab) {
   document.getElementById('twofa-form').style.display = 'none';
   document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome to Janelle Writes' : 'Create Account';
   document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in or create an account to continue' : 'Join Janelle Writes today';
+  initPasswordToggles();
 }
 
 function selectRole(r) {
@@ -4200,46 +4390,83 @@ function updateUserDisplay() {
   updateBadges();
 }
 
+function setCountBadge(id, count, title) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const safeCount = Math.max(0, Number(count) || 0);
+  el.textContent = safeCount > 99 ? '99+' : String(safeCount);
+  if (title) el.title = title.replace('{count}', String(safeCount));
+  el.classList.add('show');
+}
+
+function currentBadgeCounts() {
+  if (!currentUser) return null;
+
+  const me = currentUser.email;
+  const allTasks = Array.isArray(tasks) ? tasks : [];
+  const employerTasks = allTasks.filter(t => taskForEmployer(t, me));
+  const writerTasks = allTasks.filter(t => taskForWriter(t, me));
+  const publicAvailable = allTasks.filter(isPublicAvailableTask);
+
+  if (currentUser.role === 'employer') {
+    return {
+      role: 'employer',
+      totalOrders: employerTasks.length,
+      pending: employerTasks.filter(t => t.status === 'pending').length,
+      inProgress: employerTasks.filter(t => t.status === 'progress').length,
+      completed: employerTasks.filter(t => t.status === 'completed').length,
+      revisions: employerTasks.filter(t => t.status === 'revision').length,
+      late: employerTasks.filter(t => taskIsLate(t)).length,
+      disputes: employerTasks.filter(t => hasOpenDispute(t)).length,
+      unread: totalUnreadMessages()
+    };
+  }
+
+  return {
+    role: 'writer',
+    available: publicAvailable.length,
+    totalTasks: writerTasks.length,
+    inProgress: writerTasks.filter(t => t.status === 'progress').length,
+    completed: writerTasks.filter(t => t.status === 'completed').length,
+    revisions: writerTasks.filter(t => t.status === 'revision').length,
+    late: writerTasks.filter(t => taskIsLate(t)).length,
+    disputes: writerTasks.filter(t => hasOpenDispute(t)).length,
+    unread: totalUnreadMessages()
+  };
+}
+
 function updateBadges() {
   if (!currentUser) return;
-  const myTasks = myTaskList();
-  if (currentUser.role === 'employer') {
-    const pending = myTasks.filter(t => t.status === 'pending').length;
-    const revisions = myTasks.filter(t => t.status === 'revision').length;
-    const late = myTasks.filter(t => taskIsLate(t)).length;
-    const disputes = myTasks.filter(t => hasOpenDispute(t)).length;
-    const el = document.getElementById('emp-pending-badge');
-    if (el) el.textContent = pending;
-    const rb = document.getElementById('emp-revision-badge');
-    if (rb) rb.textContent = revisions;
-    const lb = document.getElementById('emp-late-tab-badge');
-    if (lb) lb.textContent = late;
-    const db = document.getElementById('emp-dispute-badge');
-    if (db) db.textContent = disputes;
-    const dtb = document.getElementById('emp-dispute-tab-badge');
-    if (dtb) dtb.textContent = disputes;
+
+  const c = currentBadgeCounts();
+  if (!c) return;
+
+  if (c.role === 'employer') {
+    // Sidebar: "My Orders" should show all employer orders, not only pending orders.
+    setCountBadge('emp-pending-badge', c.totalOrders, '{count} total orders');
+    setCountBadge('emp-dispute-badge', c.disputes, '{count} disputed orders');
+    setCountBadge('emp-dispute-tab-badge', c.disputes, '{count} disputed orders');
+    setCountBadge('emp-revision-badge', c.revisions, '{count} orders in revision');
+    setCountBadge('emp-late-tab-badge', c.late, '{count} late orders');
   } else {
-    const avail = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
-    const revisions = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'revision').length;
-    const late = tasks.filter(t => t.taken_by === currentUser.email && taskIsLate(t)).length;
-    const disputes = tasks.filter(t => t.taken_by === currentUser.email && hasOpenDispute(t)).length;
-    const myTaskCount = tasks.filter(t => t.taken_by === currentUser.email).length;
-    const ab = document.getElementById('avail-badge');
-    if (ab) ab.textContent = avail;
-    const tb = document.getElementById('writer-task-badge');
-    if (tb) tb.textContent = myTaskCount;
-    const rb = document.getElementById('revision-nav-badge');
-    if (rb) rb.textContent = revisions;
-    const lb = document.getElementById('writer-late-tab-badge');
-    if (lb) lb.textContent = late;
-    const db = document.getElementById('writer-dispute-badge');
-    if (db) db.textContent = disputes;
-    const dtb = document.getElementById('writer-dispute-tab-badge');
-    if (dtb) dtb.textContent = disputes;
+    setCountBadge('avail-badge', c.available, '{count} available public orders');
+    setCountBadge('writer-task-badge', c.totalTasks, '{count} assigned tasks');
+    setCountBadge('revision-nav-badge', c.revisions, '{count} revision tasks');
+    setCountBadge('writer-late-tab-badge', c.late, '{count} late tasks');
+    setCountBadge('writer-dispute-badge', c.disputes, '{count} disputed tasks');
+    setCountBadge('writer-dispute-tab-badge', c.disputes, '{count} disputed tasks');
   }
-  const unread = totalUnreadMessages();
-  setUnreadBadge('msg-unread-badge', unread);
-  setUnreadBadge('topbar-msg-unread-badge', unread);
+
+  setUnreadBadge('msg-unread-badge', c.unread);
+  setUnreadBadge('topbar-msg-unread-badge', c.unread);
+}
+
+
+
+function badgeAuditSnapshot() {
+  const c = currentBadgeCounts();
+  if (!c) return {};
+  return c;
 }
 
 // ══════════════════════════════════════════════════════
@@ -4311,9 +4538,25 @@ function closeMobileMenu() {
 // ══════════════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════════════
+function sameEmail(a, b) {
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+function taskForEmployer(t, email) {
+  return !!t && sameEmail(t.posted_by, email);
+}
+
+function taskForWriter(t, email) {
+  return !!t && sameEmail(t.taken_by, email);
+}
+
+function isPublicAvailableTask(t) {
+  return !!t && !t.taken_by && t.status === 'pending';
+}
+
 function myTaskList() {
   if (!currentUser) return [];
-  return tasks.filter(t => t.posted_by === currentUser.email);
+  return tasks.filter(t => taskForEmployer(t, currentUser.email));
 }
 
 function fmtDate(s) {
@@ -4912,9 +5155,63 @@ document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('cli
 // ══════════════════════════════════════════════════════
 //  EMPLOYER: POST TASK
 // ══════════════════════════════════════════════════════
+
+function previousWritersForEmployer() {
+  if (!currentUser?.email) return [];
+  const map = new Map();
+
+  tasks
+    .filter(t => t.posted_by === currentUser.email && t.taken_by)
+    .forEach(t => {
+      const email = String(t.taken_by || '').toLowerCase();
+      if (!email) return;
+      const current = map.get(email) || {
+        email,
+        name: t.taken_by_name || t.taken_by,
+        count: 0,
+        lastAt: 0
+      };
+      current.count += 1;
+      current.name = t.taken_by_name || current.name || email;
+      const when = new Date(t.created_at || t.order_date || t.deadline || 0).getTime() || 0;
+      current.lastAt = Math.max(current.lastAt, when);
+      map.set(email, current);
+    });
+
+  return Array.from(map.values()).sort((a, b) => b.lastAt - a.lastAt || a.name.localeCompare(b.name));
+}
+
+function populatePreferredWriterSelect() {
+  const select = document.getElementById('emp-preferred-writer');
+  const note = document.getElementById('emp-preferred-writer-note');
+  if (!select) return;
+
+  const previous = previousWritersForEmployer();
+  select.innerHTML = `<option value="">Post publicly for available writers</option>` + previous.map(w => {
+    const avg = averageRatingForUser(w.email, 'writer');
+    const rating = avg ? ` · ⭐ ${avg.avg.toFixed(1)} (${avg.count})` : ' · No ratings yet';
+    return `<option value="${esc(w.email)}">${esc(w.name)} — ${esc(w.email)} · ${w.count} order${w.count === 1 ? '' : 's'}${rating}</option>`;
+  }).join('');
+
+  select.disabled = previous.length === 0;
+  if (note) {
+    note.innerHTML = previous.length
+      ? `You can assign this task directly to a previous writer. Direct assignments will appear in that writer's <strong>My Tasks</strong> page.`
+      : `You have no previous writers yet. After a writer completes or accepts one of your orders, they will appear here for future direct assignment.`;
+  }
+}
+
+function selectedPreferredWriter() {
+  const select = document.getElementById('emp-preferred-writer');
+  const email = String(select?.value || '').toLowerCase();
+  if (!email) return null;
+  return previousWritersForEmployer().find(w => w.email === email) || null;
+}
+
 function empInitForm() {
   document.getElementById('emp-order-num').textContent = nextOrderNum();
   document.getElementById('emp-date').value = new Date().toISOString().split('T')[0];
+  populatePreferredWriterSelect();
 }
 
 function empCalcTotal() {
@@ -4925,7 +5222,7 @@ function empCalcTotal() {
 }
 
 function empClearForm() {
-  ['emp-subject','emp-words','emp-pages','emp-price','emp-total','emp-desc','emp-requirements','emp-deadline'].forEach(id => {
+  ['emp-subject','emp-words','emp-pages','emp-price','emp-total','emp-desc','emp-requirements','emp-deadline','emp-preferred-writer'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -5005,6 +5302,7 @@ async function empPostTask() {
   if (!deadline) { notify('⚠️ Please set a deadline'); return; }
 
   const taskId = nextOrderNum();
+  const preferredWriter = selectedPreferredWriter();
   let instructionFiles = [];
   try {
     instructionFiles = await storedInstructionFiles(taskId);
@@ -5024,13 +5322,13 @@ async function empPostTask() {
     description: desc,
     requirements: document.getElementById('emp-requirements').value.trim(),
     order_date: document.getElementById('emp-date').value,
-    status: 'pending',
+    status: preferredWriter ? 'progress' : 'pending',
     payment: 'unpaid',
     mpesa_code: '',
     posted_by: currentUser.email,
     posted_by_name: currentUser.name,
-    taken_by: null,
-    taken_by_name: null,
+    taken_by: preferredWriter ? preferredWriter.email : null,
+    taken_by_name: preferredWriter ? preferredWriter.name : null,
     instruction_files: instructionFiles,
     submitted_files: [],
     submitted_link: '',
@@ -5049,7 +5347,7 @@ async function empPostTask() {
     tasks = dedupeTasks(tasks);
     empClearForm();
     updateBadges();
-    notify('✦ Task ' + saved.id + ' posted successfully!', 'order');
+    notify(preferredWriter ? ('✦ Task ' + saved.id + ' assigned to ' + preferredWriter.name + '!') : ('✦ Task ' + saved.id + ' posted successfully!'), 'order');
     navigate('emp-tasks');
   }).catch(err => { setLoading(false); notify('❌ Error posting task: ' + err.message); });
 }
@@ -5160,7 +5458,7 @@ function empViewTask(id) {
       <div class="text-muted">Deadline</div><div style="color:var(--rust);font-weight:500;">${fmtDate(t.deadline)}</div>
       <div class="text-muted">Amount</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">KES ${t.total.toLocaleString()}</div>
       <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
-      <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) : ''}${currentUser?.role === 'employer' && t.taken_by ? smallPartnerProfileButton(t.taken_by, t.taken_by_name) : ''}</div>
+      <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? '<span class="preferred-writer-badge">Direct / assigned writer</span>' + publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) : ''}${currentUser?.role === 'employer' && t.taken_by ? smallPartnerProfileButton(t.taken_by, t.taken_by_name) : ''}</div>
     </div>
     ${partnerRatingPanelForTask(t)}
     ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;white-space:pre-wrap;">${esc(t.description)}</div></div>` : ''}
@@ -6570,7 +6868,7 @@ function sendTaskMessage() {
   });
 }
 function taskParticipant(t) {
-  return currentUser && (t.posted_by === currentUser.email || t.taken_by === currentUser.email);
+  return currentUser && (sameEmail(t.posted_by, currentUser.email) || sameEmail(t.taken_by, currentUser.email));
 }
 function latestMessage(messages) {
   return messages && messages.length ? messages[messages.length - 1] : null;
@@ -6590,27 +6888,33 @@ function subscribeRealtime() {
 
       if (eventType === 'INSERT') {
         upsertLocalTask(newRow);
-        if (currentUser?.role === 'writer' && newRow.posted_by !== currentUser.email && newRow.status === 'pending') {
+        if (currentUser?.role === 'writer' && !sameEmail(newRow.posted_by, currentUser.email) && newRow.status === 'pending') {
           notify('🔔 New work posted: ' + newRow.id, 'order');
+        }
+        if (currentUser?.role === 'writer' && sameEmail(newRow.taken_by, currentUser.email)) {
+          notify('📌 New task assigned to you: ' + newRow.id, 'order');
         }
       } else if (eventType === 'UPDATE') {
         const prevMessages = getTaskMessages(previous || {});
         upsertLocalTask(newRow);
         const nextMessages = getTaskMessages(newRow || {});
-        if (currentUser?.role === 'employer' && newRow.posted_by === currentUser.email && previous?.status !== 'completed' && newRow.status === 'completed') {
+        if (currentUser?.role === 'employer' && sameEmail(newRow.posted_by, currentUser.email) && previous?.status !== 'completed' && newRow.status === 'completed') {
           notify('📤 Writer submitted work for ' + newRow.id, 'submit');
         }
         const last = latestMessage(nextMessages);
-        if (last && nextMessages.length > prevMessages.length && last.sender_email !== currentUser?.email && taskParticipant(newRow)) {
+        if (last && nextMessages.length > prevMessages.length && !sameEmail(last.sender_email, currentUser?.email) && taskParticipant(newRow)) {
           notify('💬 New message on ' + newRow.id, 'message');
         }
       } else if (eventType === 'DELETE') {
-        tasks = tasks.filter(t => t.id !== oldRow.id);
+        tasks = tasks.filter(t => t.id !== (oldRow?.id || newRow?.id));
       }
       tasks = dedupeTasks(tasks);
+      updateBadges();
+
       if (eventType === 'UPDATE' && newRow?.ratings) {
         refreshLiveRatingViews(newRow.id);
       }
+
       // Re-render active page
       const activePage = document.querySelector('.page.active');
       if (!activePage || !currentUser) return;
