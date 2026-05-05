@@ -2486,6 +2486,787 @@ body.dark-mode .google-auth-separator::after {
   background:rgba(142,228,214,0.20);
 }
 
+
+
+
+/* ── LANDING PAGE ─────────────────────────────────── */
+#landing-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(82,196,184,0.14), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(42,157,143,0.12), transparent 24%),
+    linear-gradient(135deg, #f6fbfa 0%, #eef5f4 48%, #f8fbfb 100%);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+.landing-shell {
+  width: min(1560px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 0;
+}
+.landing-nav {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 14px 0;
+  backdrop-filter: blur(12px);
+}
+.landing-brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width: 0;
+}
+.landing-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f1923, #173548);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: #fff;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(15,25,35,0.16);
+  flex-shrink: 0;
+}
+.landing-brand-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.landing-brand-text em { color: var(--teal); font-style: italic; }
+.landing-nav-links {
+  display:flex;
+  align-items:center;
+  gap:26px;
+}
+.landing-nav-links a {
+  color: var(--slate);
+  text-decoration:none;
+  font-size:14px;
+  font-weight:600;
+}
+.landing-nav-links a:hover { color: var(--teal-dark); }
+.landing-actions {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.landing-menu-btn {
+  display:none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,25,35,0.1);
+  background: rgba(255,255,255,0.88);
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow: 0 12px 28px rgba(15,25,35,0.08);
+}
+.landing-menu-btn span,
+.landing-menu-btn::before,
+.landing-menu-btn::after {
+  content:"";
+  display:block;
+  width: 19px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 999px;
+}
+.landing-menu-btn span { margin: 5px 0; }
+.landing-mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(246,251,250,0.98);
+  backdrop-filter: blur(14px);
+  z-index: 1000;
+  display:none;
+  flex-direction: column;
+  padding: 26px 22px 30px;
+}
+.landing-mobile-menu.open { display:flex; }
+.landing-mobile-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.landing-mobile-close {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,25,35,0.08);
+  background: #fff;
+  font-size: 22px;
+  cursor:pointer;
+}
+.landing-mobile-links {
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  margin: 36px 0 28px;
+}
+.landing-mobile-links a {
+  text-decoration:none;
+  color: var(--ink);
+  font-family:'Cormorant Garamond', serif;
+  font-size: 34px;
+  font-weight:700;
+}
+.landing-mobile-actions {
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+}
+.landing-section {
+  padding: 48px 0;
+}
+.landing-hero {
+  min-height: calc(100vh - 86px);
+  display:grid;
+  grid-template-columns: 1fr;
+  align-items:end;
+  padding: 26px 0 60px;
+}
+.landing-hero-panel {
+  position: relative;
+  min-height: calc(100vh - 132px);
+  border-radius: 34px;
+  overflow:hidden;
+  box-shadow: 0 34px 84px rgba(15,25,35,0.16);
+  background: var(--ink);
+}
+.landing-hero-image {
+  position:absolute;
+  inset:-5%;
+  width:110%;
+  height:110%;
+  object-fit:cover;
+  object-position:center;
+  animation: heroZoomOut 15s ease-out infinite alternate;
+}
+@keyframes heroZoomOut {
+  0% { transform: scale(1.13); }
+  100% { transform: scale(1); }
+}
+.landing-hero-overlay {
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg, rgba(15,25,35,0.86) 0%, rgba(15,25,35,0.62) 46%, rgba(15,25,35,0.20) 100%),
+    linear-gradient(180deg, rgba(15,25,35,0.08), rgba(15,25,35,0.34));
+}
+.landing-hero-content {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - 132px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding: 52px clamp(24px, 4vw, 56px);
+  max-width: 690px;
+  color: #fff;
+}
+.landing-kicker {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 9px 14px;
+  border-radius:999px;
+  background: rgba(82,196,184,0.15);
+  color: #93ece1;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  width: fit-content;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.landing-hero-content h1 {
+  margin: 20px 0 14px;
+  font-family:'Cormorant Garamond', serif;
+  font-size: clamp(50px, 8vw, 88px);
+  line-height: 0.94;
+  letter-spacing: -1.4px;
+}
+.landing-hero-subheading {
+  color: #d9b56b;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-bottom: 12px;
+}
+.landing-hero-content p {
+  margin: 0;
+  max-width: 520px;
+  color: rgba(255,255,255,0.82);
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.72;
+}
+.landing-cta-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+}
+.gold-outline-btn {
+  background: transparent;
+  border: 1.5px solid rgba(217,181,107,0.45);
+  color: #fff;
+}
+.gold-outline-btn:hover {
+  background: rgba(217,181,107,0.12);
+  border-color: #d9b56b;
+  color:#fff;
+}
+.landing-btn-light {
+  background:#fff;
+  color:var(--ink);
+}
+.landing-btn-light:hover {
+  color:var(--ink);
+  background:#f6fbfa;
+}
+.landing-scroll-hint {
+  margin-top: 18px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.66);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.landing-how {
+  display:grid;
+  grid-template-columns: minmax(320px, 0.95fr) 1.05fr;
+  gap: 26px;
+  align-items: stretch;
+}
+.landing-photo-panel {
+  position:relative;
+  min-height: 500px;
+  border-radius: 28px;
+  overflow:hidden;
+  box-shadow: 0 28px 60px rgba(15,25,35,0.12);
+  background:var(--ink);
+}
+.landing-photo-panel img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.landing-photo-panel::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(15,25,35,0.08), rgba(15,25,35,0.56));
+}
+.tracking-badge {
+  position:absolute;
+  top: 22px;
+  left: 22px;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.90);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 14px 36px rgba(15,25,35,0.16);
+}
+.tracking-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #d9b56b;
+  box-shadow: 0 0 0 0 rgba(217,181,107,0.6);
+  animation: pulseDot 1.8s infinite;
+}
+@keyframes pulseDot {
+  0% { box-shadow: 0 0 0 0 rgba(217,181,107,0.55); }
+  70% { box-shadow: 0 0 0 12px rgba(217,181,107,0); }
+  100% { box-shadow: 0 0 0 0 rgba(217,181,107,0); }
+}
+.landing-photo-caption {
+  position:absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  z-index:2;
+  color:#fff;
+}
+.landing-photo-caption strong {
+  display:block;
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+.section-heading {
+  margin-bottom: 20px;
+}
+.section-heading .eyebrow {
+  display:inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(82,196,184,0.12);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.section-heading h2 {
+  margin: 14px 0 8px;
+  font-family:'Cormorant Garamond', serif;
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 0.95;
+  color: var(--ink);
+}
+.section-heading p {
+  max-width: 700px;
+  margin: 0;
+  color: var(--slate);
+  line-height: 1.72;
+  font-size: 16px;
+}
+.steps-stack {
+  display:grid;
+  gap: 16px;
+}
+.step-card {
+  display:grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(15,25,35,0.08);
+  background: rgba(255,255,255,0.86);
+  box-shadow: 0 18px 40px rgba(15,25,35,0.05);
+}
+.step-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(135deg, #0f1923, #173548);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+}
+.step-card h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.step-card p {
+  margin: 0;
+  color: var(--slate);
+  line-height: 1.68;
+}
+.landing-role-grid {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+.role-bleed-card {
+  position:relative;
+  min-height: 480px;
+  border-radius: 30px;
+  overflow:hidden;
+  box-shadow: 0 30px 70px rgba(15,25,35,0.12);
+  background:var(--ink);
+}
+.role-bleed-card img {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition: transform .45s ease;
+}
+.role-bleed-card::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(15,25,35,0.08) 0%, rgba(15,25,35,0.74) 100%);
+  z-index:1;
+}
+.role-bleed-card:hover img { transform: scale(1.05); }
+.role-reveal {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:2;
+  padding: 26px;
+  transform: translateY(14px);
+  transition: transform .35s ease;
+}
+.role-bleed-card:hover .role-reveal { transform: translateY(0); }
+.role-reveal .tag {
+  display:inline-flex;
+  padding: 8px 12px;
+  border-radius:999px;
+  background: rgba(255,255,255,0.16);
+  color:#fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.role-reveal h3 {
+  margin: 12px 0 8px;
+  color: #fff;
+  font-size: 34px;
+}
+.role-reveal p {
+  margin: 0;
+  max-width: 420px;
+  color: rgba(255,255,255,0.88);
+  line-height: 1.72;
+}
+.role-reveal .arrow-link {
+  margin-top: 18px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color: #d9b56b;
+  font-weight: 800;
+  text-decoration:none;
+}
+.features-grid {
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid rgba(15,25,35,0.1);
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 28px;
+  overflow:hidden;
+  box-shadow: 0 18px 40px rgba(15,25,35,0.05);
+}
+.feature-cell {
+  min-height: 170px;
+  padding: 24px;
+  background: rgba(255,255,255,0.86);
+  border-right: 1px solid rgba(15,25,35,0.1);
+  border-bottom: 1px solid rgba(15,25,35,0.1);
+  transition: background .28s ease, transform .28s ease;
+}
+.feature-cell:hover {
+  background: #d9b56b;
+  transform: translateY(-2px);
+}
+.feature-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(82,196,184,0.16);
+  margin-bottom: 14px;
+  font-size: 20px;
+}
+.feature-cell:hover .feature-icon {
+  background: rgba(15,25,35,0.12);
+}
+.feature-cell h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+.feature-cell p {
+  margin:0;
+  line-height: 1.68;
+  color: var(--slate);
+}
+.feature-cell:hover p { color: rgba(15,25,35,0.82); }
+.gallery-strip {
+  display:grid;
+  grid-template-columns: 1.1fr 0.75fr 1fr 0.9fr;
+  gap: 16px;
+}
+.gallery-item {
+  height: 420px;
+  border-radius: 26px;
+  overflow:hidden;
+  box-shadow: 0 24px 52px rgba(15,25,35,0.10);
+  background:var(--ink);
+}
+.gallery-item.tall { height: 480px; margin-top: 24px; }
+.gallery-item.short { height: 360px; margin-top: 44px; }
+.gallery-item img {
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  display:block;
+}
+.pull-quote {
+  position:relative;
+  padding: 54px 20px;
+  text-align:center;
+}
+.pull-quote::before {
+  content:"“";
+  position:absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 260px;
+  line-height: 1;
+  color: rgba(82,196,184,0.12);
+  pointer-events:none;
+}
+.pull-quote blockquote {
+  margin: 0 auto;
+  max-width: 900px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(38px, 5vw, 62px);
+  font-style: italic;
+  line-height: 1.06;
+  color: var(--ink);
+  position:relative;
+  z-index:1;
+}
+.pull-quote cite {
+  display:block;
+  margin-top: 18px;
+  color: var(--slate);
+  font-size: 14px;
+  font-style: normal;
+  letter-spacing: 0.4px;
+}
+.final-cta {
+  position:relative;
+  border-radius: 30px;
+  overflow:hidden;
+  min-height: 420px;
+  box-shadow: 0 34px 84px rgba(15,25,35,0.16);
+  background:var(--ink);
+}
+.final-cta img {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: cover;
+}
+.final-cta::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, rgba(15,25,35,0.84) 0%, rgba(15,25,35,0.58) 55%, rgba(15,25,35,0.26) 100%);
+  z-index:1;
+}
+.final-cta-content {
+  position:relative;
+  z-index:2;
+  min-height: 420px;
+  padding: 38px clamp(24px, 4vw, 56px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  color:#fff;
+  max-width: 700px;
+}
+.final-cta-content h2 {
+  margin: 0 0 12px;
+  font-family:'Cormorant Garamond', serif;
+  font-size: clamp(40px, 6vw, 66px);
+  line-height: 0.95;
+}
+.final-cta-content p {
+  margin: 0;
+  max-width: 540px;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.75;
+  font-size: 17px;
+}
+.final-cta-actions {
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.landing-footer {
+  margin-top: 52px;
+  padding: 34px 0 52px;
+  border-top: 1px solid rgba(15,25,35,0.08);
+}
+.footer-grid {
+  display:grid;
+  grid-template-columns: 1.25fr 0.85fr 0.95fr 0.95fr;
+  gap: 22px;
+}
+.footer-col h4 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.footer-col p,
+.footer-col a {
+  display:block;
+  margin: 0 0 10px;
+  color: var(--slate);
+  line-height: 1.7;
+  font-size: 14px;
+  text-decoration:none;
+}
+.footer-col a:hover { color: var(--teal-dark); }
+.footer-brand-note { max-width: 320px; }
+@media (max-width: 1100px) {
+  .landing-how,
+  .landing-role-grid {
+    grid-template-columns: 1fr;
+  }
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .gallery-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .gallery-item,
+  .gallery-item.tall,
+  .gallery-item.short {
+    height: 360px;
+    margin-top: 0;
+  }
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 860px) {
+  .landing-shell {
+    width: min(100% - 24px, 1220px);
+  }
+  .landing-nav-links,
+  .landing-actions {
+    display:none;
+  }
+  .landing-menu-btn {
+    display:flex;
+    flex-direction:column;
+  }
+  .landing-hero {
+    min-height: auto;
+    padding-bottom: 34px;
+  }
+  .landing-hero-panel,
+  .landing-hero-content {
+    min-height: 76vh;
+  }
+  .section-heading h2 {
+    font-size: clamp(34px, 8vw, 48px);
+  }
+}
+@media (max-width: 680px) {
+  .landing-section {
+    padding: 38px 0;
+  }
+  .landing-brand-text {
+    font-size: 26px;
+  }
+  .landing-hero-content {
+    padding: 28px 22px 32px;
+  }
+  .landing-hero-content h1 {
+    font-size: clamp(42px, 14vw, 58px);
+  }
+  .landing-hero-subheading {
+    font-size: 16px;
+  }
+  .landing-cta-row .btn,
+  .final-cta-actions .btn,
+  .landing-mobile-actions .btn {
+    width: 100%;
+    justify-content:center;
+  }
+  .step-card {
+    grid-template-columns: 1fr;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .gallery-scroll-wrap {
+    overflow-x:auto;
+    padding-bottom: 4px;
+    margin-right: -6px;
+  }
+  .gallery-strip {
+    min-width: 900px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .pull-quote::before {
+    font-size: 180px;
+    top: 0;
+  }
+  .pull-quote blockquote {
+    font-size: clamp(30px, 10vw, 42px);
+  }
+  .final-cta,
+  .final-cta-content {
+    min-height: 360px;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ── LANDING WIDTH + AUTH BACK FIXES ─────────────────── */
+@media (min-width: 1400px) {
+  .landing-shell {
+    width: min(1640px, calc(100% - 64px));
+  }
+  .landing-hero-content {
+    max-width: 760px;
+  }
+  .landing-hero-content h1 {
+    font-size: clamp(58px, 5.8vw, 96px);
+  }
+}
+.auth-back-home {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: 'DM Sans', sans-serif;
+  appearance: none;
+}
+.auth-back-home:hover {
+  color: var(--teal);
+  transform: translateX(-2px);
+}
+.footer-contact-link {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+}
+.footer-contact-link .footer-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(82,196,184,0.14);
+  color: var(--teal-dark);
+  flex-shrink: 0;
+}
+
 </style>
 </head>
 <body>
@@ -2504,10 +3285,284 @@ body.dark-mode .google-auth-separator::after {
 </div>
 
 
+
+
+<!-- ══════════════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════════════ -->
+<div id="landing-page">
+  <div class="landing-mobile-menu" id="landing-mobile-menu">
+    <div class="landing-mobile-top">
+      <div class="landing-brand">
+        <div class="landing-brand-mark">J</div>
+        <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+      </div>
+      <button class="landing-mobile-close" onclick="closeLandingMenu()">×</button>
+    </div>
+    <div class="landing-mobile-links">
+      <a href="#landing-features" onclick="closeLandingMenu()">Features</a>
+      <a href="#landing-for-you" onclick="closeLandingMenu()">For You</a>
+      <a href="#landing-gallery" onclick="closeLandingMenu()">Gallery</a>
+      <a href="#landing-final" onclick="closeLandingMenu()">Start</a>
+    </div>
+    <div class="landing-mobile-actions">
+      <button class="btn btn-outline" onclick="closeLandingMenu(); openAuthScreen('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="closeLandingMenu(); openAuthScreen('signup','employer')">Get Started</button>
+    </div>
+  </div>
+
+  <div class="landing-shell">
+    <header class="landing-nav">
+      <div class="landing-brand">
+        <div class="landing-brand-mark">J</div>
+        <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+      </div>
+
+      <nav class="landing-nav-links">
+        <a href="#landing-how">How it Works</a>
+        <a href="#landing-for-you">For You</a>
+        <a href="#landing-features">Features</a>
+        <a href="#landing-final">Start</a>
+      </nav>
+
+      <div class="landing-actions">
+        <button class="btn btn-outline" onclick="openAuthScreen('login')">Sign In</button>
+        <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Get Started</button>
+      </div>
+
+      <button class="landing-menu-btn" onclick="openLandingMenu()" aria-label="Open menu">
+        <span></span>
+      </button>
+    </header>
+
+    <section class="landing-hero">
+      <div class="landing-hero-panel">
+        <img class="landing-hero-image" src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1800&q=80" alt="Writer at a desk working on a computer">
+        <div class="landing-hero-overlay"></div>
+        <div class="landing-hero-content">
+          <div class="landing-kicker">A clean workspace for writers and employers</div>
+          <h1>Beautifully simple work, from order to delivery.</h1>
+          <div class="landing-hero-subheading">Focused, elegant, and built for modern writing workflows.</div>
+          <p>Post orders, connect with trusted writers, track every step, submit files, and keep communication in one polished platform.</p>
+          <div class="landing-cta-row">
+            <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
+            <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
+          </div>
+          <div class="landing-scroll-hint">Scroll to explore</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-how">
+      <div class="section-heading">
+        <div class="eyebrow">How it Works</div>
+        <h2>Simple steps. Calm workflow.</h2>
+        <p>Everything is designed to keep work moving smoothly for both employers and writers without clutter.</p>
+      </div>
+
+      <div class="landing-how">
+        <div class="landing-photo-panel">
+          <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="Moody desk with laptop and writing workspace">
+          <div class="tracking-badge"><span class="tracking-dot"></span> Live order tracking</div>
+          <div class="landing-photo-caption">
+            <strong>From first brief to final upload</strong>
+            <span>Track the progress of each task in one focused workspace.</span>
+          </div>
+        </div>
+
+        <div class="steps-stack">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div>
+              <h3>Post or assign an order</h3>
+              <p>Employers create a task, attach instructions, and can even assign work directly to a preferred writer they trust.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div>
+              <h3>Write, track, and communicate</h3>
+              <p>Writers review instructions, ask questions, upload files, and keep employers updated through real-time messaging.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div>
+              <h3>Submit, review, and complete</h3>
+              <p>Completed work is delivered inside the order, revisions stay organized, and ratings help both sides build trust over time.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-for-you">
+      <div class="section-heading">
+        <div class="eyebrow">For You</div>
+        <h2>Made for both sides of the workflow.</h2>
+        <p>Choose the path that fits you and start from a cleaner, better-looking workspace.</p>
+      </div>
+
+      <div class="landing-role-grid">
+        <article class="role-bleed-card">
+          <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80" alt="Employer or team planning work together">
+          <div class="role-reveal">
+            <div class="tag">Employer</div>
+            <h3>Post and manage work beautifully.</h3>
+            <p>Create tasks, assign preferred writers, follow progress, and handle payment and delivery in one place.</p>
+            <a href="javascript:void(0)" class="arrow-link" onclick="openAuthScreen('signup','employer')">Start here →</a>
+          </div>
+        </article>
+
+        <article class="role-bleed-card">
+          <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80" alt="Writer working on a laptop at a desk">
+          <div class="role-reveal">
+            <div class="tag">Writer</div>
+            <h3>Find tasks and deliver with confidence.</h3>
+            <p>Review instructions, manage submissions, build ratings, and keep your workflow organized on any device.</p>
+            <a href="javascript:void(0)" class="arrow-link" onclick="openAuthScreen('signup','writer')">Start here →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-features">
+      <div class="section-heading">
+        <div class="eyebrow">Features</div>
+        <h2>A platform that covers the full workflow.</h2>
+        <p>Core tools for posting, tracking, communicating, and getting work delivered cleanly and professionally.</p>
+      </div>
+
+      <div class="features-grid">
+        <article class="feature-cell">
+          <div class="feature-icon">🧠</div>
+          <h3>Smart orders</h3>
+          <p>Structured tasks, clear instructions, and preferred-writer assignment for repeat work.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">📍</div>
+          <h3>Live tracking</h3>
+          <p>See status updates, lateness markers, disputes, and progress in real time.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">📁</div>
+          <h3>File uploads</h3>
+          <p>Attach instructions, submit completed files, and download what you need quickly.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">💬</div>
+          <h3>Messaging</h3>
+          <p>Order-based chat keeps communication organized and tied to the right task.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">💳</div>
+          <h3>M-Pesa / Airtel</h3>
+          <p>Support for popular payment options with a familiar Kenya-friendly flow.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">🧾</div>
+          <h3>Auto-invoice</h3>
+          <p>Payment details and order history are easier to track as work moves through the platform.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-gallery">
+      <div class="section-heading">
+        <div class="eyebrow">Photo Gallery</div>
+        <h2>Focused workspaces, study, and writing.</h2>
+      </div>
+
+      <div class="gallery-scroll-wrap">
+        <div class="gallery-strip">
+          <div class="gallery-item tall">
+            <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Computer workspace">
+          </div>
+          <div class="gallery-item short">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80" alt="Study and writing workspace">
+          </div>
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80" alt="Laptop and code on desk">
+          </div>
+          <div class="gallery-item tall">
+            <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80" alt="Student learning and typing on a laptop">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section pull-quote">
+      <blockquote>“A good platform should feel effortless — clear enough to guide the work, quiet enough to let the work shine.”</blockquote>
+      <cite>Janelle Writes</cite>
+    </section>
+
+    <section class="landing-section" id="landing-final">
+      <div class="final-cta">
+        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1600&q=80" alt="Writers collaborating around laptops">
+        <div class="final-cta-content">
+          <h2>Ready to start working in a better way?</h2>
+          <p>Whether you are posting tasks or delivering them, Janelle Writes gives you a cleaner and more organized space to do it well.</p>
+          <div class="final-cta-actions">
+            <button class="btn landing-btn-light" onclick="openAuthScreen('login')">Sign In</button>
+            <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Create Account</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="landing-brand" style="margin-bottom:12px;">
+            <div class="landing-brand-mark">J</div>
+            <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+          </div>
+          <p class="footer-brand-note">A polished writing platform for employers and writers who want a smoother workflow from order to delivery.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="#landing-how">How it Works</a>
+          <a href="#landing-for-you">For Employers</a>
+          <a href="#landing-for-you">For Writers</a>
+          <a href="#landing-features">Features</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a class="footer-contact-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">
+            <span class="footer-icon">📸</span> @Janelle_assignments
+          </a>
+          <a class="footer-contact-link" href="https://wa.me/254723156622" target="_blank" rel="noopener">
+            <span class="footer-icon">💬</span> +254 723 156 622
+          </a>
+          <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
+            <span class="footer-icon">✉️</span> janellewrites979@gmail.com
+          </a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <a class="footer-contact-link" href="https://wa.me/254723156622" target="_blank" rel="noopener">
+            <span class="footer-icon">🟢</span> WhatsApp Support
+          </a>
+          <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
+            <span class="footer-icon">📩</span> Email Support
+          </a>
+          <a class="footer-contact-link" href="javascript:void(0)" onclick="openAuthScreen('login')">
+            <span class="footer-icon">🔐</span> Member Sign In
+          </a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════
      AUTH SCREEN
 ══════════════════════════════════════════════ -->
-<div id="auth-screen">
+
+<div id="auth-screen" style="display:none;">
 
   <!-- Visual Panel -->
   <div class="auth-visual">
@@ -2566,6 +3621,7 @@ body.dark-mode .google-auth-separator::after {
 
   <!-- Form Panel -->
   <div class="auth-panel">
+    <button type="button" class="auth-back-home" onclick="showLandingPage()">← Back to home</button>
     <div class="auth-panel-header">
       <div class="auth-panel-title" id="auth-panel-title">Welcome to Janelle Writes</div>
       <div class="auth-panel-sub" id="auth-panel-sub">Sign in or create an account to continue</div>
@@ -2590,6 +3646,8 @@ body.dark-mode .google-auth-separator::after {
         <input type="password" class="form-input" id="login-password" placeholder="••••••••">
       </div>
       <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
+      <div class="google-auth-separator">Or</div>
+      <button type="button" class="google-auth-btn" onclick="startGoogleAuth('login')"><span class="google-auth-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8 19.3-20c0-1.2-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.1 5.6l6.2 5.2c-.4.3 5.9-4.3 5.9-14.8 0-1.2-.1-2.3-.3-3.5z"/></svg></span><span>Login with Google</span></button>
       <div style="margin-top:16px; padding:14px; background:var(--teal-pale); border-radius:9px; font-size:12px; color:var(--slate);">
         <strong>Getting started:</strong><br>
         Create an Employer account to post orders, and a Writer account to accept them.
@@ -2639,6 +3697,9 @@ body.dark-mode .google-auth-separator::after {
         <input type="password" class="form-input" id="signup-password" placeholder="Create a password (min 6 chars)">
       </div>
       <button class="btn btn-primary btn-full" onclick="doSignup()">Send Verification Code →</button>
+      <div class="google-auth-separator">Or</div>
+      <button type="button" class="google-auth-btn" onclick="startGoogleAuth('signup')"><span class="google-auth-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8 19.3-20c0-1.2-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.1 5.6l6.2 5.2c-.4.3 5.9-4.3 5.9-14.8 0-1.2-.1-2.3-.3-3.5z"/></svg></span><span>Sign up with Google</span></button>
+      <div class="google-auth-note">For new Google accounts, choose Employer or Writer above before continuing.</div>
     </div>
 
     <!-- 2FA OTP VERIFICATION FORM -->
@@ -3666,6 +4727,8 @@ async function refreshTasks() {
 //  Signup sends a verification code before account creation.
 // ══════════════════════════════════════════════════════
 
+
+
 // ══════════════════════════════════════════════════════
 //  GOOGLE SIGN IN / SIGN UP via Supabase OAuth
 // ══════════════════════════════════════════════════════
@@ -3875,6 +4938,44 @@ function enhancePasswordField(inputId) {
 
 function initPasswordToggles() {
   ['login-password', 'signup-password'].forEach(enhancePasswordField);
+}
+
+
+
+// ══════════════════════════════════════════════════════
+//  LANDING PAGE
+// ══════════════════════════════════════════════════════
+function openLandingMenu() {
+  const menu = document.getElementById('landing-mobile-menu');
+  if (menu) menu.classList.add('open');
+  document.body.classList.add('nav-open');
+}
+function closeLandingMenu() {
+  const menu = document.getElementById('landing-mobile-menu');
+  if (menu) menu.classList.remove('open');
+  document.body.classList.remove('nav-open');
+}
+function showLandingPage() {
+  closeLandingMenu();
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+  if (landing) landing.style.display = 'block';
+  if (auth) auth.style.display = 'none';
+  if (app) app.style.display = 'none';
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
+}
+function openAuthScreen(tab = 'login', role = 'employer') {
+  closeLandingMenu();
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+  if (landing) landing.style.display = 'none';
+  if (app) app.style.display = 'none';
+  if (auth) auth.style.display = 'flex';
+  switchAuthTab(tab);
+  if (tab === 'signup') selectRole(role || 'employer');
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -4539,7 +5640,9 @@ function doLogout() {
   _appHistoryReady = false;
   localStorage.removeItem('jw_session');
   if (_realtimeSub) { _realtimeSub.unsubscribe(); _realtimeSub = null; }
-  document.getElementById('auth-screen').style.display = 'flex';
+  const landing = document.getElementById('landing-page');
+  if (landing) landing.style.display = 'block';
+  document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'none';
   document.getElementById('login-email').value = '';
   document.getElementById('login-password').value = '';
@@ -4647,6 +5750,8 @@ function handleBackButtonAction(event) {
 window.addEventListener('popstate', handleBackButtonAction);
 
 function launchApp() {
+  const landing = document.getElementById('landing-page');
+  if (landing) landing.style.display = 'none';
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
   buildSidebar();
@@ -7627,9 +8732,20 @@ document.addEventListener('keydown', handleMessageEnterKey);
   applyDarkMode(localStorage.getItem('jw_dark_mode') === '1');
   checkGoogleRedirectSetup();
   if (handleSupabaseMagicLinkReturn()) return;
+
   if (currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
     launchApp();
+    return;
+  }
+
+  const hash = String(window.location.hash || '').toLowerCase();
+  if (hash.includes('signup')) {
+    openAuthScreen('signup', hash.includes('writer') ? 'writer' : 'employer');
+  } else if (hash.includes('login')) {
+    openAuthScreen('login');
+  } else {
+    showLandingPage();
   }
 })();
 </script>
