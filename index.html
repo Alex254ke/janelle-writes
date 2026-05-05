@@ -3267,6 +3267,74 @@ body.dark-mode .google-auth-separator::after {
   flex-shrink: 0;
 }
 
+
+/* ── DARK LANDING FOOTER ─────────────────── */
+.landing-footer {
+  background:
+    radial-gradient(circle at top left, rgba(82,196,184,0.12), transparent 28%),
+    linear-gradient(135deg, #0f1923 0%, #132838 100%);
+  color: #f4fbfa;
+  border-top: none;
+  border-radius: 30px 30px 0 0;
+  padding: 42px 34px 52px;
+  margin-top: 56px;
+  box-shadow: 0 -18px 54px rgba(15,25,35,0.12);
+}
+.landing-footer .landing-brand-text,
+.landing-footer .footer-col h4 {
+  color: #ffffff;
+}
+.landing-footer .footer-col p,
+.landing-footer .footer-col a {
+  color: rgba(244,251,250,0.72);
+}
+.landing-footer .footer-col a:hover {
+  color: #8ee4d6;
+}
+.landing-footer .footer-icon {
+  background: rgba(82,196,184,0.16);
+  color: #8ee4d6;
+}
+.landing-footer .landing-brand-mark {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+@media (max-width: 680px) {
+  .landing-footer {
+    padding: 34px 22px 42px;
+    border-radius: 24px 24px 0 0;
+  }
+}
+
+
+/* ── SIDEBAR PROFILE QUICK ACCESS ─────────────────── */
+.sidebar-user {
+  cursor: pointer;
+  position: relative;
+}
+.sidebar-user:hover {
+  background: rgba(82,196,184,0.07);
+}
+.sidebar-profile-link {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(82,196,184,0.12);
+  border: 1px solid rgba(82,196,184,0.18);
+  color: #8ee4d6;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+  flex-shrink: 0;
+}
+.sidebar-profile-link:hover {
+  transform: translateY(-1px);
+  background: rgba(82,196,184,0.20);
+}
+
 </style>
 </head>
 <body>
@@ -3752,12 +3820,13 @@ body.dark-mode .google-auth-separator::after {
     <button class="sidebar-close" onclick="closeMobileMenu()">✕</button>
   </div>
 
-  <div class="sidebar-user">
+  <div class="sidebar-user" onclick="navigate('profile')" title="Open profile">
     <div class="user-avatar" id="nav-avatar">J</div>
     <div class="user-info">
       <div class="user-name" id="nav-username">User</div>
       <div class="user-role" id="nav-role">Role</div>
     </div>
+    <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile">👤</button>
   </div>
 
   <nav class="sidebar-nav" id="sidebar-nav">
@@ -5778,7 +5847,6 @@ function buildSidebar() {
   if (currentUser.role === 'employer') {
     nav.innerHTML = `
       <div class="nav-section">Employer</div>
-      <div class="nav-item" data-page="profile" onclick="navigate('profile')"><span class="icon">👤</span> Profile</div>
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post New Task</div>
       <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
@@ -5791,7 +5859,6 @@ function buildSidebar() {
   } else {
     nav.innerHTML = `
       <div class="nav-section">Writer</div>
-      <div class="nav-item" data-page="profile" onclick="navigate('profile')"><span class="icon">👤</span> Profile</div>
       <div class="nav-item" data-page="writer-dashboard" onclick="navigate('writer-dashboard')"><span class="icon">🏠</span> Dashboard</div>
       <div class="nav-item" data-page="writer-available" onclick="navigate('writer-available')"><span class="icon">📥</span> Available Orders <span class="nav-badge" id="avail-badge">0</span></div>
       <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks <span class="nav-badge" id="writer-task-badge">0</span></div>
