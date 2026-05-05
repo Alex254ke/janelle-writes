@@ -6,7 +6,72 @@
 <title>Janelle Writes! — Professional Writing Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <!-- Supabase JS client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// Mobile-only message layout: show selected thread as a full screen conversation.
+function isMobileMessageLayout() {
+  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
+}
+
+function openMobileMessageThreadView() {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell && isMobileMessageLayout()) {
+    shell.classList.add('mobile-thread-open');
+    setTimeout(() => {
+      const panel = document.querySelector('#page-messages .message-panel');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
+  }
+}
+
+function closeMobileMessageThreadView() {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell) shell.classList.remove('mobile-thread-open');
+}
+
+window.addEventListener('resize', () => {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell && !isMobileMessageLayout()) shell.classList.remove('mobile-thread-open');
+});
+
+
+// Mobile message conversation click handler.
+// On phones, tapping any conversation item opens only that thread and hides the conversation list.
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('.message-list-item, .message-conversation-item, .message-order-item, [data-message-thread], [data-conversation-id], [onclick*="openMessage"], [onclick*="selectMessage"], [onclick*="openThread"], [onclick*="selectThread"]');
+  const inMessagesPage = e.target.closest('#page-messages');
+  if (inMessagesPage && item && isMobileMessageLayout()) {
+    setTimeout(openMobileMessageThreadView, 80);
+  }
+});
+
+
+// Keep general Messages page as an inbox on mobile, unless opened directly from an order.
+if (typeof navigate === 'function' && !window.__jwNavigateMobileMessagePatched) {
+  window.__jwNavigateMobileMessagePatched = true;
+  const __jwOriginalNavigate = navigate;
+  navigate = function(page, options) {
+    const result = __jwOriginalNavigate.apply(this, arguments);
+    if (page === 'messages' || page === 'emp-messages' || page === 'writer-messages') {
+      const directOrder = options && (options.orderId || options.taskId || options.threadId);
+      if (!directOrder) setTimeout(closeMobileMessageThreadView, 30);
+    }
+    return result;
+  };
+}
+
+
+// If Message is clicked from an order/action button on mobile, open the selected order conversation as the full thread view.
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button, .btn, a');
+  if (!btn || !isMobileMessageLayout()) return;
+  const label = (btn.textContent || '').toLowerCase();
+  const action = (btn.getAttribute('onclick') || '').toLowerCase();
+  if ((label.includes('message') || action.includes('message')) && !btn.closest('.message-sidebar')) {
+    setTimeout(openMobileMessageThreadView, 220);
+  }
+});
+
+</script>
 <style>
 :root {
   --ink: #0f1923;
@@ -1712,6 +1777,55 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
 @media(max-width:1000px){ .profile-layout{ grid-template-columns:1fr; } .profile-card-hero{ position:relative; top:auto; } }
 @media(max-width:650px){ .profile-section-grid{ grid-template-columns:1fr; } .profile-form-card{ padding:20px; } }
 
+
+/* ── MOBILE MESSAGE FULL-THREAD VIEW ─────────────────── */
+.mobile-thread-back {
+  display:none;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  color:var(--teal-dark);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+@media (max-width:800px) {
+  .message-shell.mobile-thread-open {
+    display:block;
+  }
+
+  .message-shell.mobile-thread-open .message-sidebar {
+    display:none !important;
+  }
+
+  .message-shell.mobile-thread-open .message-panel {
+    display:block;
+    width:100%;
+    min-height:calc(100vh - 130px);
+  }
+
+  .message-shell.mobile-thread-open .mobile-thread-back {
+    display:inline-flex;
+  }
+
+  .message-shell.mobile-thread-open .message-thread {
+    min-height:calc(100vh - 310px);
+    max-height:calc(100vh - 310px);
+  }
+
+  body.dark-mode .mobile-thread-back,
+  body.dark .mobile-thread-back {
+    background:#17232e;
+    color:#8ee4d6;
+    border-color:rgba(142,228,214,0.22);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2405,6 +2519,7 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
         <div id="msg-order-summary" class="text-muted" style="line-height:1.6;">Open a previous conversation or message directly from an order.</div>
       </div>
       <div class="message-panel">
+        <button class="mobile-thread-back" onclick="closeMobileMessageThreadView()">← Conversations</button>
         <div id="msg-thread-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Messages</div>
         <div id="msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select an assigned order to start messaging.</p></div></div>
         <div class="message-composer" id="msg-composer" style="display:none;">
