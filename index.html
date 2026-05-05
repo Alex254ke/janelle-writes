@@ -2316,6 +2316,61 @@ body.dark-mode .preferred-writer-badge {
   border-color:rgba(142,228,214,0.18);
 }
 
+
+/* ── TASK REMINDER SYSTEM ─────────────────── */
+.reminder-panel {
+  margin:12px 0;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(42,157,143,0.18);
+  background:var(--teal-pale);
+  color:var(--charcoal);
+  font-size:12px;
+  line-height:1.55;
+}
+.reminder-panel strong {
+  color:var(--teal-dark);
+}
+.reminder-panel.late {
+  background:#fff3f0;
+  border-color:rgba(231,111,81,0.25);
+}
+.reminder-panel.late strong {
+  color:var(--danger);
+}
+.reminder-mini {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:4px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:var(--teal-pale);
+  color:var(--teal-dark);
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+body.dark-mode .reminder-panel {
+  background:rgba(82,196,184,0.12);
+  color:#e8f7f5;
+  border-color:rgba(142,228,214,0.18);
+}
+body.dark-mode .reminder-panel strong {
+  color:#8ee4d6;
+}
+body.dark-mode .reminder-panel.late {
+  background:rgba(231,111,81,0.13);
+  border-color:rgba(231,111,81,0.28);
+}
+body.dark-mode .reminder-panel.late strong {
+  color:#ffb3a5;
+}
+body.dark-mode .reminder-mini {
+  background:rgba(82,196,184,0.12);
+  color:#8ee4d6;
+}
+
 </style>
 </head>
 <body>
@@ -3479,6 +3534,7 @@ async function dbUpdateTask(id, updates) {
 async function refreshTasks() {
   tasks = dedupeTasks(await dbGetTasks());
   await autoMarkLateTasks(true);
+  await autoSendTaskReminders(true);
   updateBadges();
 }
 
@@ -3575,6 +3631,7 @@ function doLogin() {
     }
     currentUser = { id: u.id, email: u.email, name: u.name, role: u.role, profile: normalizeProfile(u.profile) };
     localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    playSound('login');
     launchApp();
   }).catch(err => { setLoading(false); notify('❌ Login error: ' + err.message); });
 }
@@ -4318,6 +4375,7 @@ function launchApp() {
   notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
   startLateTaskWatcher();
+  startReminderWatcher();
 }
 
 // ══════════════════════════════════════════════════════
@@ -4565,6 +4623,187 @@ function fmtDate(s) {
 }
 
 
+
+// ══════════════════════════════════════════════════════
+//  TASK REMINDERS
+//  Automatic site reminders + employer manual reminders.
+// ══════════════════════════════════════════════════════
+const REMINDER_DUE_SOON_HOURS = 6;      // send due-soon reminder within 6 hours
+const REMINDER_LATE_REPEAT_HOURS = 24;  // late reminders repeat at most once per day
+
+let _reminderWatcherStarted = false;
+let _reminderAutoRunning = false;
+
+function taskReminderState(t) {
+  const ratings = (typeof t?.ratings === 'string') ? safeParseJSON(t.ratings, {}) : (t?.ratings || {});
+  return ratings.__reminders || {};
+}
+
+function setTaskReminderState(t, reminderUpdate) {
+  const ratings = (typeof t?.ratings === 'string') ? safeParseJSON(t.ratings, {}) : (t?.ratings || {});
+  return { ...ratings, __reminders: { ...(ratings.__reminders || {}), ...(reminderUpdate || {}) } };
+}
+
+function hoursUntilDeadline(t, when = new Date()) {
+  const d = parseTaskDeadline(t);
+  if (!d) return null;
+  return (d.getTime() - when.getTime()) / 3600000;
+}
+
+function shouldSendDueSoonReminder(t, when = new Date()) {
+  if (!t?.taken_by || hasSubmittedWork(t) || ['completed','revision','cancelled'].includes(t.status)) return false;
+  const hours = hoursUntilDeadline(t, when);
+  if (hours === null) return false;
+  if (hours < 0 || hours > REMINDER_DUE_SOON_HOURS) return false;
+  return !taskReminderState(t).due_soon_sent_at;
+}
+
+function shouldSendLateReminder(t, when = new Date()) {
+  if (!t?.taken_by || hasSubmittedWork(t) || ['completed','revision','cancelled'].includes(t.status)) return false;
+  if (!taskIsLate(t) && !isPastDeadline(t, when)) return false;
+  const last = taskReminderState(t).late_sent_at;
+  if (!last) return true;
+  const elapsedHours = (when.getTime() - new Date(last).getTime()) / 3600000;
+  return elapsedHours >= REMINDER_LATE_REPEAT_HOURS;
+}
+
+function reminderMessageBody(t, type, customNote = '') {
+  const subject = t.subject || 'your assigned task';
+  const deadlineText = fmtDate(t.deadline);
+  if (type === 'late') {
+    return `Reminder: Order ${t.id} (${subject}) is now late. Please submit the completed work as soon as possible or message the employer with an update.${customNote ? '\\n\\nEmployer note: ' + customNote : ''}`;
+  }
+  if (type === 'manual') {
+    return `Reminder from employer: Please check Order ${t.id} (${subject}) and send an update or submit the work before the deadline (${deadlineText}).${customNote ? '\\n\\nEmployer note: ' + customNote : ''}`;
+  }
+  return `Reminder: Order ${t.id} (${subject}) is almost due. Deadline: ${deadlineText}. Please submit the completed work on time or message the employer if you need to clarify anything.`;
+}
+
+function buildReminderMessage(t, type, customNote = '', sender = 'site') {
+  const isEmployerSender = sender === 'employer' && currentUser?.role === 'employer';
+  return {
+    id: `reminder-${type}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    task_id: t.id,
+    sender_email: isEmployerSender ? currentUser.email : 'system@janelle-writes.local',
+    sender_name: isEmployerSender ? currentUser.name : 'Janelle Writes Reminder',
+    sender_role: isEmployerSender ? 'employer' : 'system',
+    body: reminderMessageBody(t, type, customNote),
+    at: new Date().toISOString(),
+    reminder_type: type,
+    read_by: isEmployerSender ? [currentUser.email] : []
+  };
+}
+
+async function appendReminderMessage(t, type, options = {}) {
+  if (!t?.id || !t.taken_by) return false;
+
+  const messages = getTaskMessages(t);
+  const msg = buildReminderMessage(t, type, options.note || '', options.sender || 'site');
+  const nextMessages = [...messages, msg];
+
+  const nowIso = msg.at;
+  const previousState = taskReminderState(t);
+  const reminderPatch = {
+    ...previousState,
+    last_sent_at: nowIso,
+    last_type: type,
+    last_message: msg.body
+  };
+  if (type === 'due_soon') reminderPatch.due_soon_sent_at = nowIso;
+  if (type === 'late') reminderPatch.late_sent_at = nowIso;
+  if (type === 'manual') {
+    reminderPatch.manual_sent_at = nowIso;
+    reminderPatch.manual_count = Number(previousState.manual_count || 0) + 1;
+  }
+
+  const ratings = setTaskReminderState(t, reminderPatch);
+  setTaskMessages(t, nextMessages);
+  t.ratings = ratings;
+  updateBadges();
+
+  try {
+    await dbUpdateTask(t.id, { messages: nextMessages, ratings });
+  } catch (err) {
+    console.warn('Reminder sync failed:', err);
+    notify('⚠️ Reminder saved locally. Add/confirm messages and ratings JSONB columns in Supabase to sync reminders.');
+    return false;
+  }
+
+  if (document.getElementById('page-messages')?.classList.contains('active')) {
+    renderMessagesPage();
+  }
+  if (_activeTaskModalId === t.id && document.getElementById('modal-view-task')?.classList.contains('open')) {
+    empViewTask(t.id);
+  }
+  return true;
+}
+
+async function autoSendTaskReminders(silent = true) {
+  if (_reminderAutoRunning || !Array.isArray(tasks) || !tasks.length) return;
+  _reminderAutoRunning = true;
+
+  const now = new Date();
+  const relevant = tasks.filter(t => t?.taken_by && !hasSubmittedWork(t) && !['completed','revision','cancelled'].includes(t.status));
+  let sent = 0;
+
+  for (const t of relevant) {
+    try {
+      if (shouldSendLateReminder(t, now)) {
+        const ok = await appendReminderMessage(t, 'late', { sender:'site' });
+        if (ok) sent++;
+      } else if (shouldSendDueSoonReminder(t, now)) {
+        const ok = await appendReminderMessage(t, 'due_soon', { sender:'site' });
+        if (ok) sent++;
+      }
+    } catch (err) {
+      console.warn('Auto reminder failed for', t.id, err);
+    }
+  }
+
+  _reminderAutoRunning = false;
+  if (!silent && sent) notify(`🔔 ${sent} task reminder${sent === 1 ? '' : 's'} sent.`);
+}
+
+function startReminderWatcher() {
+  if (_reminderWatcherStarted) return;
+  _reminderWatcherStarted = true;
+  setTimeout(() => autoSendTaskReminders(true), 1200);
+  setInterval(() => autoSendTaskReminders(true), 5 * 60 * 1000);
+}
+
+async function employerSendReminder(taskId) {
+  const t = getTaskById(taskId);
+  if (!t || !taskForEmployer(t, currentUser?.email)) { notify('⚠️ You cannot remind this writer.'); return; }
+  if (!t.taken_by) { notify('⚠️ This order has no assigned writer yet.'); return; }
+  if (hasSubmittedWork(t) || ['completed','cancelled'].includes(t.status)) { notify('⚠️ This order already has a submission or is closed.'); return; }
+
+  const note = prompt('Optional note to the writer:', '');
+  if (note === null) return;
+
+  const ok = await appendReminderMessage(t, taskIsLate(t) ? 'late' : 'manual', { sender:'employer', note: note.trim() });
+  if (ok) notify('🔔 Reminder sent to ' + (t.taken_by_name || 'writer') + '.', 'notification');
+}
+
+function renderReminderPanel(t) {
+  const state = taskReminderState(t);
+  if (!state || !state.last_sent_at) return '';
+  const when = new Date(state.last_sent_at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' });
+  const isLate = state.last_type === 'late';
+  return `<div class="reminder-panel ${isLate ? 'late' : ''}">
+    <strong>${isLate ? 'Late reminder sent' : 'Reminder sent'}</strong><br>
+    Last reminder: ${esc(when)}${state.manual_count ? ` · Manual reminders: ${Number(state.manual_count)}` : ''}<br>
+    <span class="text-muted">${esc(state.last_message || '')}</span>
+  </div>`;
+}
+
+function reminderMiniStatus(t) {
+  const state = taskReminderState(t);
+  if (!state?.last_sent_at) return '';
+  const label = state.last_type === 'late' ? 'Late reminder sent' : 'Reminder sent';
+  return `<span class="reminder-mini">🔔 ${label}</span>`;
+}
+
+
 // ══════════════════════════════════════════════════════
 //  AUTOMATIC LATENESS TRACKING
 // ══════════════════════════════════════════════════════
@@ -4679,6 +4918,7 @@ function autoMarkLateTasks(silent = true) {
   return Promise.all(updates).then(() => {
     _lateAutoMarkRunning = false;
     updateBadges();
+    autoSendTaskReminders(true);
     if (!silent && toMark.length) notify('⏰ ' + toMark.length + ' overdue task(s) marked late automatically.');
   }).catch(() => { _lateAutoMarkRunning = false; });
 }
@@ -5118,23 +5358,94 @@ function playSound(type = 'default') {
     if (!Ctx) return;
     _audioCtx = _audioCtx || new Ctx();
     if (_audioCtx.state === 'suspended') _audioCtx.resume();
-    const tones = {
-      order: [660, 880],
-      submit: [520, 740, 980],
-      message: [420, 640],
-      default: [520]
-    }[type] || [520];
-    tones.forEach((freq, i) => {
+
+    const soundMap = {
+      // Chat-style: two quick soft pops
+      message: {
+        wave: 'sine',
+        volume: 0.075,
+        notes: [
+          { freq: 540, start: 0.00, dur: 0.075 },
+          { freq: 760, start: 0.085, dur: 0.085 }
+        ]
+      },
+
+      // General notification/order/reminder: clear three-note chime
+      notification: {
+        wave: 'triangle',
+        volume: 0.07,
+        notes: [
+          { freq: 660, start: 0.00, dur: 0.10 },
+          { freq: 880, start: 0.12, dur: 0.10 },
+          { freq: 1046, start: 0.24, dur: 0.13 }
+        ]
+      },
+
+      // Login: rising welcome sound
+      login: {
+        wave: 'sine',
+        volume: 0.08,
+        notes: [
+          { freq: 392, start: 0.00, dur: 0.10 },
+          { freq: 523, start: 0.11, dur: 0.10 },
+          { freq: 659, start: 0.22, dur: 0.16 }
+        ]
+      },
+
+      // File upload/submission: quick upload success sparkle
+      upload: {
+        wave: 'triangle',
+        volume: 0.075,
+        notes: [
+          { freq: 784, start: 0.00, dur: 0.075 },
+          { freq: 988, start: 0.075, dur: 0.075 },
+          { freq: 1319, start: 0.15, dur: 0.12 }
+        ]
+      },
+
+      // Task submitted: slightly fuller success version
+      submit: {
+        wave: 'triangle',
+        volume: 0.08,
+        notes: [
+          { freq: 523, start: 0.00, dur: 0.09 },
+          { freq: 659, start: 0.10, dur: 0.09 },
+          { freq: 880, start: 0.20, dur: 0.16 }
+        ]
+      },
+
+      // Keep old aliases working
+      order: null,
+      reminder: null,
+      default: {
+        wave: 'sine',
+        volume: 0.06,
+        notes: [{ freq: 520, start: 0.00, dur: 0.12 }]
+      }
+    };
+
+    soundMap.order = soundMap.notification;
+    soundMap.reminder = soundMap.notification;
+
+    const pattern = soundMap[type] || soundMap.default;
+    const now = _audioCtx.currentTime;
+
+    pattern.notes.forEach(note => {
       const osc = _audioCtx.createOscillator();
       const gain = _audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, _audioCtx.currentTime + i * 0.11);
-      gain.gain.exponentialRampToValueAtTime(0.08, _audioCtx.currentTime + i * 0.11 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, _audioCtx.currentTime + i * 0.11 + 0.12);
+
+      osc.type = pattern.wave || 'sine';
+      osc.frequency.setValueAtTime(note.freq, now + note.start);
+
+      const attack = 0.015;
+      const release = Math.max(0.03, note.dur - attack);
+      gain.gain.setValueAtTime(0.0001, now + note.start);
+      gain.gain.exponentialRampToValueAtTime(pattern.volume || 0.07, now + note.start + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + attack + release);
+
       osc.connect(gain).connect(_audioCtx.destination);
-      osc.start(_audioCtx.currentTime + i * 0.11);
-      osc.stop(_audioCtx.currentTime + i * 0.11 + 0.14);
+      osc.start(now + note.start);
+      osc.stop(now + note.start + note.dur + 0.035);
     });
   } catch (err) { /* browsers can block sound before first interaction */ }
 }
@@ -5235,10 +5546,12 @@ function empClearForm() {
 
 
 function handleInstructionFiles(files) {
+  const before = _instructionFiles.length;
   Array.from(files || []).forEach(f => {
     if (!_instructionFiles.find(u => u.name === f.name && u.size === f.size)) _instructionFiles.push(f);
   });
   renderInstructionFileList();
+  if (_instructionFiles.length > before) playSound('upload');
 }
 
 function renderInstructionFileList() {
@@ -5422,13 +5735,13 @@ function renderEmpTasks() {
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
       <td>${statusBadgeForTask(t)}</td>
-      <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) + smallPartnerProfileButton(t.taken_by, t.taken_by_name) : ''}</td>
+      <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) + smallPartnerProfileButton(t.taken_by, t.taken_by_name) + reminderMiniStatus(t) : ''}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
-          ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">Profile</button><button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}
+          ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">Profile</button><button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>${!hasSubmittedWork(t) && !['completed','cancelled'].includes(t.status) ? `<button class="btn btn-outline btn-sm" onclick="employerSendReminder('${t.id}')">Remind</button>` : ''}` : ''}
           ${!hasOpenDispute(t) && t.taken_by ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : ''}
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
@@ -5467,6 +5780,7 @@ function empViewTask(id) {
     ${taskRatingSummary(t)}
     ${renderDisputeSummary(t)}
     ${renderLatenessPanel(t)}
+    ${renderReminderPanel(t)}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
     ${t.submitted_link ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Link</div><a href="${t.submitted_link}" target="_blank" style="color:var(--teal);font-size:13px;word-break:break-all;">${t.submitted_link}</a></div>` : ''}
     ${t.submitted_text ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Submitted Text</div><div style="font-size:12px;color:var(--charcoal);background:var(--cream);padding:12px;border-radius:8px;max-height:140px;overflow-y:auto;">${t.submitted_text}</div></div>` : ''}
@@ -5478,6 +5792,9 @@ function empViewTask(id) {
   if (t.taken_by && canCurrentUserSeeTask(t)) {
     if (currentUser?.role === 'employer') {
       actions.innerHTML += `<button class="btn btn-outline" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">👤 Writer Profile</button>`;
+      if (!hasSubmittedWork(t) && !['completed','cancelled'].includes(t.status)) {
+        actions.innerHTML += `<button class="btn btn-outline" onclick="employerSendReminder('${t.id}')">🔔 Remind Writer</button>`;
+      }
     }
     actions.innerHTML += `<button class="btn btn-outline" onclick="closeModal('modal-view-task');openMessagesForTask('${t.id}')">💬 Message</button>`;
     if (!hasOpenDispute(t)) actions.innerHTML += `<button class="btn btn-warn" onclick="closeModal('modal-view-task');openDisputeModal('${t.id}')">⚖️ Open Dispute</button>`;
@@ -6057,8 +6374,10 @@ function showSelectedSubmitTask() {
 }
 
 function handleFiles(files) {
+  const before = _uploadedFiles.length;
   Array.from(files).forEach(f => { if (!_uploadedFiles.find(u => u.name === f.name)) _uploadedFiles.push(f); });
   renderFileList();
+  if (_uploadedFiles.length > before) playSound('upload');
 }
 
 function renderFileList() {
@@ -6910,6 +7229,7 @@ function subscribeRealtime() {
       }
       tasks = dedupeTasks(tasks);
       updateBadges();
+      autoSendTaskReminders(true);
 
       if (eventType === 'UPDATE' && newRow?.ratings) {
         refreshLiveRatingViews(newRow.id);
