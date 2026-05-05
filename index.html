@@ -1852,12 +1852,343 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
   }
 }
 
+
+/* ── SESSION MODAL FIXED STYLES ─────────────────── */
+.session-modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  background:rgba(15,25,35,0.56);
+  backdrop-filter:blur(8px);
+}
+.session-modal.open { display:flex !important; }
+.session-modal-card {
+  width:min(420px, 100%);
+  background:var(--white);
+  color:var(--ink);
+  border:1px solid rgba(205,224,221,0.92);
+  border-radius:22px;
+  padding:30px 28px;
+  text-align:center;
+  box-shadow:0 30px 90px rgba(15,25,35,0.34);
+}
+.session-modal-icon {
+  width:64px;
+  height:64px;
+  margin:0 auto 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:20px;
+  background:var(--teal-pale);
+  color:var(--teal-dark);
+  font-size:30px;
+  box-shadow:0 14px 36px rgba(42,157,143,0.18);
+}
+.session-modal-card h3 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:30px;
+  line-height:1.1;
+  margin:0 0 8px;
+  color:var(--ink);
+}
+.session-modal-card p {
+  font-size:14px;
+  line-height:1.6;
+  color:var(--slate);
+  margin:0;
+}
+.session-modal-card p strong {
+  color:var(--danger);
+  font-size:18px;
+}
+.session-modal-actions {
+  display:flex;
+  gap:12px;
+  margin-top:24px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+body.dark-mode .session-modal-card {
+  background:#14202b;
+  color:#f4fbfa;
+  border-color:rgba(142,228,214,0.20);
+}
+body.dark-mode .session-modal-card h3 { color:#f4fbfa; }
+body.dark-mode .session-modal-card p { color:#b8ccca; }
+body.dark-mode .session-modal-icon {
+  background:rgba(82,196,184,0.13);
+  color:#8ee4d6;
+}
+
+
+/* ── PUBLIC USER RATING VISIBILITY ─────────────────── */
+.public-rating-panel {
+  border:1px solid rgba(205,224,221,0.88);
+  border-radius:12px;
+  padding:12px 14px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,249,0.96));
+  margin:10px 0 14px;
+}
+.public-rating-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+.public-rating-title {
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--slate);
+}
+.public-rating-score {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:800;
+  color:var(--warning);
+  background:#fff3e0;
+  border:1px solid rgba(230,126,34,0.18);
+  border-radius:999px;
+  padding:4px 9px;
+}
+.public-rating-review {
+  margin-top:8px;
+  padding:9px 10px;
+  border-radius:10px;
+  background:var(--cream);
+  border-left:3px solid var(--teal);
+  color:var(--charcoal);
+  font-size:12px;
+  line-height:1.45;
+}
+.public-rating-review small {
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:.3px;
+}
+.public-rating-mini {
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  color:var(--muted);
+}
+body.dark-mode .public-rating-panel {
+  background:#14202b;
+  border-color:rgba(142,228,214,0.18);
+}
+body.dark-mode .public-rating-title { color:#b8ccca; }
+body.dark-mode .public-rating-review {
+  background:#101923;
+  color:#e8f7f5;
+  border-left-color:#52c4b8;
+}
+body.dark-mode .public-rating-review small,
+body.dark-mode .public-rating-mini { color:#b8ccca; }
+
+
+/* ── READ-ONLY PARTNER PROFILE VIEW ─────────────────── */
+.partner-profile-card {
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbfa 100%);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:var(--shadow-lg);
+}
+.partner-profile-hero {
+  height:98px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(82,196,184,0.28), transparent 34%),
+    linear-gradient(135deg,#0f1923,#173142);
+  position:relative;
+}
+.partner-profile-main {
+  padding:0 24px 24px;
+}
+.partner-profile-avatar-wrap {
+  display:flex;
+  justify-content:center;
+  margin-top:-54px;
+  margin-bottom:14px;
+}
+.partner-profile-avatar {
+  width:116px;
+  height:116px;
+  border-radius:50%;
+  border:5px solid var(--white);
+  background:linear-gradient(135deg,var(--teal-dark),var(--teal));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  box-shadow:0 18px 42px rgba(15,25,35,0.24);
+  font-family:'Cormorant Garamond',serif;
+  font-size:44px;
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.partner-profile-avatar:hover {
+  transform:translateY(-2px) scale(1.02);
+  box-shadow:0 22px 54px rgba(15,25,35,0.30);
+}
+.partner-profile-avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.partner-profile-name {
+  font-family:'Cormorant Garamond',serif;
+  font-size:31px;
+  font-weight:800;
+  color:var(--ink);
+  text-align:center;
+  line-height:1.1;
+}
+.partner-profile-title {
+  text-align:center;
+  margin-top:6px;
+  color:var(--teal-dark);
+  font-size:13px;
+  font-weight:800;
+}
+.partner-profile-meta {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+.partner-profile-meta-item {
+  background:var(--cream);
+  border:1px solid rgba(205,224,221,0.9);
+  border-radius:12px;
+  padding:11px 12px;
+}
+.partner-profile-meta-item span {
+  display:block;
+  font-size:10px;
+  font-weight:800;
+  color:var(--muted);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.partner-profile-meta-item strong {
+  display:block;
+  font-size:13px;
+  color:var(--ink);
+  line-height:1.4;
+  word-break:break-word;
+}
+.partner-profile-bio {
+  margin-top:16px;
+  background:var(--teal-pale);
+  border-left:4px solid var(--teal);
+  border-radius:12px;
+  padding:14px;
+  color:var(--charcoal);
+  font-size:13px;
+  line-height:1.65;
+  white-space:pre-wrap;
+}
+.partner-profile-section {
+  margin-top:16px;
+}
+.partner-profile-section-title {
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  color:var(--slate);
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.partner-profile-mini {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:4px 8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--white);
+  color:var(--teal-dark);
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:4px;
+}
+.partner-profile-mini:hover {
+  border-color:var(--teal);
+  box-shadow:0 8px 18px rgba(42,157,143,0.12);
+}
+.partner-profile-mini-avatar {
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  overflow:hidden;
+  background:var(--teal-pale);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  color:var(--teal-dark);
+  font-weight:900;
+}
+.partner-profile-mini-avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.image-viewer-img {
+  max-width:min(92vw, 720px);
+  max-height:78vh;
+  border-radius:18px;
+  box-shadow:0 30px 90px rgba(0,0,0,0.42);
+  background:#fff;
+  display:block;
+  margin:auto;
+}
+body.dark-mode .partner-profile-card {
+  background:#14202b;
+  border-color:rgba(142,228,214,0.18);
+}
+body.dark-mode .partner-profile-name,
+body.dark-mode .partner-profile-meta-item strong { color:#f4fbfa; }
+body.dark-mode .partner-profile-title { color:#8ee4d6; }
+body.dark-mode .partner-profile-meta-item {
+  background:#101923;
+  border-color:rgba(142,228,214,0.14);
+}
+body.dark-mode .partner-profile-bio {
+  background:rgba(82,196,184,0.12);
+  color:#e8f7f5;
+}
+body.dark-mode .partner-profile-section-title { color:#b8ccca; }
+body.dark-mode .partner-profile-mini {
+  background:#101923;
+  border-color:rgba(142,228,214,0.18);
+  color:#8ee4d6;
+}
+
 </style>
 </head>
 <body>
 
 <!-- SESSION IDLE WARNING MODAL -->
-<div id="session-modal" class="session-modal" aria-hidden="true">
+<div id="session-modal" class="session-modal" aria-hidden="true" style="display:none;">
   <div class="session-modal-card" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
     <div class="session-modal-icon">⏳</div>
     <h3 id="session-modal-title">Still working?</h3>
@@ -2690,6 +3021,32 @@ body.dark-mode .profile-chip { background:rgba(255,255,255,0.07); color:#d8e9e7;
   </div>
 </div>
 
+
+<!-- Read-only Writer Profile Modal -->
+<div class="modal-overlay" id="modal-partner-profile">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-title" id="partner-profile-modal-title">Writer Profile</div>
+    <div class="modal-sub">Read-only profile details for the writer assigned to this order.</div>
+    <div id="partner-profile-body">
+      <div class="empty-state"><p>Loading profile…</p></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-partner-profile')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Image Viewer Modal -->
+<div class="modal-overlay" id="modal-profile-image">
+  <div class="modal" style="max-width:840px;background:transparent;box-shadow:none;border:none;padding:0;">
+    <img id="profile-image-large" class="image-viewer-img" alt="Profile image">
+    <div class="modal-actions" style="justify-content:center;margin-top:14px;">
+      <button class="btn btn-outline" onclick="closeModal('modal-profile-image')">Close</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Revision Modal (Employer sends back) -->
 <div class="modal-overlay" id="modal-revision">
   <div class="modal">
@@ -3490,7 +3847,13 @@ let _sessionActivityBound = false;
 
 function isAppSessionActive() {
   const appShell = document.getElementById('app-shell');
-  return !!currentUser && !!appShell && appShell.style.display !== 'none';
+  const authScreen = document.getElementById('auth-screen');
+  if (!currentUser || !appShell) return false;
+
+  const appVisible = window.getComputedStyle(appShell).display !== 'none';
+  const authVisible = authScreen ? window.getComputedStyle(authScreen).display !== 'none' : false;
+
+  return appVisible && !authVisible;
 }
 
 function getSessionModal() {
@@ -3511,6 +3874,7 @@ function hideSessionModal() {
   if (modal) {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+    modal.style.display = 'none';
   }
   clearInterval(_sessionCountdownTimer);
   _sessionCountdownTimer = null;
@@ -3523,6 +3887,7 @@ function showSessionWarning() {
 
   _sessionCountdownLeft = SESSION_WARNING_SECONDS;
   updateSessionCountdown();
+  modal.style.display = 'flex';
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
 
@@ -3535,7 +3900,11 @@ function showSessionWarning() {
 }
 
 function resetSessionIdleTimer() {
-  if (!isAppSessionActive()) return;
+  if (!isAppSessionActive()) {
+    clearTimeout(_sessionIdleTimer);
+    hideSessionModal();
+    return;
+  }
   clearTimeout(_sessionIdleTimer);
   _sessionIdleTimer = setTimeout(showSessionWarning, SESSION_IDLE_TIME_MS);
 }
@@ -3617,7 +3986,7 @@ function bindSessionActivityListeners() {
 function initSessionGuard() {
   bindSessionActivityListeners();
   hideSessionModal();
-  resetSessionIdleTimer();
+  setTimeout(resetSessionIdleTimer, 120);
 }
 
 function setLoading(on) {
@@ -4099,6 +4468,8 @@ function payBadge(p) {
 function esc(v) {
   return String(v ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
+function escJS(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, ''); }
+
 
 function safeParseJSON(value, fallback = []) {
   if (Array.isArray(value)) return value;
@@ -4211,6 +4582,76 @@ function ratingChipForUser(email, targetType) {
   if (!r) return '<span class="text-muted">No ratings yet</span>';
   return `<span class="rating-chip">⭐ ${r.avg.toFixed(1)} (${r.count})</span>`;
 }
+
+function ratingRecordsForUser(email, targetType) {
+  if (!email) return [];
+  const key = targetType === 'writer' ? 'writer_by_employer' : 'employer_by_writer';
+  const targetEmail = String(email).toLowerCase();
+
+  return tasks.map(t => {
+    const r = getTaskRatings(t)[key];
+    if (!r || String(r.for_email || '').toLowerCase() !== targetEmail) return null;
+    return {
+      ...r,
+      task_id: t.id,
+      subject: t.subject,
+      at_sort: r.at ? new Date(r.at).getTime() : 0
+    };
+  }).filter(Boolean).sort((a,b) => (b.at_sort || 0) - (a.at_sort || 0));
+}
+
+function publicRatingPanelForUser(email, targetType, options = {}) {
+  if (!email) return '';
+  const label = targetType === 'writer' ? 'Writer reputation' : 'Employer reputation';
+  const nameLabel = targetType === 'writer' ? 'writer' : 'employer';
+  const records = ratingRecordsForUser(email, targetType);
+  const scored = records.filter(r => Number(r.score));
+  const comments = records.filter(r => (r.comment || '').trim()).slice(0, options.limit || 2);
+
+  if (!scored.length) {
+    if (options.compact) return `<span class="public-rating-mini">No ${nameLabel} ratings yet</span>`;
+    return `<div class="public-rating-panel"><div class="public-rating-head"><span class="public-rating-title">${label}</span><span class="text-muted">No ratings yet</span></div><div class="text-muted" style="font-size:12px;">This ${nameLabel} has not received public feedback on completed orders yet.</div></div>`;
+  }
+
+  const avg = scored.reduce((sum, r) => sum + Number(r.score), 0) / scored.length;
+  const reviewHtml = comments.length ? comments.map(r => `
+    <div class="public-rating-review">
+      “${esc(r.comment)}”
+      <small>${esc(r.by_name || r.by_email || 'User')} · ${esc(r.task_id || '')}${r.subject ? ' · ' + esc(r.subject) : ''}</small>
+    </div>
+  `).join('') : `<div class="text-muted" style="font-size:12px;">No written comments yet.</div>`;
+
+  if (options.compact) {
+    return `<span class="public-rating-mini">${ratingStars(Math.round(avg))} ${avg.toFixed(1)} from ${scored.length} rating${scored.length === 1 ? '' : 's'}</span>`;
+  }
+
+  return `
+    <div class="public-rating-panel">
+      <div class="public-rating-head">
+        <span class="public-rating-title">${label}</span>
+        <span class="public-rating-score">${ratingStars(Math.round(avg))} ${avg.toFixed(1)} · ${scored.length} rating${scored.length === 1 ? '' : 's'}</span>
+      </div>
+      ${reviewHtml}
+    </div>
+  `;
+}
+
+function partnerRatingPanelForTask(t) {
+  if (!currentUser || !t) return '';
+
+  // Employers see the assigned writer's public work history.
+  if (currentUser.role === 'employer' && t.taken_by) {
+    return publicRatingPanelForUser(t.taken_by, 'writer', { limit: 3 });
+  }
+
+  // Writers see the employer's public order history.
+  if (currentUser.role === 'writer' && t.posted_by) {
+    return publicRatingPanelForUser(t.posted_by, 'employer', { limit: 3 });
+  }
+
+  return '';
+}
+
 
 function taskRatingSummary(t) {
   const ratings = getTaskRatings(t);
@@ -4683,13 +5124,13 @@ function renderEmpTasks() {
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
       <td>${statusBadgeForTask(t)}</td>
-      <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}</td>
+      <td style="font-size:12px;color:var(--muted);">${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) + smallPartnerProfileButton(t.taken_by, t.taken_by_name) : ''}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
-          ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}
+          ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">Profile</button><button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}
           ${!hasOpenDispute(t) && t.taken_by ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : ''}
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
@@ -4701,7 +5142,10 @@ function renderEmpTasks() {
   updateBadges();
 }
 
+let _activeTaskModalId = null;
+
 function empViewTask(id) {
+  _activeTaskModalId = id;
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   const modal = document.getElementById('modal-view-task');
@@ -4716,8 +5160,9 @@ function empViewTask(id) {
       <div class="text-muted">Deadline</div><div style="color:var(--rust);font-weight:500;">${fmtDate(t.deadline)}</div>
       <div class="text-muted">Amount</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">KES ${t.total.toLocaleString()}</div>
       <div class="text-muted">Payment</div><div>${payBadge(t.payment)}</div>
-      <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}</div>
+      <div class="text-muted">Writer</div><div>${t.taken_by_name || '<em>Unassigned</em>'}${t.taken_by ? publicRatingPanelForUser(t.taken_by, 'writer', { compact:true }) : ''}${currentUser?.role === 'employer' && t.taken_by ? smallPartnerProfileButton(t.taken_by, t.taken_by_name) : ''}</div>
     </div>
+    ${partnerRatingPanelForTask(t)}
     ${t.description ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Description</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--cream);padding:12px;border-radius:8px;white-space:pre-wrap;">${esc(t.description)}</div></div>` : ''}
     ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Special Requirements</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:#fff3e0;padding:12px;border-radius:8px;">${esc(t.requirements)}</div></div>` : ''}
     ${renderInstructionFiles(t)}
@@ -4733,6 +5178,9 @@ function empViewTask(id) {
   const actions = document.getElementById('vtm-actions');
   actions.innerHTML = `<button class="btn btn-outline" onclick="closeModal('modal-view-task')">Close</button>`;
   if (t.taken_by && canCurrentUserSeeTask(t)) {
+    if (currentUser?.role === 'employer') {
+      actions.innerHTML += `<button class="btn btn-outline" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">👤 Writer Profile</button>`;
+    }
     actions.innerHTML += `<button class="btn btn-outline" onclick="closeModal('modal-view-task');openMessagesForTask('${t.id}')">💬 Message</button>`;
     if (!hasOpenDispute(t)) actions.innerHTML += `<button class="btn btn-warn" onclick="closeModal('modal-view-task');openDisputeModal('${t.id}')">⚖️ Open Dispute</button>`;
     else actions.innerHTML += `<button class="btn btn-warn" onclick="closeModal('modal-view-task');navigate('disputes')">⚖️ View Dispute</button>`;
@@ -4909,6 +5357,7 @@ function renderAvailableOrders() {
         <span class="badge badge-style">${t.style}</span>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Employer: ${esc(t.posted_by_name || t.posted_by || '—')} · ${ratingChipForUser(t.posted_by, 'employer')}</div>
+      ${publicRatingPanelForUser(t.posted_by, 'employer', { compact:false, limit:1 })}
       <div class="order-card-subject">${t.subject}</div>
       <div class="order-card-desc">${t.description || 'No description provided.'}</div>
       <div class="order-card-meta">
@@ -4949,6 +5398,7 @@ function openTakeOrderModal(id) {
         <div><span class="text-muted">Deadline: </span><span style="color:var(--rust);">${fmtDate(t.deadline)}</span></div>
         <div><span class="text-muted">Employer: </span>${esc(t.posted_by_name || t.posted_by || '—')}</div>
       </div>
+      ${publicRatingPanelForUser(t.posted_by, 'employer', { limit:2 })}
       <div style="margin-top:12px;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--teal-dark);">KES ${Number(t.total || 0).toLocaleString()}</div>
     </div>
     <div style="margin-bottom:12px;">
@@ -5008,7 +5458,7 @@ function renderWriterTasks() {
   tbody.innerHTML = list.map(t => `
     <tr>
       <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}<span class="public-rating-mini">Employer: ${esc(t.posted_by_name || t.posted_by || '—')} · ${ratingChipForUser(t.posted_by, 'employer')}</span></td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td>${t.pages}</td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
@@ -5587,8 +6037,7 @@ function confirmRating() {
   t.ratings = ratings;
   dbUpdateTask(t.id, { ratings }).then(() => {
     closeModal('modal-rating');
-    renderEmpTasks();
-    renderWriterTasks();
+    refreshLiveRatingViews(t.id);
     notify('⭐ Rating saved');
   }).catch(err => {
     saveLocalRatings(t.id, ratings);
@@ -5763,6 +6212,123 @@ function removeProfilePhoto() {
   const input = document.getElementById('profile-photo-input');
   if (input) input.value = '';
   updateProfilePreview();
+}
+
+
+function initialsFromName(name, email = '') {
+  const base = String(name || email || 'User').trim();
+  const parts = base.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return base.slice(0,2).toUpperCase();
+}
+
+function smallPartnerProfileButton(email, name) {
+  if (!email) return '';
+  const local = getLocalProfile(email);
+  const photo = local?.photo || '';
+  const avatar = photo
+    ? `<span class="partner-profile-mini-avatar"><img src="${photo}" alt="${esc(name || email)}"></span>`
+    : `<span class="partner-profile-mini-avatar">${esc(initialsFromName(name, email))}</span>`;
+  return `<button class="partner-profile-mini" type="button" onclick="event.stopPropagation();openWriterProfileModal('${escJS(email)}','${escJS(name || '')}')">${avatar}<span>View Profile</span></button>`;
+}
+
+function profileValue(value, fallback = 'Not provided') {
+  const v = String(value || '').trim();
+  return v ? esc(v) : `<span style="color:var(--muted);font-weight:600;">${fallback}</span>`;
+}
+
+function profileChipList(value) {
+  const chips = splitList(value).slice(0, 10);
+  if (!chips.length) return '<span class="text-muted">Not provided</span>';
+  return `<div class="profile-chip-list" style="margin-top:0;">${chips.map(c => `<span class="profile-chip">${escHTML(c)}</span>`).join('')}</div>`;
+}
+
+function partnerAvatarHTML(profile, name, email) {
+  if (profile?.photo) {
+    return `<div class="partner-profile-avatar" title="Click to view image" onclick="openProfileImageViewer('${escJS(profile.photo)}')"><img src="${profile.photo}" alt="${esc(name || email)} profile image"></div>`;
+  }
+  return `<div class="partner-profile-avatar">${esc(initialsFromName(name, email))}</div>`;
+}
+
+function renderPartnerProfileCard(profile, user, fallbackName = '') {
+  profile = normalizeProfile(profile);
+  const name = profile.name || user?.name || fallbackName || user?.email || 'Writer';
+  const email = user?.email || '';
+  const title = profile.title || 'Academic Writer';
+  const rating = publicRatingPanelForUser(email, 'writer', { limit: 3 });
+  const portfolio = profile.portfolio ? `<a href="${esc(profile.portfolio)}" target="_blank" rel="noopener" style="color:var(--teal);word-break:break-all;">${esc(profile.portfolio)}</a>` : '<span style="color:var(--muted);font-weight:600;">Not provided</span>';
+
+  return `
+    <div class="partner-profile-card">
+      <div class="partner-profile-hero"></div>
+      <div class="partner-profile-main">
+        <div class="partner-profile-avatar-wrap">${partnerAvatarHTML(profile, name, email)}</div>
+        <div class="partner-profile-name">${esc(name)}</div>
+        <div class="partner-profile-title">${esc(title)}</div>
+        ${rating}
+        <div class="partner-profile-bio">${profileValue(profile.bio, 'This writer has not added a bio yet.')}</div>
+
+        <div class="partner-profile-meta">
+          <div class="partner-profile-meta-item"><span>Location</span><strong>${profileValue(profile.location)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Timezone</span><strong>${profileValue(profile.timezone)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Languages</span><strong>${profileValue(profile.languages)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Availability</span><strong>${profileValue(profile.availability)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Rate / Page</span><strong>${profileValue(profile.rate)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Portfolio</span><strong>${portfolio}</strong></div>
+        </div>
+
+        <div class="partner-profile-section">
+          <div class="partner-profile-section-title">Skills / Specialties</div>
+          ${profileChipList(profile.skills)}
+        </div>
+
+        <div class="partner-profile-meta" style="margin-top:14px;">
+          <div class="partner-profile-meta-item"><span>Education / Qualification</span><strong>${profileValue(profile.education)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Experience Summary</span><strong>${profileValue(profile.experience)}</strong></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function openWriterProfileModal(email, fallbackName = '') {
+  if (!email) { notify('⚠️ No writer profile is available yet.'); return; }
+
+  document.getElementById('partner-profile-modal-title').textContent = 'Writer Profile';
+  document.getElementById('partner-profile-body').innerHTML = '<div class="empty-state"><p>Loading writer profile…</p></div>';
+  document.getElementById('modal-partner-profile').classList.add('open');
+
+  let user = { email, name: fallbackName };
+  let profile = getLocalProfile(email);
+
+  try {
+    const dbUser = await dbGetUserByEmail(email);
+    if (dbUser) {
+      user = dbUser;
+      profile = normalizeProfile(dbUser.profile || profile);
+    }
+  } catch (err) {
+    console.warn('Could not load writer profile from Supabase:', err?.message || err);
+  }
+
+  if (!profile || !Object.keys(profile).length) {
+    document.getElementById('partner-profile-body').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👤</div>
+        <p>This writer has not completed their profile yet.</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('partner-profile-body').innerHTML = renderPartnerProfileCard(profile, user, fallbackName);
+}
+
+function openProfileImageViewer(src) {
+  if (!src) return;
+  const img = document.getElementById('profile-image-large');
+  if (!img) return;
+  img.src = src;
+  document.getElementById('modal-profile-image').classList.add('open');
 }
 
 async function renderProfilePage() {
@@ -6042,6 +6608,9 @@ function subscribeRealtime() {
         tasks = tasks.filter(t => t.id !== oldRow.id);
       }
       tasks = dedupeTasks(tasks);
+      if (eventType === 'UPDATE' && newRow?.ratings) {
+        refreshLiveRatingViews(newRow.id);
+      }
       // Re-render active page
       const activePage = document.querySelector('.page.active');
       if (!activePage || !currentUser) return;
@@ -6057,11 +6626,41 @@ function subscribeRealtime() {
       if (pid === 'page-emp-invoice') renderEmpInvoice();
       if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); renderEmpWriterPayDetails(); }
       if (pid === 'page-messages') renderMessagesPage();
+      if (newRow?.id && _activeTaskModalId === newRow.id && document.getElementById('modal-view-task')?.classList.contains('open')) empViewTask(newRow.id);
       updateBadges();
     })
     .subscribe();
 }
 
+
+
+// Keep ratings live inside an open task modal.
+if (typeof closeModal === 'function' && !window.__jwCloseModalRatingPatch) {
+  window.__jwCloseModalRatingPatch = true;
+  const __jwOriginalCloseModal = closeModal;
+  closeModal = function(id) {
+    if (id === 'modal-view-task') _activeTaskModalId = null;
+    return __jwOriginalCloseModal.apply(this, arguments);
+  };
+}
+
+function refreshLiveRatingViews(updatedTaskId) {
+  const activePage = document.querySelector('.page.active');
+  const pid = activePage?.id || '';
+
+  if (pid === 'page-writer-tasks') renderWriterTasks();
+  if (pid === 'page-writer-available') renderAvailableOrders();
+  if (pid === 'page-writer-dashboard') renderWriterDashboard();
+  if (pid === 'page-emp-tasks') renderEmpTasks();
+  if (pid === 'page-emp-dashboard') renderEmpDashboard();
+  if (pid === 'page-disputes') renderDisputesPage();
+  if (pid === 'page-messages') renderMessagesPage();
+
+  const taskModal = document.getElementById('modal-view-task');
+  if (updatedTaskId && _activeTaskModalId === updatedTaskId && taskModal?.classList.contains('open')) {
+    empViewTask(updatedTaskId);
+  }
+}
 
 // ══════════════════════════════════════════════════════
 //  KEYBOARD SHORTCUTS: ENTER = OK / SEND
