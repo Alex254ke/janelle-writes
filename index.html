@@ -3995,7 +3995,7 @@ body.dark-mode .google-auth-separator::after {
         <input type="password" class="form-input" id="signup-password" placeholder="Create a password (minimum 8 characters)">
         <div style="font-size:11px;color:var(--muted);line-height:1.45;">Use at least 8 characters. A mix of letters, numbers, and symbols is recommended.</div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="doSignup()">Send Verification Code →</button>
+      <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
       <div class="google-auth-separator">Or</div>
       <button type="button" class="google-auth-btn" onclick="startGoogleAuth('signup')"><span class="google-auth-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8 19.3-20c0-1.2-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.1 5.6l6.2 5.2c-.4.3 5.9-4.3 5.9-14.8 0-1.2-.1-2.3-.3-3.5z"/></svg></span><span>Sign up with Google</span></button>
       <div class="google-auth-note">For new Google accounts, choose Employer or Writer above before continuing.</div>
@@ -5122,28 +5122,59 @@ async function finishGoogleLoginWithSession(session) {
   return await finishSecureAuthSession(session, { intent, role: selectedRole });
 }
 
+async function handleSupabaseAuthReturn() {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get('code');
+  const hash = window.location.hash || '';
+  const hasHashToken = hash.includes('access_token=');
+  const hasAuthParams = !!code || hasHashToken;
+
+  if (!hasAuthParams) return false;
+
+  try {
+    let session = null;
+
+    if (code) {
+      const { data, error } = await _sb.auth.exchangeCodeForSession(code);
+      if (error) throw error;
+      session = data?.session || null;
+    } else {
+      const { data, error } = await _sb.auth.getSession();
+      if (error) throw error;
+      session = data?.session || null;
+    }
+
+    if (!session) {
+      notify('⚠️ Sign-in session was not found. Please try signing in again.');
+      showLandingPage();
+      return true;
+    }
+
+    await finishSecureAuthSession(session, {
+      intent: localStorage.getItem('jw_google_intent') || 'signup',
+      role: localStorage.getItem('jw_google_role') || _selectedRole || 'employer'
+    });
+
+    return true;
+  } catch (err) {
+    notify('❌ Sign-in callback failed: ' + err.message);
+    showLandingPage();
+    return true;
+  }
+}
+
 function handleSupabaseMagicLinkReturn() {
+  // Backward-compatible wrapper used by the app initializer.
   const hasOAuthParams =
     window.location.hash.includes('access_token=') ||
     window.location.search.includes('code=');
 
   if (!hasOAuthParams) return false;
 
-  _sb.auth.getSession().then(({ data, error }) => {
-    if (error) {
-      notify('❌ Sign-in failed: ' + error.message);
-      return;
-    }
-    if (data?.session) {
-      finishSecureAuthSession(data.session, {
-        intent: localStorage.getItem('jw_google_intent') || 'signup',
-        role: localStorage.getItem('jw_google_role') || _selectedRole || 'employer'
-      });
-    }
-  }).catch(err => notify('❌ Sign-in error: ' + err.message));
-
+  handleSupabaseAuthReturn();
   return true;
 }
+
 
 
 
@@ -5235,6 +5266,15 @@ function openAuthScreen(tab = 'login', role = 'employer') {
 //  SECURITY HELPERS
 //  Client-side throttling is UX only. Real rate limiting happens in /api/auth/profile.
 // ══════════════════════════════════════════════════════
+
+function clearOldAuthAttemptLocks() {
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('jw_rl_login_') || k.startsWith('jw_rl_signup_')) localStorage.removeItem(k);
+    });
+  } catch {}
+}
+
 function clientRateLimit(key, maxAttempts = 5, windowMs = 15 * 60 * 1000) {
   const now = Date.now();
   const storageKey = 'jw_rl_' + key;
@@ -5263,7 +5303,7 @@ async function secureUpsertPlatformUser(payload) {
 
   let body = {};
   try { body = await res.json(); } catch {}
-  if (!res.ok) throw new Error(body.error || 'Could not save secure user profile.');
+  if (!res.ok) throw new Error(body.error || ('Could not save secure user profile. Status: ' + res.status));
   return body.user;
 }
 
@@ -5373,11 +5413,6 @@ async function doLogin() {
   const pass  = document.getElementById('login-password').value;
   if (!email || !pass) { notify('⚠️ Please fill in all fields'); return; }
 
-  if (!clientRateLimit('login_' + email, 5, 15 * 60 * 1000)) {
-    notify('⏳ Too many login attempts. Please wait 15 minutes and try again.');
-    return;
-  }
-
   setLoading(true);
   try {
     const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
@@ -5410,11 +5445,6 @@ async function doSignup() {
   if (!name || !email || !pass) { notify('⚠️ Please fill in all fields'); return; }
   if (!/^\S+@\S+\.\S+$/.test(email)) { notify('⚠️ Please enter a valid email address'); return; }
   if (pass.length < 8) { notify('⚠️ Password must be at least 8 characters'); return; }
-
-  if (!clientRateLimit('signup_' + email, 3, 60 * 60 * 1000)) {
-    notify('⏳ Too many signup attempts. Please wait before trying again.');
-    return;
-  }
 
   setLoading(true);
   try {
@@ -9326,6 +9356,7 @@ document.addEventListener('keydown', handleMessageEnterKey);
 //  INIT
 // ══════════════════════════════════════════════════════
 (function init() {
+  clearOldAuthAttemptLocks();
   applyDarkMode(localStorage.getItem('jw_dark_mode') === '1');
   checkGoogleRedirectSetup();
   if (handleSupabaseMagicLinkReturn()) return;
