@@ -3564,10 +3564,78 @@ body.dark-mode .google-auth-separator::after {
   display: none !important;
 }
 
+
+/* ── AUTH CALLBACK LOADING SCREEN ─────────────────── */
+.auth-callback-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, rgba(82,196,184,0.18), transparent 34%),
+    linear-gradient(135deg, #f6fbfa 0%, #eef6f5 100%);
+}
+.auth-callback-card {
+  width: min(420px, calc(100% - 34px));
+  padding: 34px 28px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(15,25,35,0.08);
+  box-shadow: 0 28px 80px rgba(15,25,35,0.14);
+  text-align: center;
+}
+.auth-callback-mark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0f1923, #173548);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px;
+  font-weight: 700;
+}
+.auth-callback-card h2 {
+  margin: 0 0 8px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px;
+  color: var(--ink);
+}
+.auth-callback-card p {
+  margin: 0;
+  color: var(--slate);
+  line-height: 1.6;
+}
+.auth-callback-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 3px solid rgba(42,157,143,0.14);
+  border-top-color: var(--teal);
+  margin: 18px auto 0;
+  animation: authSpin .75s linear infinite;
+}
+@keyframes authSpin { to { transform: rotate(360deg); } }
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
 <body>
+
+<div class="auth-callback-loading" id="auth-callback-loading" aria-live="polite">
+  <div class="auth-callback-card">
+    <div class="auth-callback-mark">J</div>
+    <h2>Signing you in…</h2>
+    <p>Please wait while Janelle Writes securely verifies your account.</p>
+    <div class="auth-callback-spinner"></div>
+  </div>
+</div>
+
 
 <!-- SESSION IDLE WARNING MODAL -->
 <div id="session-modal" class="session-modal" aria-hidden="true" style="display:none;">
@@ -5122,6 +5190,24 @@ async function finishGoogleLoginWithSession(session) {
   return await finishSecureAuthSession(session, { intent, role: selectedRole });
 }
 
+
+function showAuthCallbackLoading() {
+  const loader = document.getElementById('auth-callback-loading');
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+
+  if (landing) landing.style.display = 'none';
+  if (auth) auth.style.display = 'none';
+  if (app) app.style.display = 'none';
+  if (loader) loader.style.display = 'flex';
+}
+
+function hideAuthCallbackLoading() {
+  const loader = document.getElementById('auth-callback-loading');
+  if (loader) loader.style.display = 'none';
+}
+
 async function handleSupabaseAuthReturn() {
   const url = new URL(window.location.href);
   const code = url.searchParams.get('code');
@@ -5130,6 +5216,8 @@ async function handleSupabaseAuthReturn() {
   const hasAuthParams = !!code || hasHashToken;
 
   if (!hasAuthParams) return false;
+
+  showAuthCallbackLoading();
 
   try {
     let session = null;
@@ -5239,6 +5327,7 @@ function closeLandingMenu() {
   document.body.classList.remove('nav-open');
 }
 function showLandingPage() {
+  hideAuthCallbackLoading();
   closeLandingMenu();
   const landing = document.getElementById('landing-page');
   const auth = document.getElementById('auth-screen');
@@ -6121,6 +6210,7 @@ function handleBackButtonAction(event) {
 window.addEventListener('popstate', handleBackButtonAction);
 
 function launchApp() {
+  hideAuthCallbackLoading();
   const landing = document.getElementById('landing-page');
   if (landing) landing.style.display = 'none';
   document.getElementById('auth-screen').style.display = 'none';
