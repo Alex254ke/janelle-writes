@@ -4840,9 +4840,11 @@ body.dark-mode .google-auth-separator::after {
 //  Supabase Dashboard → Project Settings → API
 // ══════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://ughwzaowgpergpizenko.supabase.co';
+// This publishable/anon key is not a secret; RLS policies must protect data.
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnaHd6YW93Z3BlcmdwaXplbmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjU0MDMsImV4cCI6MjA5MzQ0MTQwM30.JMdjwtPJ9AWeDAdadHRCF0tDKwQn26lko8YPETQA93g';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SUBMISSIONS_BUCKET = 'jw-submissions';
+const SECURE_PROFILE_API = '/api/auth/profile';
 
 // Google OAuth redirect setting.
 // When you deploy the site, replace the empty string below with your live page URL, for example:
@@ -5092,98 +5094,31 @@ function startGoogleAuth(intent = 'login') {
 }
 
 function googleProfileFromSession(session) {
-  const user = session?.user || {};
-  const meta = user.user_metadata || {};
-  const email = String(user.email || meta.email || '').toLowerCase();
-  const name = meta.full_name || meta.name || email.split('@')[0] || 'Google User';
-  const photo = meta.avatar_url || meta.picture || '';
-  return { email, name, photo, supabase_id: user.id || '' };
+  return authProfileFromSession(session, localStorage.getItem('jw_google_role') || _selectedRole || 'employer');
 }
 
 async function createGooglePlatformUser(g, role) {
-  const profile = {
-    name: g.name,
-    photo: g.photo || '',
-    title: role === 'writer' ? 'Academic Writer' : 'Employer',
-    bio: '',
-    skills: '',
-    auth_provider: 'google',
-    updated_at: new Date().toISOString()
-  };
-
-  return await dbCreateUser({
+  return await secureUpsertPlatformUser({
     email: g.email,
-    password: '[google-oauth]',
     name: g.name,
     role,
-    profile
+    auth_id: g.auth_id,
+    profile: {
+      name: g.name,
+      photo: g.photo || '',
+      title: role === 'writer' ? 'Academic Writer' : 'Employer',
+      bio: '',
+      skills: '',
+      auth_provider: 'google',
+      updated_at: new Date().toISOString()
+    }
   });
 }
 
 async function finishGoogleLoginWithSession(session) {
-  const g = googleProfileFromSession(session);
-  if (!g.email) {
-    notify('❌ Google did not return an email address.');
-    return false;
-  }
-
-  let existing = null;
-  try {
-    existing = await dbGetUserByEmail(g.email);
-  } catch (err) {
-    notify('❌ Could not check Google account: ' + err.message);
-    return false;
-  }
-
   const intent = localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = localStorage.getItem('jw_google_role') || '';
-
-  if (!existing && intent !== 'signup') {
-    notify('⚠️ No Janelle Writes account found for this Google email. Click Create Account, choose Employer or Writer, then use Google.');
-    try { await _sb.auth.signOut(); } catch {}
-    localStorage.removeItem('jw_google_intent');
-    return false;
-  }
-
-  if (!existing) {
-    try {
-      existing = await createGooglePlatformUser(g, selectedRole || _selectedRole || 'employer');
-      notify('🎉 Google account created. Welcome to Janelle Writes!', 'login');
-    } catch (err) {
-      notify('❌ Could not create Google account: ' + err.message);
-      return false;
-    }
-  } else {
-    // Keep Google profile image/name fresh if the user has not customized profile much.
-    try {
-      const profile = normalizeProfile(existing.profile);
-      const updates = {};
-      if (!profile.photo && g.photo) {
-        updates.profile = { ...profile, photo: g.photo, auth_provider: 'google', updated_at: new Date().toISOString() };
-      }
-      if (Object.keys(updates).length) await dbUpdateUser(existing.email, updates);
-      if (updates.profile) existing.profile = updates.profile;
-    } catch (err) {
-      console.warn('Google profile sync warning:', err?.message || err);
-    }
-  }
-
-  currentUser = {
-    id: existing.id,
-    email: existing.email,
-    name: existing.name || g.name,
-    role: existing.role,
-    profile: normalizeProfile(existing.profile)
-  };
-
-  localStorage.setItem('jw_session', JSON.stringify(currentUser));
-  localStorage.removeItem('jw_google_intent');
-  localStorage.removeItem('jw_google_role');
-  try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch {}
-  document.getElementById('auth-screen').style.display = 'none';
-  playSound('login');
-  launchApp();
-  return true;
+  const selectedRole = localStorage.getItem('jw_google_role') || _selectedRole || 'employer';
+  return await finishSecureAuthSession(session, { intent, role: selectedRole });
 }
 
 function handleSupabaseMagicLinkReturn() {
@@ -5195,16 +5130,20 @@ function handleSupabaseMagicLinkReturn() {
 
   _sb.auth.getSession().then(({ data, error }) => {
     if (error) {
-      notify('❌ Google sign-in failed: ' + error.message);
+      notify('❌ Sign-in failed: ' + error.message);
       return;
     }
     if (data?.session) {
-      finishGoogleLoginWithSession(data.session);
+      finishSecureAuthSession(data.session, {
+        intent: localStorage.getItem('jw_google_intent') || 'signup',
+        role: localStorage.getItem('jw_google_role') || _selectedRole || 'employer'
+      });
     }
-  }).catch(err => notify('❌ Google sign-in error: ' + err.message));
+  }).catch(err => notify('❌ Sign-in error: ' + err.message));
 
   return true;
 }
+
 
 
 
@@ -5290,6 +5229,116 @@ function openAuthScreen(tab = 'login', role = 'employer') {
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
 }
 
+
+// ══════════════════════════════════════════════════════
+//  SECURITY HELPERS
+//  Client-side throttling is UX only. Real rate limiting happens in /api/auth/profile.
+// ══════════════════════════════════════════════════════
+function clientRateLimit(key, maxAttempts = 5, windowMs = 15 * 60 * 1000) {
+  const now = Date.now();
+  const storageKey = 'jw_rl_' + key;
+  let bucket = [];
+  try { bucket = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch { bucket = []; }
+  bucket = bucket.filter(ts => now - ts < windowMs);
+  if (bucket.length >= maxAttempts) return false;
+  bucket.push(now);
+  localStorage.setItem(storageKey, JSON.stringify(bucket));
+  return true;
+}
+
+async function secureUpsertPlatformUser(payload) {
+  const { data: sessionData } = await _sb.auth.getSession();
+  const token = sessionData?.session?.access_token;
+  if (!token) throw new Error('Your secure session was not found. Please sign in again.');
+
+  const res = await fetch(SECURE_PROFILE_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify(payload || {})
+  });
+
+  let body = {};
+  try { body = await res.json(); } catch {}
+  if (!res.ok) throw new Error(body.error || 'Could not save secure user profile.');
+  return body.user;
+}
+
+function authProfileFromSession(session, fallbackRole = 'employer') {
+  const user = session?.user || {};
+  const meta = user.user_metadata || {};
+  const app = user.app_metadata || {};
+  const provider = app.provider || 'email';
+  const email = String(user.email || meta.email || '').toLowerCase();
+  const name = meta.full_name || meta.name || email.split('@')[0] || 'User';
+  const role = meta.role || fallbackRole || 'employer';
+  const photo = meta.avatar_url || meta.picture || '';
+  return { email, name, role, photo, provider, auth_id: user.id, email_confirmed_at: user.email_confirmed_at };
+}
+
+async function finishSecureAuthSession(session, options = {}) {
+  const authUser = authProfileFromSession(session, options.role || 'employer');
+
+  if (!authUser.email) {
+    notify('❌ No verified email was returned. Please try another sign-in method.');
+    return false;
+  }
+
+  if (authUser.provider === 'email' && !authUser.email_confirmed_at) {
+    notify('📨 Please verify your email before signing in.');
+    return false;
+  }
+
+  let existing = null;
+  try { existing = await dbGetUserByEmail(authUser.email); } catch (err) { existing = null; }
+
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  const selectedRole = options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole || 'employer';
+
+  if (!existing) {
+    if (intent !== 'signup' && !authUser.role) {
+      notify('⚠️ No Janelle Writes profile exists for this email. Please create an account first.');
+      try { await _sb.auth.signOut(); } catch {}
+      return false;
+    }
+
+    existing = await secureUpsertPlatformUser({
+      email: authUser.email,
+      name: authUser.name,
+      role: selectedRole,
+      auth_id: authUser.auth_id,
+      profile: {
+        name: authUser.name,
+        photo: authUser.photo || '',
+        title: selectedRole === 'writer' ? 'Academic Writer' : 'Employer',
+        bio: '',
+        skills: '',
+        auth_provider: authUser.provider,
+        updated_at: new Date().toISOString()
+      }
+    });
+  }
+
+  currentUser = {
+    id: existing.id,
+    email: existing.email,
+    name: existing.name || authUser.name,
+    role: existing.role || selectedRole,
+    profile: normalizeProfile(existing.profile)
+  };
+
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+  localStorage.removeItem('jw_google_intent');
+  localStorage.removeItem('jw_google_role');
+  try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch {}
+  document.getElementById('auth-screen').style.display = 'none';
+  playSound('login');
+  launchApp();
+  return true;
+}
+
 // ══════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════
@@ -5318,22 +5367,31 @@ function selectRole(r) {
   document.getElementById('role-writer').classList.toggle('selected', r==='writer');
 }
 
-function doLogin() {
+async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-password').value;
   if (!email || !pass) { notify('⚠️ Please fill in all fields'); return; }
+
+  if (!clientRateLimit('login_' + email, 5, 15 * 60 * 1000)) {
+    notify('⏳ Too many login attempts. Please wait 15 minutes and try again.');
+    return;
+  }
+
   setLoading(true);
-  dbGetUserByEmail(email).then(u => {
+  try {
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
     setLoading(false);
-    if (!u || u.password !== pass) {
-      notify('❌ Invalid email or password. Please check and try again.');
+
+    if (error || !data?.session) {
+      notify('❌ Invalid login details, or your email is not verified yet.');
       return;
     }
-    currentUser = { id: u.id, email: u.email, name: u.name, role: u.role, profile: normalizeProfile(u.profile) };
-    localStorage.setItem('jw_session', JSON.stringify(currentUser));
-    playSound('login');
-    launchApp();
-  }).catch(err => { setLoading(false); notify('❌ Login error: ' + err.message); });
+
+    await finishSecureAuthSession(data.session, { intent: 'login' });
+  } catch (err) {
+    setLoading(false);
+    notify('❌ Login error: ' + err.message);
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -5344,40 +5402,48 @@ let _otpTimerInterval = null;
 let _otpResendCooldown = false;
 let _writerPayMethod = 'mpesa'; // for payment settings page
 
-function doSignup() {
+async function doSignup() {
   const name  = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const pass  = document.getElementById('signup-password').value;
   if (!name || !email || !pass) { notify('⚠️ Please fill in all fields'); return; }
   if (!/^\S+@\S+\.\S+$/.test(email)) { notify('⚠️ Please enter a valid email address'); return; }
-  if (pass.length < 6) { notify('⚠️ Password must be at least 6 characters'); return; }
+  if (pass.length < 8) { notify('⚠️ Password must be at least 8 characters'); return; }
+
+  if (!clientRateLimit('signup_' + email, 3, 60 * 60 * 1000)) {
+    notify('⏳ Too many signup attempts. Please wait before trying again.');
+    return;
+  }
 
   setLoading(true);
-  dbGetUserByEmail(email).then(existing => {
+  try {
+    const { data, error } = await _sb.auth.signUp({
+      email,
+      password: pass,
+      options: {
+        emailRedirectTo: googleRedirectUrl(),
+        data: { name, role: _selectedRole }
+      }
+    });
+
     setLoading(false);
-    if (existing) { notify('❌ An account with this email already exists'); return; }
-    // Store pending user data; send OTP via Supabase Auth
-    _pending2FA = { name, email, pass, role: _selectedRole };
-    return _sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-  }).then(result => {
-    if (!result) return; // already returned (duplicate email)
-    if (result.error) { notify('❌ Could not send verification code: ' + result.error.message); return; }
-    // Show 2FA panel
-    document.getElementById('signup-form').style.display = 'none';
-    document.getElementById('twofa-form').style.display = '';
-    document.getElementById('auth-panel-title').textContent = 'Verify Your Email';
-    document.getElementById('auth-panel-sub').textContent = 'Enter the verification code we sent you';
-    document.getElementById('otp-email-display').textContent = email;
-    // Reset inputs
-    for (let i = 0; i < 6; i++) {
-      const d = document.getElementById('otp-d' + i);
-      d.value = ''; d.classList.remove('filled','error');
+
+    if (error) {
+      notify('❌ Signup error: ' + error.message);
+      return;
     }
-    document.getElementById('otp-d0').focus();
-    startOtpTimer(600); // 10-minute window
-    document.getElementById('otp-status-box').className = 'otp-status-box info';
-    document.getElementById('otp-status-box').innerHTML = `<span style="font-size:20px;">📨</span><div><strong>Check your email!</strong><br>We sent a verification code to <span class="otp-email-display">${email}</span></div>`;
-  }).catch(err => { setLoading(false); notify('❌ Signup error: ' + err.message); });
+
+    if (!data?.session) {
+      notify('📨 Check your email to confirm your account, then sign in.');
+      switchAuthTab('login');
+      return;
+    }
+
+    await finishSecureAuthSession(data.session, { intent: 'signup', role: _selectedRole });
+  } catch (err) {
+    setLoading(false);
+    notify('❌ Signup error: ' + err.message);
+  }
 }
 
 function otpAdvance(input, idx) {
@@ -5440,46 +5506,7 @@ function startOtpTimer(seconds) {
 }
 
 function verify2FA() {
-  if (!_pending2FA) { notify('⚠️ Session expired. Please start over.'); cancel2FA(); return; }
-  const token = getOtpCode();
-  if (token.length !== 6) { notify('⚠️ Please enter the full verification code'); return; }
-
-  const verifyBtn = document.getElementById('otp-verify-btn');
-  if (verifyBtn) { verifyBtn.innerHTML = '⏳ Verifying…'; verifyBtn.disabled = true; }
-
-  _sb.auth.verifyOtp({ email: _pending2FA.email, token, type: 'email' })
-    .then(({ data, error }) => {
-      if (verifyBtn) { verifyBtn.innerHTML = '✓ Verify &amp; Create Account'; verifyBtn.disabled = false; }
-      if (error) {
-        // Shake digits on wrong code
-        for (let i = 0; i < 6; i++) {
-          const d = document.getElementById('otp-d'+i);
-          d.classList.add('error');
-          setTimeout(() => d.classList.remove('error'), 500);
-        }
-        notify('❌ Wrong code or expired. Please check and retry.');
-        return;
-      }
-      // OTP verified — create account in jw_users
-      const sb2 = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      clearInterval(_otpTimerInterval);
-      const statusBox = document.getElementById('otp-status-box');
-      if (statusBox) { statusBox.className = 'otp-status-box success'; statusBox.innerHTML = '<span style="font-size:20px;">✅</span><div><strong>Email verified!</strong><br>Creating your account…</div>'; }
-
-      dbCreateUser({ email: _pending2FA.email, password: _pending2FA.pass, name: _pending2FA.name, role: _pending2FA.role })
-        .then(created => {
-          currentUser = { id: created.id, email: created.email, name: created.name, role: created.role, profile: normalizeProfile(created.profile) };
-          localStorage.setItem('jw_session', JSON.stringify(currentUser));
-          _pending2FA = null;
-          notify('🎉 Account created! Welcome to Janelle Writes!');
-          launchApp();
-        })
-        .catch(err => notify('❌ Could not save account: ' + err.message));
-    })
-    .catch(err => {
-      if (verifyBtn) { verifyBtn.innerHTML = '✓ Verify &amp; Create Account'; verifyBtn.disabled = false; }
-      notify('❌ Verification error: ' + err.message);
-    });
+  notify('📨 Secure signup now uses Supabase email confirmation. Please check your email link and then sign in.');
 }
 
 function resend2FA() {
@@ -5943,8 +5970,9 @@ function setLoading(on) {
   });
 }
 
-function doLogout() {
+async function doLogout() {
   if (typeof stopSessionGuard === 'function') stopSessionGuard();
+  try { await _sb.auth.signOut(); } catch (err) { console.warn('Supabase sign-out warning:', err); }
   currentUser = null;
   tasks = [];
   _currentPage = null;
