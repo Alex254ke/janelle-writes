@@ -4079,14 +4079,19 @@ body.dark-mode .google-auth-separator::after {
         </div>
       </div>
 
-      <!-- 6 separate digit boxes -->
-      <div class="otp-input-row" id="otp-input-row">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d0" oninput="otpAdvance(this,0)" onkeydown="otpBack(event,0)" onpaste="otpPaste(event)">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d1" oninput="otpAdvance(this,1)" onkeydown="otpBack(event,1)">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d2" oninput="otpAdvance(this,2)" onkeydown="otpBack(event,2)">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d3" oninput="otpAdvance(this,3)" onkeydown="otpBack(event,3)">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d4" oninput="otpAdvance(this,4)" onkeydown="otpBack(event,4)">
-        <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-d5" oninput="otpAdvance(this,5)" onkeydown="otpBack(event,5)">
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label">Enter Verification Code</label>
+        <input
+          class="form-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="8"
+          id="otp-code-full"
+          placeholder="Email code"
+          autocomplete="one-time-code"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,8);"
+        >
+        <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-top:6px;">Enter the code sent to your email. It may be 6 to 8 digits depending on your Supabase template.</div>
       </div>
 
       <div class="otp-countdown" id="otp-countdown">Code expires in <strong id="otp-timer">10:00</strong></div>
@@ -5486,6 +5491,7 @@ function switchAuthTab(tab) {
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = 'none';
+  const full = document.getElementById('otp-code-full'); if (full) full.value = '';
   document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome to Janelle Writes' : 'Create Account';
   document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in or create an account to continue' : 'Join Janelle Writes today';
   initPasswordToggles();
@@ -5527,6 +5533,25 @@ let _otpTimerInterval = null;
 let _otpResendCooldown = false;
 let _writerPayMethod = 'mpesa'; // for payment settings page
 
+
+function showSignupOtpScreen(pending) {
+  _pending2FA = pending;
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('forgot-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = '';
+  document.getElementById('auth-panel-title').textContent = 'Verify Your Email';
+  document.getElementById('auth-panel-sub').textContent = 'Enter the code sent to your email address';
+  const emailDisplay = document.getElementById('otp-email-display');
+  if (emailDisplay) emailDisplay.textContent = pending.email;
+  const full = document.getElementById('otp-code-full');
+  if (full) {
+    full.value = '';
+    setTimeout(() => full.focus(), 120);
+  }
+  startOtpTimer(600);
+}
+
 async function doSignup() {
   const name  = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
@@ -5553,9 +5578,13 @@ async function doSignup() {
       return;
     }
 
+    const pending = { name, email, pass, role: _selectedRole };
+
+    // When Supabase email confirmation is enabled, no session is returned yet.
+    // Keep the user on the verification screen so they can enter the emailed code.
     if (!data?.session) {
-      notify('📨 Check your email to confirm your account, then sign in.');
-      switchAuthTab('login');
+      notify('📨 Verification code sent to ' + email);
+      showSignupOtpScreen(pending);
       return;
     }
 
@@ -5565,6 +5594,7 @@ async function doSignup() {
     notify('❌ Signup error: ' + err.message);
   }
 }
+
 
 function otpAdvance(input, idx) {
   const v = input.value.replace(/[^0-9]/g,'');
@@ -5595,7 +5625,9 @@ function otpPaste(e) {
 }
 
 function getOtpCode() {
-  return [0,1,2,3,4,5].map(i => document.getElementById('otp-d'+i).value).join('');
+  const full = document.getElementById('otp-code-full');
+  if (full) return full.value.replace(/[^0-9]/g,'').trim();
+  return [0,1,2,3,4,5].map(i => document.getElementById('otp-d'+i)?.value || '').join('');
 }
 
 function startOtpTimer(seconds) {
@@ -5625,25 +5657,76 @@ function startOtpTimer(seconds) {
   _otpTimerInterval = setInterval(tick, 1000);
 }
 
-function verify2FA() {
-  notify('📨 Secure signup now uses Supabase email confirmation. Please check your email link and then sign in.');
+async function verify2FA() {
+  if (!_pending2FA) {
+    notify('⚠️ Signup details were not found. Please start signup again.');
+    switchAuthTab('signup');
+    return;
+  }
+
+  const code = getOtpCode();
+  if (!code || code.length < 6) {
+    notify('⚠️ Enter the verification code from your email.');
+    return;
+  }
+
+  const btn = document.getElementById('otp-verify-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+  try {
+    const { data, error } = await _sb.auth.verifyOtp({
+      email: _pending2FA.email,
+      token: code,
+      type: 'signup'
+    });
+
+    if (error || !data?.session) {
+      throw error || new Error('Verification did not return a session.');
+    }
+
+    notify('✅ Email verified. Welcome to Janelle Writes!', 'login');
+    await finishSecureAuthSession(data.session, { intent: 'signup', role: _pending2FA.role });
+    _pending2FA = null;
+  } catch (err) {
+    notify('❌ Verification failed: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Verify & Create Account'; }
+  }
 }
 
-function resend2FA() {
+
+async function resend2FA() {
   if (_otpResendCooldown) { notify('⏳ Please wait before resending.'); return; }
   if (!_pending2FA) { cancel2FA(); return; }
-  _sb.auth.signInWithOtp({ email: _pending2FA.email, options: { shouldCreateUser: true } })
-    .then(({ error }) => {
-      if (error) { notify('❌ Could not resend: ' + error.message); return; }
-      notify('📨 New code sent to ' + _pending2FA.email);
-      for (let i = 0; i < 6; i++) {
-        const d = document.getElementById('otp-d'+i);
-        d.value = ''; d.classList.remove('filled','error');
-      }
-      document.getElementById('otp-d0').focus();
-      startOtpTimer(600);
+
+  try {
+    const { error } = await _sb.auth.resend({
+      type: 'signup',
+      email: _pending2FA.email,
+      options: { emailRedirectTo: googleRedirectUrl() }
     });
+
+    if (error) {
+      notify('❌ Could not resend: ' + error.message);
+      return;
+    }
+
+    notify('📨 New verification code sent to ' + _pending2FA.email);
+    const full = document.getElementById('otp-code-full');
+    if (full) {
+      full.value = '';
+      full.focus();
+    }
+    for (let i = 0; i < 6; i++) {
+      const d = document.getElementById('otp-d'+i);
+      if (d) { d.value = ''; d.classList.remove('filled','error'); }
+    }
+    startOtpTimer(600);
+  } catch (err) {
+    notify('❌ Could not resend: ' + err.message);
+  }
 }
+
 
 function cancel2FA() {
   clearInterval(_otpTimerInterval);
