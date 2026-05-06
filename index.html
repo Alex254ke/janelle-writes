@@ -3336,6 +3336,234 @@ body.dark-mode .google-auth-separator::after {
   background: rgba(82,196,184,0.20);
 }
 
+
+/* ── APP SUPPORT FOOTER + CLEAN SIDEBAR ─────────────────── */
+.sidebar-footer-compact {
+  padding-top: 18px;
+}
+.sidebar-support-mini {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(82,196,184,0.18);
+  background: rgba(82,196,184,0.10);
+  color: #8ee4d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background .2s ease, transform .2s ease;
+}
+.sidebar-support-mini:hover {
+  background: rgba(82,196,184,0.18);
+  transform: translateY(-1px);
+}
+.app-support-footer {
+  margin: 36px 24px 28px;
+  padding: 24px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(82,196,184,0.14), transparent 30%),
+    linear-gradient(135deg, #0f1923 0%, #132838 100%);
+  color: #f4fbfa;
+  box-shadow: 0 18px 48px rgba(15,25,35,0.12);
+}
+.app-support-footer-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1.6fr auto;
+  gap: 22px;
+  align-items: center;
+}
+.app-support-footer h3 {
+  margin: 0 0 6px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  line-height: 1;
+  color: #fff;
+}
+.app-support-footer p {
+  margin: 0;
+  color: rgba(244,251,250,0.70);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.app-support-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.app-support-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(244,251,250,0.82);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+.app-support-link:hover {
+  background: rgba(82,196,184,0.16);
+  color: #8ee4d6;
+  transform: translateY(-1px);
+}
+.app-support-whatsapp {
+  white-space: nowrap;
+}
+@media (max-width: 1024px) {
+  .app-support-footer-grid {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .app-support-whatsapp {
+    width: fit-content;
+  }
+}
+@media (max-width: 700px) {
+  .app-support-footer {
+    margin: 28px 14px 22px;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .app-support-link,
+  .app-support-whatsapp {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* ── FINAL LAYOUT FIXES: PRINT, AUTH RESPONSIVE, PROFILE ICON, APP FOOTER ─────────────────── */
+
+/* Keep the dashboard support footer at the bottom of the visible dashboard area without overlapping content. */
+#app-shell .main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+#app-shell .app-support-footer {
+  margin-top: auto;
+}
+
+/* Make the quick profile button beside the user photo clearer. */
+.sidebar-profile-link {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  box-shadow: 0 10px 26px rgba(42,157,143,0.30), 0 0 0 4px rgba(82,196,184,0.08) !important;
+}
+.sidebar-profile-link:hover {
+  background: linear-gradient(135deg, #52c4b8, var(--teal-dark)) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+}
+
+/* Prevent the dashboard support footer and floating chat widget from appearing inside printed invoices. */
+@media print {
+  .app-support-footer,
+  .floating-support-widget,
+  .support-trigger,
+  .support-popover,
+  .sidebar,
+  .mobile-overlay,
+  .topbar,
+  .mobile-menu-btn,
+  .toast-container,
+  #landing-page,
+  #auth-screen {
+    display: none !important;
+  }
+
+  #app-shell,
+  .main,
+  .page,
+  .content,
+  #page-emp-invoice {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .main {
+    min-height: auto !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}
+
+/* Login/signup page: hide the visual panel earlier so it does not become cluttered on resized laptop windows. */
+@media (max-width: 1180px) {
+  #auth-screen {
+    background:
+      radial-gradient(circle at top left, rgba(82,196,184,0.14), transparent 34%),
+      linear-gradient(135deg, #f6fbfa 0%, #eef6f5 100%);
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 28px 18px;
+  }
+
+  .auth-visual {
+    display: none !important;
+  }
+
+  .auth-panel {
+    width: min(560px, 100%) !important;
+    min-height: auto !important;
+    border-radius: 28px;
+    padding: 42px clamp(22px, 5vw, 48px) !important;
+    box-shadow: 0 24px 70px rgba(15,25,35,0.13);
+  }
+}
+
+@media (max-width: 560px) {
+  #auth-screen {
+    padding: 0;
+    align-items: stretch !important;
+  }
+
+  .auth-panel {
+    width: 100% !important;
+    min-height: 100vh !important;
+    border-radius: 0;
+    padding: 32px 22px !important;
+    box-shadow: none;
+  }
+
+  .auth-panel-title {
+    font-size: 32px !important;
+  }
+
+  .auth-role-select {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ── INVOICE PRINT SAFETY ─────────────────── */
+#invoice-print-area .app-support-footer,
+#invoice-print-area .floating-support-widget,
+#invoice-print-area .support-trigger,
+#invoice-print-area .support-popover {
+  display: none !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -3835,14 +4063,8 @@ body.dark-mode .google-auth-separator::after {
     <!-- dynamically populated -->
   </nav>
 
-  <div class="sidebar-footer">
-    <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);font-weight:600;margin-bottom:8px;">🎧 Customer Support</div>
-    <div class="contact-links">
-      <a class="contact-link" href="https://instagram.com/Janelle_assignments" target="_blank"><span class="ci">📸</span> @Janelle_assignments</a>
-      <a class="contact-link" href="https://wa.me/254723156622" target="_blank"><span class="ci">💬</span> +254 723 156 622</a>
-      <a class="contact-link" href="mailto:janellewrites979@gmail.com"><span class="ci">✉️</span> janellewrites979@gmail.com</a>
-      <a class="contact-link" href="https://twitter.com/JW_Assignments" target="_blank"><span class="ci">𝕏</span> @JW_Assignments</a>
-    </div>
+  <div class="sidebar-footer sidebar-footer-compact">
+    <button type="button" class="sidebar-support-mini" onclick="window.open('https://wa.me/254723156622','_blank')">💬 Contact Support</button>
     <div class="btn-logout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
 </aside>
@@ -4041,9 +4263,9 @@ body.dark-mode .google-auth-separator::after {
   <div class="page content" id="page-emp-invoice">
     <div class="section-header">
       <div class="section-title">Invoice & <span>Billing</span></div>
-      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
+      <button class="btn btn-outline btn-sm" onclick="printInvoiceOnly()">🖨️ Print / Save PDF</button>
     </div>
-    <div class="card">
+    <div class="card" id="invoice-print-area">
       <div class="invoice-header">
         <div>
           <div class="invoice-brand">Janelle <span>Writes!</span></div>
@@ -4438,6 +4660,25 @@ body.dark-mode .google-auth-separator::after {
       </section>
     </div>
   </div>
+
+
+  <!-- APP CUSTOMER SUPPORT FOOTER -->
+  <footer class="app-support-footer">
+    <div class="app-support-footer-grid">
+      <div>
+        <h3>Need help?</h3>
+        <p>Reach Janelle Writes support anytime for order, payment, revision, or account assistance.</p>
+      </div>
+
+      <div class="app-support-links">
+        <a class="app-support-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">📸 @Janelle_assignments</a>
+        <a class="app-support-link" href="mailto:janellewrites979@gmail.com">✉️ janellewrites979@gmail.com</a>
+        <a class="app-support-link" href="https://twitter.com/JW_Assignments" target="_blank" rel="noopener">𝕏 @JW_Assignments</a>
+      </div>
+
+      <a class="btn btn-primary app-support-whatsapp" href="https://wa.me/254723156622" target="_blank" rel="noopener">💬 WhatsApp Support</a>
+    </div>
+  </footer>
 
 </main>
 </div>
@@ -5986,6 +6227,264 @@ function badgeAuditSnapshot() {
   const c = currentBadgeCounts();
   if (!c) return {};
   return c;
+}
+
+
+// ══════════════════════════════════════════════════════
+//  INVOICE-ONLY PRINT / PDF EXPORT
+//  This prints only the invoice card, not the full dashboard.
+// ══════════════════════════════════════════════════════
+function printInvoiceOnly() {
+  const invoice = document.getElementById('invoice-print-area');
+  if (!invoice) {
+    notify('⚠️ Invoice area was not found.');
+    return;
+  }
+
+  const invoiceClone = invoice.cloneNode(true);
+
+  // Remove anything interactive inside the invoice if added later.
+  invoiceClone.querySelectorAll('button, .btn, .no-print, .app-support-footer, .floating-support-widget').forEach(el => el.remove());
+
+  const printFrame = document.createElement('iframe');
+  printFrame.setAttribute('title', 'Janelle Writes Invoice Print');
+  printFrame.style.position = 'fixed';
+  printFrame.style.right = '0';
+  printFrame.style.bottom = '0';
+  printFrame.style.width = '0';
+  printFrame.style.height = '0';
+  printFrame.style.border = '0';
+  printFrame.style.visibility = 'hidden';
+
+  document.body.appendChild(printFrame);
+
+  const doc = printFrame.contentWindow.document;
+  const today = new Date().toLocaleDateString();
+
+  doc.open();
+  doc.write(`
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Janelle Writes Invoice</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #0f1923;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .print-shell {
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    .card {
+      border: 1px solid #cde0dd;
+      border-radius: 14px;
+      padding: 26px;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #cde0dd;
+    }
+
+    .invoice-brand {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #0f1923;
+    }
+
+    .invoice-brand span {
+      color: #2a9d8f;
+      font-style: italic;
+    }
+
+    .invoice-sub {
+      font-size: 11px;
+      color: #4a6670;
+      margin-top: 4px;
+    }
+
+    h3 {
+      margin: 0 0 4px;
+      color: #2a9d8f;
+      font-size: 18px;
+      text-align: right;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .table-scroll {
+      overflow: visible !important;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 0 !important;
+      table-layout: fixed;
+    }
+
+    th {
+      text-align: left;
+      font-size: 10px;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: #1a7068;
+      padding: 11px 8px;
+      border-bottom: 1px solid #cde0dd;
+    }
+
+    td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #edf4f2;
+      color: #0f1923;
+      font-size: 11px;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 19%; }
+    th:nth-child(2), td:nth-child(2) { width: 22%; }
+    th:nth-child(3), td:nth-child(3) { width: 12%; }
+    th:nth-child(4), td:nth-child(4) { width: 9%; }
+    th:nth-child(5), td:nth-child(5) { width: 13%; }
+    th:nth-child(6), td:nth-child(6) { width: 14%; text-align: right; }
+    th:nth-child(7), td:nth-child(7) { width: 11%; }
+
+    .status-badge,
+    .style-badge,
+    .rating-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #edf4f2;
+      color: #1a7068;
+      font-size: 10px;
+      font-weight: 700;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+
+    .invoice-totals {
+      margin-top: 24px;
+    }
+
+    .invoice-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #cde0dd;
+    }
+
+    .invoice-row.total {
+      background: #e0f5f3;
+      border: none;
+      border-radius: 9px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+
+    .invoice-row .label {
+      font-size: 12px;
+      color: #4a6670;
+    }
+
+    .invoice-row.total .label {
+      color: #0f1923;
+      font-weight: 700;
+    }
+
+    .invoice-row .amount {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #1a7068;
+      white-space: nowrap;
+    }
+
+    .print-footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #6b8a8e;
+      font-size: 10px;
+      border-top: 1px solid #edf4f2;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="print-shell">
+    ${invoiceClone.outerHTML}
+    <div class="print-footer">Generated ${today} · Janelle Writes — Professional Writing Platform</div>
+  </div>
+</body>
+</html>
+  `);
+  doc.close();
+
+  const cleanup = () => {
+    setTimeout(() => {
+      if (printFrame && printFrame.parentNode) printFrame.parentNode.removeChild(printFrame);
+    }, 800);
+  };
+
+  printFrame.onload = () => {
+    try {
+      printFrame.contentWindow.focus();
+      printFrame.contentWindow.print();
+    } finally {
+      cleanup();
+    }
+  };
+
+  // Some browsers do not fire iframe onload reliably after doc.write.
+  setTimeout(() => {
+    try {
+      if (printFrame.parentNode) {
+        printFrame.contentWindow.focus();
+        printFrame.contentWindow.print();
+        cleanup();
+      }
+    } catch (err) {
+      cleanup();
+      notify('⚠️ Could not open invoice print window. Please allow printing/popups and try again.');
+    }
+  }, 350);
 }
 
 // ══════════════════════════════════════════════════════
