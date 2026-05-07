@@ -5521,6 +5521,38 @@ async function finishSecureAuthSession(session, options = {}) {
         updated_at: new Date().toISOString()
       }
     });
+  } else {
+    // Old-user migration bridge:
+    // Preserve old jw_users data by email, then link it to the new Supabase Auth user.
+    try {
+      const oldProfile = normalizeProfile(existing.profile);
+      const linkedExisting = await secureUpsertPlatformUser({
+        email: authUser.email,
+        name: existing.name || authUser.name,
+        role: existing.role || selectedRole,
+        auth_id: authUser.auth_id,
+        profile: {
+          ...oldProfile,
+          name: oldProfile.name || existing.name || authUser.name,
+          photo: oldProfile.photo || authUser.photo || '',
+          auth_provider: authUser.provider,
+          migrated_to_supabase_auth: true,
+          migrated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      });
+      if (linkedExisting) {
+        existing = {
+          ...existing,
+          ...linkedExisting,
+          role: existing.role || linkedExisting.role,
+          name: existing.name || linkedExisting.name,
+          profile: linkedExisting.profile || existing.profile
+        };
+      }
+    } catch (err) {
+      console.warn('Old-user auth linking warning:', err);
+    }
   }
 
   currentUser = {
@@ -5581,7 +5613,7 @@ async function doLogin() {
     setLoading(false);
 
     if (error || !data?.session) {
-      notify('❌ Invalid login details, or your email is not verified yet.');
+      notify('❌ Invalid login details. If your account existed before the security upgrade, create a new secure login using the same email or use Google sign-in with the same email.');
       return;
     }
 
