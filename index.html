@@ -3684,6 +3684,321 @@ body.dark-mode .google-auth-separator::after {
   display:none !important;
 }
 
+
+/* ── PLATFORM GUIDE PAGE ─────────────────── */
+.guide-hero {
+  background:
+    radial-gradient(circle at top left, rgba(82,196,184,0.18), transparent 30%),
+    linear-gradient(135deg, #0f1923 0%, #173548 100%);
+  color: #fff;
+  border-radius: 24px;
+  padding: 30px;
+  margin-bottom: 24px;
+  box-shadow: 0 18px 48px rgba(15,25,35,0.14);
+}
+.guide-hero h1 {
+  margin: 0 0 10px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: .95;
+}
+.guide-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.7;
+}
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.guide-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(15,25,35,0.06);
+}
+.guide-card.full {
+  grid-column: 1 / -1;
+}
+.guide-card h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  color: var(--ink);
+}
+.guide-card h2 span {
+  color: var(--teal);
+}
+.guide-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.guide-list li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+  color: var(--slate);
+  line-height: 1.6;
+  font-size: 14px;
+}
+.guide-list .check {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: rgba(82,196,184,0.14);
+  color: var(--teal-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+.guide-feature-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.guide-mini {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--teal-pale);
+  border: 1px solid rgba(42,157,143,0.16);
+}
+.guide-mini strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+.guide-mini span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+body.dark-mode .guide-card {
+  background: #14202b;
+  border-color: rgba(142,228,214,0.18);
+}
+body.dark-mode .guide-card h2,
+body.dark-mode .guide-mini strong {
+  color: #f4fbfa;
+}
+body.dark-mode .guide-list li,
+body.dark-mode .guide-mini span {
+  color: #b8ccca;
+}
+body.dark-mode .guide-mini {
+  background: rgba(82,196,184,0.08);
+  border-color: rgba(142,228,214,0.16);
+}
+@media (max-width: 980px) {
+  .guide-grid,
+  .guide-feature-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ── COMMISSION / MONETIZATION MODEL ─────────────────── */
+.comm-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:20px;
+  white-space:nowrap;
+}
+.comm-pill-platform {
+  background:rgba(217,181,107,.16);
+  color:#a77c20;
+  border:1px solid rgba(217,181,107,.34);
+}
+.comm-pill-writer {
+  background:rgba(42,157,143,.12);
+  color:var(--teal-dark);
+  border:1px solid rgba(42,157,143,.25);
+}
+.payout-breakdown {
+  background:var(--teal-pale);
+  border:1.5px solid rgba(42,157,143,.34);
+  border-radius:14px;
+  padding:16px 18px;
+  margin-top:14px;
+}
+.payout-breakdown-title {
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--teal-dark);
+  margin-bottom:12px;
+}
+.payout-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:7px 0;
+  border-bottom:1px solid rgba(42,157,143,.15);
+  font-size:13px;
+}
+.payout-row:last-child { border-bottom:none; }
+.payout-row .pr-label { color:var(--muted); }
+.payout-row .pr-amount { font-weight:700; color:var(--ink); text-align:right; }
+.payout-row.pr-total .pr-label { font-weight:800; color:var(--teal-dark); }
+.payout-row.pr-total .pr-amount {
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;
+  color:var(--teal-dark);
+}
+.payout-row.pr-commission .pr-amount { color:#a77c20; }
+.writer-earnings-card {
+  background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);
+  border-radius:20px;
+  padding:24px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 18px 48px rgba(42,157,143,.20);
+}
+.writer-earnings-card::before {
+  content:'';
+  position:absolute;
+  top:-44px;
+  right:-38px;
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+.wec-label {
+  font-size:11px;
+  opacity:.74;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+  position:relative;
+}
+.wec-amount {
+  font-family:'Cormorant Garamond',serif;
+  font-size:42px;
+  font-weight:700;
+  line-height:1;
+  position:relative;
+}
+.wec-sub { font-size:12px; opacity:.72; margin-top:4px; position:relative; }
+.wec-rows {
+  margin-top:18px;
+  border-top:1px solid rgba(255,255,255,.22);
+  padding-top:14px;
+  position:relative;
+}
+.wec-row {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:13px;
+  padding:5px 0;
+}
+.wec-row span:last-child { font-weight:700; }
+.comm-page-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:24px;
+}
+.comm-stat-card {
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px 22px;
+  box-shadow:0 12px 30px rgba(15,25,35,.06);
+  position:relative;
+  overflow:hidden;
+}
+.comm-stat-card::after {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:4px;
+}
+.comm-stat-card.gold::after { background:#d9b56b; }
+.comm-stat-card.teal::after { background:var(--teal); }
+.comm-stat-card.green::after { background:#4caf50; }
+.comm-stat-card .csc-icon { font-size:24px; margin-bottom:8px; }
+.comm-stat-card .csc-val {
+  font-family:'Cormorant Garamond',serif;
+  font-size:32px;
+  font-weight:700;
+  color:var(--ink);
+  line-height:1;
+}
+.comm-stat-card .csc-lbl {
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:5px;
+}
+.comm-ledger-table {
+  width:100%;
+  border-collapse:collapse;
+}
+.comm-ledger-table thead th {
+  padding:12px 14px;
+  text-align:left;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:#d9b56b;
+  background:var(--ink);
+}
+.comm-ledger-table tbody tr { border-bottom:1px solid var(--border); }
+.comm-ledger-table tbody tr:hover { background:var(--teal-pale); }
+.comm-ledger-table tbody td { padding:12px 14px; font-size:13px; }
+.comm-rate-badge {
+  display:inline-block;
+  font-size:11px;
+  font-weight:800;
+  padding:3px 8px;
+  border-radius:8px;
+  background:rgba(217,181,107,.14);
+  color:#a77c20;
+  border:1px solid rgba(217,181,107,.32);
+}
+.earnings-table-wrap {
+  overflow-x:auto;
+}
+body.dark-mode .payout-breakdown {
+  background:rgba(82,196,184,.08);
+  border-color:rgba(142,228,214,.24);
+}
+body.dark-mode .comm-stat-card {
+  background:#14202b;
+  border-color:rgba(142,228,214,.18);
+}
+body.dark-mode .comm-stat-card .csc-val {
+  color:#f4fbfa;
+}
+body.dark-mode .comm-ledger-table tbody tr:hover {
+  background:rgba(82,196,184,.08);
+}
+@media (max-width: 900px) {
+  .comm-page-grid { grid-template-columns:1fr; }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -4233,6 +4548,84 @@ body.dark-mode .google-auth-separator::after {
     <div class="topbar-actions" id="topbar-actions"></div>
   </div>
 
+
+  <!-- PLATFORM GUIDE -->
+  <div class="page content" id="page-guide">
+    <div class="guide-hero">
+      <h1>How Janelle Writes Works</h1>
+      <p>A quick guide for employers and writers. Use this page whenever you need to understand orders, messaging, invoices, revisions, disputes, ratings, and preferred writers.</p>
+    </div>
+
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h2>For <span>Employers</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span>Create a task by adding the subject, deadline, pages or words, academic style, price, and instructions.</span></li>
+          <li><span class="check">2</span><span>Upload instruction files so writers can review the task details before accepting or starting work.</span></li>
+          <li><span class="check">3</span><span>Assign work to an available writer or choose a preferred writer you have successfully worked with before.</span></li>
+          <li><span class="check">4</span><span>Use the order-based message button to chat with the writer about that specific task automatically.</span></li>
+          <li><span class="check">5</span><span>Review submitted files, download completed work, request revisions, mark orders as paid, or open a dispute if needed.</span></li>
+          <li><span class="check">6</span><span>Rate writers and leave comments after completion to help build trust on the platform.</span></li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h2>For <span>Writers</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span>Create your profile with a clear image, bio, personal details, and writing strengths.</span></li>
+          <li><span class="check">2</span><span>Browse available orders and read the full instructions before accepting the task.</span></li>
+          <li><span class="check">3</span><span>Download instruction files, track deadlines, and communicate with the employer inside the order conversation.</span></li>
+          <li><span class="check">4</span><span>Submit completed work through the task submission area and keep a downloadable copy of your uploaded file.</span></li>
+          <li><span class="check">5</span><span>Respond to revision requests when an employer needs changes made to submitted work.</span></li>
+          <li><span class="check">6</span><span>Rate employers after working with them based on communication, clarity, professionalism, and payment reliability.</span></li>
+        </ul>
+      </div>
+
+      <div class="guide-card full">
+        <h2>Important <span>Platform Features</span></h2>
+        <div class="guide-feature-strip">
+          <div class="guide-mini">
+            <strong>📌 Unique order IDs</strong>
+            <span>Every task gets a trackable order number to make follow-up easier.</span>
+          </div>
+          <div class="guide-mini">
+            <strong>💬 Smart messaging</strong>
+            <span>Messages opened from an order automatically attach to that order.</span>
+          </div>
+          <div class="guide-mini">
+            <strong>🧾 Auto invoices</strong>
+            <span>The site creates downloadable invoices from completed and paid order records.</span>
+          </div>
+          <div class="guide-mini">
+            <strong>⭐ Ratings</strong>
+            <span>Employers rate writers, and writers rate employers after working together.</span>
+          </div>
+        </div>
+
+        <ul class="guide-list" style="margin-top:18px;">
+          <li><span class="check">✓</span><span><strong>Preferred writers:</strong> employers can assign new work to writers they already trust.</span></li>
+          <li><span class="check">✓</span><span><strong>Revisions:</strong> employers can send work back for correction without opening a dispute immediately.</span></li>
+          <li><span class="check">✓</span><span><strong>Disputes:</strong> either side can move serious issues to the disputed tasks area for clearer tracking.</span></li>
+          <li><span class="check">✓</span><span><strong>Late task tracking:</strong> the platform can mark tasks late when they are submitted after the instructed deadline.</span></li>
+          <li><span class="check">✓</span><span><strong>Unread badges:</strong> message and task badges help users notice important updates quickly.</span></li>
+          <li><span class="check">✓</span><span><strong>File access:</strong> employers can download submitted work, and writers can view/download their own submitted files.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ADMIN: COMMISSION DASHBOARD -->
+  <div class="page content" id="page-admin-commission">
+    <div class="section-header">
+      <div class="section-title">Commission <span>Dashboard</span></div>
+    </div>
+    <div id="comm-dashboard-wrap">
+      <div class="empty-state"><p>Admin commission data will appear here.</p></div>
+    </div>
+  </div>
+
   <!-- ═══ EMPLOYER PAGES ═══════════════════════════════════════ -->
 
   <!-- EMPLOYER DASHBOARD -->
@@ -4420,8 +4813,8 @@ body.dark-mode .google-auth-separator::after {
       </div>
       <div class="table-scroll">
         <table style="min-width:500px;">
-          <thead><tr><th>Order #</th><th>Subject</th><th>Style</th><th>Pages</th><th>Rate</th><th style="text-align:right;">Amount</th><th>Status</th></tr></thead>
-          <tbody id="emp-invoice-table"><tr><td colspan="7"><div class="empty-state"><p>No orders yet.</p></div></td></tr></tbody>
+          <thead><tr><th>Order #</th><th>Subject</th><th>Style</th><th>Pages</th><th>Rate</th><th style="text-align:right;">Gross</th><th style="text-align:right;">Platform Fee</th><th style="text-align:right;">Writer Net</th><th>Status</th></tr></thead>
+          <tbody id="emp-invoice-table"><tr><td colspan="9"><div class="empty-state"><p>No orders yet.</p></div></td></tr></tbody>
         </table>
       </div>
       <div class="invoice-totals">
@@ -4577,6 +4970,17 @@ body.dark-mode .google-auth-separator::after {
     </div>
     <div id="avail-orders-wrap">
       <div class="empty-state"><div class="empty-icon">📭</div><p>No available orders right now. Check back soon!</p></div>
+    </div>
+  </div>
+
+
+  <!-- WRITER: EARNINGS -->
+  <div class="page content" id="page-writer-earnings">
+    <div class="section-header">
+      <div class="section-title">My <span>Earnings</span></div>
+    </div>
+    <div id="writer-earnings-wrap">
+      <div class="empty-state"><p>Your completed paid work and net payouts will appear here.</p></div>
     </div>
   </div>
 
@@ -6422,6 +6826,7 @@ function buildSidebar() {
     nav.innerHTML = `
       <div class="nav-section">Employer</div>
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
       <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post New Task</div>
       <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
       <div class="nav-item" data-page="disputes" onclick="navigate('disputes')"><span class="icon">⚖️</span> Disputed Orders <span class="nav-badge" id="emp-dispute-badge">0</span></div>
@@ -6434,6 +6839,7 @@ function buildSidebar() {
     nav.innerHTML = `
       <div class="nav-section">Writer</div>
       <div class="nav-item" data-page="writer-dashboard" onclick="navigate('writer-dashboard')"><span class="icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
       <div class="nav-item" data-page="writer-available" onclick="navigate('writer-available')"><span class="icon">📥</span> Available Orders <span class="nav-badge" id="avail-badge">0</span></div>
       <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks <span class="nav-badge" id="writer-task-badge">0</span></div>
       <div class="nav-item" data-page="disputes" onclick="navigate('disputes')"><span class="icon">⚖️</span> Disputed Tasks <span class="nav-badge" id="writer-dispute-badge">0</span></div>
@@ -6443,6 +6849,7 @@ function buildSidebar() {
       <div class="nav-item" data-page="writer-submit" onclick="navigate('writer-submit')"><span class="icon">📤</span> Submit Work</div>
       <div class="nav-item" data-page="writer-tracker" onclick="navigate('writer-tracker')"><span class="icon">📡</span> Tracker</div>
       <div class="nav-section">Account</div>
+      <div class="nav-item" data-page="writer-earnings" onclick="navigate('writer-earnings')"><span class="icon">💰</span> My Earnings</div>
       <div class="nav-item" data-page="writer-payment" onclick="navigate('writer-payment')"><span class="icon">💳</span> Payment Details</div>
     `;
   }
@@ -6822,6 +7229,7 @@ function printInvoiceOnly() {
 //  NAVIGATION
 // ══════════════════════════════════════════════════════
 const pageTitles = {
+  'guide': 'Platform Guide',
   'emp-dashboard': 'Dashboard',
   'emp-post': 'Post New Task',
   'emp-tasks': 'My Orders',
@@ -6837,8 +7245,10 @@ const pageTitles = {
   'writer-revisions': 'Revisions',
   'writer-tracker': 'Task Tracker',
   'writer-payment': 'My Payment Details',
+  'writer-earnings': 'My Earnings',
   'profile': 'My Profile',
   'messages': 'Messages',
+  'admin-commission': 'Commission Dashboard',
 };
 
 function navigate(page, options = {}) {
@@ -6855,6 +7265,7 @@ function navigate(page, options = {}) {
   autoMarkLateTasks(true);
   // Page-specific init
   switch(page) {
+    case 'guide':           break;
     case 'emp-dashboard':   renderEmpDashboard(); break;
     case 'emp-post':        empInitForm(); break;
     case 'emp-tasks':       renderEmpTasks(); break;
@@ -6870,6 +7281,8 @@ function navigate(page, options = {}) {
     case 'writer-revisions': renderRevisions(); break;
     case 'writer-tracker':  populateWriterTrackerSelect(); break;
     case 'writer-payment':  renderWriterPaymentPage(); break;
+    case 'writer-earnings': renderWriterEarningsPage(); break;
+    case 'admin-commission': renderCommissionDashboard(); break;
   }
 }
 
@@ -9533,6 +9946,7 @@ function subscribeRealtime() {
       if (pid === 'page-writer-available') renderAvailableOrders();
       if (pid === 'page-writer-dashboard') renderWriterDashboard();
       if (pid === 'page-writer-tasks') renderWriterTasks();
+      if (pid === 'page-writer-earnings') renderWriterEarningsPage();
       if (pid === 'page-writer-revisions') renderRevisions();
       if (pid === 'page-writer-submit') { populateWriterSubmitSelect(); showSelectedSubmitTask(); }
       if (pid === 'page-writer-tracker') populateWriterTrackerSelect();
@@ -9540,6 +9954,7 @@ function subscribeRealtime() {
       if (pid === 'page-emp-tasks') renderEmpTasks();
       if (pid === 'page-emp-invoice') renderEmpInvoice();
       if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); renderEmpWriterPayDetails(); }
+      if (pid === 'page-admin-commission') renderCommissionDashboard();
       if (pid === 'page-messages') renderMessagesPage();
       if (newRow?.id && _activeTaskModalId === newRow.id && document.getElementById('modal-view-task')?.classList.contains('open')) empViewTask(newRow.id);
       updateBadges();
@@ -9661,6 +10076,396 @@ s1.charset='UTF-8';
 s1.setAttribute('crossorigin','*');
 s0.parentNode.insertBefore(s1,s0);
 })();
+
+
+// ══════════════════════════════════════════════════════
+//  COMMISSION / MONETIZATION ENGINE
+// ══════════════════════════════════════════════════════
+const COMMISSION_RATE = 0.12;
+const ADMIN_COMMISSION_EMAILS = ['janellewrites979@gmail.com', 'purebliss823@gmail.com'];
+
+function isCommissionAdmin() {
+  return !!currentUser && ADMIN_COMMISSION_EMAILS.map(e => e.toLowerCase()).includes(String(currentUser.email || '').toLowerCase());
+}
+
+function calcCommission(total) {
+  const gross = Number(total || 0);
+  const commission = Math.round(gross * COMMISSION_RATE);
+  const payout = Math.max(0, gross - commission);
+  return {
+    gross,
+    commission,
+    payout,
+    rate: COMMISSION_RATE,
+    pct: Math.round(COMMISSION_RATE * 100) + '%'
+  };
+}
+
+function taskCommission(t) {
+  const c = calcCommission(Number(t?.total || 0));
+  return {
+    gross: c.gross,
+    commission: Number(t?.commission_amount || 0) > 0 ? Number(t.commission_amount) : c.commission,
+    payout: Number(t?.writer_payout || 0) > 0 ? Number(t.writer_payout) : c.payout,
+    rate: Number(t?.commission_rate || 0) > 0 ? Number(t.commission_rate) : COMMISSION_RATE,
+    pct: Math.round((Number(t?.commission_rate || 0) > 0 ? Number(t.commission_rate) : COMMISSION_RATE) * 100) + '%'
+  };
+}
+
+function commBreakdownHtml(total, label = 'Your payout') {
+  const c = calcCommission(total);
+  return `
+    <div class="payout-breakdown">
+      <div class="payout-breakdown-title">💰 Payment Breakdown</div>
+      <div class="payout-row">
+        <span class="pr-label">Order total paid by employer</span>
+        <span class="pr-amount">KES ${c.gross.toLocaleString()}</span>
+      </div>
+      <div class="payout-row pr-commission">
+        <span class="pr-label">Platform fee (${c.pct})</span>
+        <span class="pr-amount">− KES ${c.commission.toLocaleString()}</span>
+      </div>
+      <div class="payout-row pr-total">
+        <span class="pr-label">${label}</span>
+        <span class="pr-amount">KES ${c.payout.toLocaleString()}</span>
+      </div>
+    </div>`;
+}
+
+async function dbGetLedger() {
+  const { data, error } = await _sb
+    .from('jw_commission_ledger')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbRecordCommission(task) {
+  if (!task || !task.id || !Number(task.total || 0)) return;
+  const c = taskCommission(task);
+  const row = {
+    task_id: task.id,
+    order_total: c.gross,
+    commission_rate: c.rate,
+    commission_amt: c.commission,
+    writer_payout: c.payout,
+    writer_email: task.taken_by || null,
+    writer_name: task.taken_by_name || null,
+    employer_email: task.posted_by || null,
+    employer_name: task.posted_by_name || null,
+    status: 'released',
+    released_at: new Date().toISOString()
+  };
+
+  const { error } = await _sb
+    .from('jw_commission_ledger')
+    .upsert([row], { onConflict: 'task_id' });
+
+  if (error) console.warn('Commission ledger upsert error:', error.message);
+}
+
+const _jwOrigDbInsertTask = dbInsertTask;
+dbInsertTask = async function(task) {
+  const c = calcCommission(Number(task?.total || 0));
+  return _jwOrigDbInsertTask({
+    ...task,
+    commission_rate: c.rate,
+    commission_amount: c.commission,
+    writer_payout: c.payout,
+    commission_paid: false
+  });
+};
+
+async function recordCommissionIfPaid(task) {
+  if (!task || !task.id || task.commission_paid) return;
+  const c = taskCommission(task);
+  const updates = {
+    commission_rate: c.rate,
+    commission_amount: c.commission,
+    writer_payout: c.payout,
+    commission_paid: true
+  };
+  try {
+    await dbUpdateTask(task.id, updates);
+    Object.assign(task, updates);
+    await dbRecordCommission(task);
+  } catch (err) {
+    console.warn('Commission record warning:', err.message);
+  }
+}
+
+empMarkPaid = function(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const c = taskCommission(t);
+  const updates = {
+    payment: 'paid',
+    commission_rate: c.rate,
+    commission_amount: c.commission,
+    writer_payout: c.payout,
+    commission_paid: true
+  };
+  dbUpdateTask(id, updates).then(async () => {
+    Object.assign(t, updates);
+    await dbRecordCommission(t);
+    renderEmpTasks();
+    renderEmpDashboard();
+    updateBadges();
+    notify('✓ Payment marked as paid for ' + id);
+  }).catch(err => notify('❌ ' + err.message));
+};
+
+empRecordPayment = function() {
+  const id = document.getElementById('emp-pay-select').value;
+  const code = document.getElementById('emp-pay-code').value.trim();
+  if (!id) { notify('⚠️ Please select an order'); return; }
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const c = taskCommission(t);
+  const updates = {
+    payment: 'paid',
+    commission_rate: c.rate,
+    commission_amount: c.commission,
+    writer_payout: c.payout,
+    commission_paid: true
+  };
+  if (code) updates.mpesa_code = code.toUpperCase();
+
+  dbUpdateTask(id, updates).then(async () => {
+    Object.assign(t, updates);
+    await dbRecordCommission(t);
+    empPopulatePaySelect();
+    renderEmpPaySummary();
+    renderEmpWriterPayDetails();
+    renderEmpDashboard();
+    document.getElementById('emp-pay-code').value = '';
+    notify('✓ Payment recorded for ' + id);
+  }).catch(err => notify('❌ ' + err.message));
+};
+
+const _jwOrigRenderAvailableOrders = renderAvailableOrders;
+renderAvailableOrders = function() {
+  _jwOrigRenderAvailableOrders();
+  const cards = document.querySelectorAll('#avail-orders-wrap .order-card');
+  cards.forEach(card => {
+    const id = card.querySelector('.order-card-id')?.textContent?.trim();
+    const t = tasks.find(x => x.id === id);
+    const amtEl = card.querySelector('.order-card-amount');
+    if (!t || !amtEl) return;
+    const c = taskCommission(t);
+    amtEl.innerHTML = `KES ${c.payout.toLocaleString()} <span>/ ${Number(t.pages || 0)} pages</span>`;
+    if (!card.querySelector('[data-comm-note]')) {
+      const note = document.createElement('div');
+      note.dataset.commNote = '1';
+      note.style.cssText = 'font-size:11px;color:var(--muted);margin-top:4px;';
+      note.innerHTML = `<span class="comm-pill comm-pill-platform">Gross KES ${c.gross.toLocaleString()} · ${c.pct} fee deducted</span>`;
+      amtEl.parentNode.insertBefore(note, amtEl.nextSibling);
+    }
+  });
+};
+
+const _jwOrigOpenTakeOrderModal = openTakeOrderModal;
+openTakeOrderModal = function(id) {
+  _jwOrigOpenTakeOrderModal(id);
+  const t = tasks.find(t => t.id === id);
+  const details = document.getElementById('take-order-details');
+  if (!t || !details || details.querySelector('[data-payout-breakdown]')) return;
+  const wrapper = document.createElement('div');
+  wrapper.dataset.payoutBreakdown = '1';
+  wrapper.innerHTML = commBreakdownHtml(Number(t.total || 0), 'Writer payout');
+  details.appendChild(wrapper);
+};
+
+const _jwOrigRenderEmpPaySummary = renderEmpPaySummary;
+renderEmpPaySummary = function() {
+  _jwOrigRenderEmpPaySummary();
+  const el = document.getElementById('emp-payment-summary');
+  if (!el) return;
+  const mine = myTaskList();
+  if (!mine.length || el.querySelector('[data-commission-summary]')) return;
+  const paid = mine.filter(t => t.payment === 'paid');
+  const totalPaid = paid.reduce((s,t) => s + Number(t.total || 0), 0);
+  const totalComm = paid.reduce((s,t) => s + taskCommission(t).commission, 0);
+  const writerNet = totalPaid - totalComm;
+  const banner = document.createElement('div');
+  banner.dataset.commissionSummary = '1';
+  banner.style.cssText = 'margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(217,181,107,.08);border:1px solid rgba(217,181,107,.25);';
+  banner.innerHTML = `
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#a77c20;margin-bottom:10px;">Platform Commission Summary</div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(217,181,107,.18);">
+      <span style="color:var(--muted);">Total paid by employer</span>
+      <strong>KES ${totalPaid.toLocaleString()}</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(217,181,107,.18);">
+      <span style="color:var(--muted);">Platform fee (${Math.round(COMMISSION_RATE*100)}%)</span>
+      <strong style="color:#a77c20;">KES ${totalComm.toLocaleString()}</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;">
+      <span style="color:var(--muted);">Writer payouts</span>
+      <strong style="color:var(--teal-dark);">KES ${writerNet.toLocaleString()}</strong>
+    </div>`;
+  el.appendChild(banner);
+};
+
+renderEmpInvoice = function() {
+  document.getElementById('emp-invoice-date').textContent = 'Date: ' + new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  const mine = myTaskList();
+  const tbody = document.getElementById('emp-invoice-table');
+  const table = tbody?.closest('table');
+  const head = table?.querySelector('thead tr');
+  if (head) {
+    head.innerHTML = `<th>Order #</th><th>Subject</th><th>Style</th><th>Pages</th><th>Rate</th><th style="text-align:right;">Gross</th><th style="text-align:right;">Platform Fee</th><th style="text-align:right;">Writer Net</th><th>Status</th>`;
+  }
+  if (!mine.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>No orders yet.</p></div></td></tr>'; return; }
+
+  tbody.innerHTML = mine.map(t => {
+    const c = taskCommission(t);
+    return `
+      <tr>
+        <td style="font-size:13px;font-weight:600;"><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
+        <td style="font-size:13px;">${esc(t.subject)}</td>
+        <td><span class="badge badge-style">${esc(t.style)}</span></td>
+        <td style="font-size:13px;">${Number(t.pages || 0)}</td>
+        <td style="font-size:13px;">KES ${Number(t.price_per_page || 0).toLocaleString()}</td>
+        <td style="text-align:right;font-size:13px;font-weight:600;">KES ${c.gross.toLocaleString()}</td>
+        <td style="text-align:right;font-size:12px;"><span class="comm-pill comm-pill-platform">−KES ${c.commission.toLocaleString()}</span></td>
+        <td style="text-align:right;font-size:13px;font-weight:700;color:var(--teal-dark);">KES ${c.payout.toLocaleString()}</td>
+        <td>${payBadge(t.payment)}</td>
+      </tr>`;
+  }).join('');
+
+  const total = mine.reduce((s,t) => s + Number(t.total || 0), 0);
+  const paid = mine.filter(t=>t.payment==='paid').reduce((s,t) => s + Number(t.total || 0), 0);
+  const paidComm = mine.filter(t=>t.payment==='paid').reduce((s,t) => s + taskCommission(t).commission, 0);
+  document.getElementById('emp-inv-total').textContent = 'KES ' + total.toLocaleString();
+  document.getElementById('emp-inv-paid').textContent = 'KES ' + paid.toLocaleString();
+  document.getElementById('emp-inv-outstanding').textContent = 'KES ' + (total-paid).toLocaleString();
+
+  const totalsEl = document.querySelector('.invoice-totals');
+  if (totalsEl && !totalsEl.querySelector('[data-invoice-commission-row]')) {
+    const row = document.createElement('div');
+    row.className = 'invoice-row';
+    row.dataset.invoiceCommissionRow = '1';
+    row.innerHTML = `<span class="label">Platform Commission (${Math.round(COMMISSION_RATE*100)}% of paid)</span><span class="amount" style="color:#a77c20;font-size:16px;">KES ${paidComm.toLocaleString()}</span>`;
+    const outstanding = totalsEl.querySelector('.invoice-row.total');
+    if (outstanding) totalsEl.insertBefore(row, outstanding);
+  } else if (totalsEl) {
+    const amt = totalsEl.querySelector('[data-invoice-commission-row] .amount');
+    if (amt) amt.textContent = 'KES ' + paidComm.toLocaleString();
+  }
+};
+
+function renderWriterEarningsPage() {
+  const myDone = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'completed');
+  const grossTotal = myDone.reduce((s,t) => s + Number(t.total || 0), 0);
+  const commTotal = myDone.reduce((s,t) => s + taskCommission(t).commission, 0);
+  const netTotal = myDone.reduce((s,t) => s + taskCommission(t).payout, 0);
+  const paidNet = myDone.filter(t => t.payment === 'paid').reduce((s,t) => s + taskCommission(t).payout, 0);
+  const pendingNet = Math.max(0, netTotal - paidNet);
+  const el = document.getElementById('writer-earnings-wrap');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="writer-earnings-card" style="margin-bottom:20px;">
+      <div class="wec-label">Your Total Net Earnings</div>
+      <div class="wec-amount">KES ${netTotal.toLocaleString()}</div>
+      <div class="wec-sub">After ${Math.round(COMMISSION_RATE*100)}% platform fee</div>
+      <div class="wec-rows">
+        <div class="wec-row"><span>✅ Paid out</span><span>KES ${paidNet.toLocaleString()}</span></div>
+        <div class="wec-row"><span>⏳ Pending</span><span>KES ${pendingNet.toLocaleString()}</span></div>
+        <div class="wec-row" style="opacity:.7;"><span>Platform fee deducted</span><span>KES ${commTotal.toLocaleString()}</span></div>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden;padding:0;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Completed Orders</div>
+      ${!myDone.length ? '<div class="empty-state" style="padding:40px;"><div class="empty-icon">💰</div><p>Complete your first order to see earnings here.</p></div>' : `
+      <div class="earnings-table-wrap">
+        <table style="width:100%;border-collapse:collapse;min-width:760px;">
+          <thead>
+            <tr style="background:var(--ink);">
+              <th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Order</th>
+              <th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Subject</th>
+              <th style="padding:12px 14px;text-align:right;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Gross</th>
+              <th style="padding:12px 14px;text-align:right;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Fee</th>
+              <th style="padding:12px 14px;text-align:right;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Your Payout</th>
+              <th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${myDone.map(t => {
+              const c = taskCommission(t);
+              return `<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px 14px;font-size:13px;font-weight:700;">${t.id}</td>
+                <td style="padding:12px 14px;font-size:13px;">${esc(t.subject)}</td>
+                <td style="padding:12px 14px;text-align:right;font-size:13px;color:var(--muted);">KES ${c.gross.toLocaleString()}</td>
+                <td style="padding:12px 14px;text-align:right;font-size:12px;"><span class="comm-pill comm-pill-platform">−KES ${c.commission.toLocaleString()}</span></td>
+                <td style="padding:12px 14px;text-align:right;font-size:14px;font-weight:800;color:var(--teal-dark);">KES ${c.payout.toLocaleString()}</td>
+                <td style="padding:12px 14px;">${payBadge(t.payment)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </div>`;
+}
+
+async function renderCommissionDashboard() {
+  const el = document.getElementById('comm-dashboard-wrap');
+  if (!el) return;
+  if (!isCommissionAdmin()) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This page is restricted to the platform owner.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><p>Loading commission data…</p></div>`;
+  let ledger = [];
+  try { ledger = await dbGetLedger(); }
+  catch (err) { el.innerHTML = `<div class="empty-state"><p>Could not load ledger: ${esc(err.message)}</p></div>`; return; }
+
+  const totalComm = ledger.reduce((s,r) => s + Number(r.commission_amt || 0), 0);
+  const totalPayout = ledger.reduce((s,r) => s + Number(r.writer_payout || 0), 0);
+  const totalGross = ledger.reduce((s,r) => s + Number(r.order_total || 0), 0);
+  const released = ledger.filter(r => r.status === 'released').reduce((s,r) => s + Number(r.commission_amt || 0), 0);
+  const pending = Math.max(0, totalComm - released);
+
+  el.innerHTML = `
+    <div class="comm-page-grid">
+      <div class="comm-stat-card gold"><div class="csc-icon">💰</div><div class="csc-val">KES ${totalComm.toLocaleString()}</div><div class="csc-lbl">Total Commission</div></div>
+      <div class="comm-stat-card teal"><div class="csc-icon">✅</div><div class="csc-val">KES ${released.toLocaleString()}</div><div class="csc-lbl">Released</div></div>
+      <div class="comm-stat-card green"><div class="csc-icon">📊</div><div class="csc-val">KES ${totalGross.toLocaleString()}</div><div class="csc-lbl">Gross Volume</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">
+        Commission Ledger <span style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);font-weight:400;margin-left:10px;">${ledger.length} transactions · Pending KES ${pending.toLocaleString()} · Writer payouts KES ${totalPayout.toLocaleString()}</span>
+      </div>
+      ${!ledger.length ? '<div class="empty-state" style="padding:40px;"><p>No commission records yet.</p></div>' : `
+      <div style="overflow-x:auto;">
+        <table class="comm-ledger-table">
+          <thead><tr><th>Order</th><th>Employer</th><th>Writer</th><th style="text-align:right;">Gross</th><th style="text-align:right;">Commission</th><th style="text-align:right;">Writer Payout</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            ${ledger.map(r => `<tr>
+              <td style="font-weight:700;">${esc(r.task_id)}</td>
+              <td style="font-size:12px;">${esc(r.employer_name || r.employer_email || '—')}</td>
+              <td style="font-size:12px;">${esc(r.writer_name || r.writer_email || '—')}</td>
+              <td style="text-align:right;">KES ${Number(r.order_total || 0).toLocaleString()}</td>
+              <td style="text-align:right;"><span class="comm-rate-badge">KES ${Number(r.commission_amt || 0).toLocaleString()}</span></td>
+              <td style="text-align:right;font-weight:700;color:var(--teal-dark);">KES ${Number(r.writer_payout || 0).toLocaleString()}</td>
+              <td><span class="badge ${r.status === 'released' ? 'badge-completed' : 'b-pending'}">${esc(r.status || 'pending')}</span></td>
+              <td style="font-size:11px;color:var(--muted);">${r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB') : '—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </div>`;
+}
+
+// Re-render commission pages when realtime changes arrive.
+const _jwOrigSubscribeRealtime = subscribeRealtime;
+subscribeRealtime = function() {
+  _jwOrigSubscribeRealtime();
+};
+
 </script>
 <!--End of Tawk.to Script-->
 
