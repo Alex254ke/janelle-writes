@@ -10863,7 +10863,7 @@ async function startPayHeroStk() {
       body: JSON.stringify({ taskId, phone_number: phone })
     });
     const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || 'Payment request failed.');
+    if (!res.ok) throw new Error(body.error || body.message || (body.details?.message) || 'Payment request failed. Check Vercel function logs for /api/payhero/stk.');
     if (status) status.innerHTML = `✅ STK push queued. Ask the employer to check phone ${esc(phone)} and enter M-Pesa PIN.<br><strong>PayHero Reference:</strong> ${esc(body.reference || '—')}`;
     notify('📲 PayHero STK push sent');
   } catch (err) {
@@ -10885,26 +10885,69 @@ navigate = function(page, options = {}) {
   if (page === 'admin-control') renderAdminControlPage();
 };
 
-// Make all auth methods show a proper please-wait screen.
+// Make all auth methods show a proper please-wait screen without leaving a blank page on failed login.
+function restoreAuthScreenAfterFailedAuth(mode = 'login') {
+  hideAuthCallbackLoading();
+
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+
+  if (currentUser) return;
+
+  if (landing) landing.style.display = 'none';
+  if (app) app.style.display = 'none';
+  if (auth) auth.style.display = 'flex';
+
+  // For login failure, restore the login form clearly.
+  // For signup/verification, keep the current form state because the OTP screen may be active.
+  if (mode === 'login' && typeof showLogin === 'function') showLogin();
+  initPasswordToggles?.();
+}
+
 const _jwWaitOrigDoLogin = doLogin;
 doLogin = async function() {
   showAuthCallbackLoading();
-  await _jwWaitOrigDoLogin();
-  if (!currentUser) hideAuthCallbackLoading();
+  try {
+    await _jwWaitOrigDoLogin();
+  } catch (err) {
+    notify('❌ Login error: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      const app = document.getElementById('app-shell');
+      if (!currentUser || app?.style.display !== 'block') restoreAuthScreenAfterFailedAuth('login');
+    }, 180);
+  }
 };
 
 const _jwWaitOrigDoSignup = doSignup;
 doSignup = async function() {
   showAuthCallbackLoading();
-  await _jwWaitOrigDoSignup();
-  if (!currentUser) hideAuthCallbackLoading();
+  try {
+    await _jwWaitOrigDoSignup();
+  } catch (err) {
+    notify('❌ Signup error: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      const app = document.getElementById('app-shell');
+      if (!currentUser || app?.style.display !== 'block') restoreAuthScreenAfterFailedAuth('signup');
+    }, 180);
+  }
 };
 
 const _jwWaitOrigVerify2FA = verify2FA;
 verify2FA = async function() {
   showAuthCallbackLoading();
-  await _jwWaitOrigVerify2FA();
-  if (!currentUser) hideAuthCallbackLoading();
+  try {
+    await _jwWaitOrigVerify2FA();
+  } catch (err) {
+    notify('❌ Verification error: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      const app = document.getElementById('app-shell');
+      if (!currentUser || app?.style.display !== 'block') restoreAuthScreenAfterFailedAuth('verify');
+    }, 180);
+  }
 };
 
 </script>
