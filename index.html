@@ -4506,14 +4506,34 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     <!-- FORGOT PASSWORD FORM -->
     <div id="forgot-form" style="display:none;">
       <div style="margin-bottom:20px;padding:14px;background:var(--teal-pale);border-radius:9px;font-size:12px;color:var(--slate);line-height:1.6;">
-        Enter your email and we'll show you your new temporary password. Share your new credentials with the admin if needed.
+        Enter the email linked to your Janelle Writes account. We will send a secure password reset link to that email.
       </div>
       <div class="form-group">
         <label class="form-label">Email Address</label>
         <input type="email" class="form-input" id="forgot-email" placeholder="you@example.com">
       </div>
-      <div id="forgot-result" style="display:none;margin-bottom:16px;padding:14px;background:#e0f5f3;border-radius:9px;font-size:13px;color:var(--teal-dark);border-left:3px solid var(--teal);"></div>
-      <button class="btn btn-primary btn-full" onclick="doForgotPassword()">Reset Password →</button>
+      <div id="forgot-result" style="display:none;margin-bottom:16px;padding:14px;background:#e0f5f3;border-radius:9px;font-size:13px;color:var(--teal-dark);border-left:3px solid var(--teal);line-height:1.55;"></div>
+      <button class="btn btn-primary btn-full" onclick="doForgotPassword()">Send Reset Link →</button>
+      <div class="auth-switch" style="margin-top:16px;">
+        <a onclick="showLogin()">← Back to Sign In</a>
+      </div>
+    </div>
+
+    <!-- SECURE PASSWORD RESET FORM -->
+    <div id="password-reset-form" style="display:none;">
+      <div style="margin-bottom:20px;padding:14px;background:var(--teal-pale);border-radius:9px;font-size:12px;color:var(--slate);line-height:1.6;">
+        Create a new password for <strong id="reset-email-display">your account</strong>. Use at least 8 characters.
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <input type="password" class="form-input" id="reset-new-password" placeholder="New password">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" class="form-input" id="reset-confirm-password" placeholder="Confirm new password">
+      </div>
+      <div id="reset-result" style="display:none;margin-bottom:16px;padding:14px;background:#e0f5f3;border-radius:9px;font-size:13px;color:var(--teal-dark);border-left:3px solid var(--teal);line-height:1.55;"></div>
+      <button class="btn btn-primary btn-full" onclick="doUpdatePassword()">Update Password →</button>
       <div class="auth-switch" style="margin-top:16px;">
         <a onclick="showLogin()">← Back to Sign In</a>
       </div>
@@ -5825,9 +5845,13 @@ function hideAuthCallbackLoading() {
 async function handleSupabaseAuthReturn() {
   const url = new URL(window.location.href);
   const code = url.searchParams.get('code');
+  const recoveryType = url.searchParams.get('type');
   const hash = window.location.hash || '';
   const hasHashToken = hash.includes('access_token=');
+  const hashIsRecovery = hash.includes('type=recovery');
   const hasAuthParams = !!code || hasHashToken;
+  const recoveryPending = localStorage.getItem('jw_password_recovery_pending') === '1';
+  const isRecovery = recoveryType === 'recovery' || hashIsRecovery || (recoveryPending && hasAuthParams && !localStorage.getItem('jw_google_intent'));
 
   if (!hasAuthParams) return false;
 
@@ -5847,8 +5871,16 @@ async function handleSupabaseAuthReturn() {
     }
 
     if (!session) {
-      notify('⚠️ Sign-in session was not found. Please try signing in again.');
+      notify('⚠️ Sign-in session was not found. Please try again.');
       showLandingPage();
+      return true;
+    }
+
+    if (isRecovery) {
+      try {
+        window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+      } catch {}
+      showPasswordResetForm(session?.user?.email || '');
       return true;
     }
 
@@ -5860,7 +5892,8 @@ async function handleSupabaseAuthReturn() {
     return true;
   } catch (err) {
     notify('❌ Sign-in callback failed: ' + err.message);
-    showLandingPage();
+    if (isRecovery) showForgotPassword();
+    else showLandingPage();
     return true;
   }
 }
@@ -6132,6 +6165,7 @@ function switchAuthTab(tab) {
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = 'none';
+  const resetForm = document.getElementById('password-reset-form'); if (resetForm) resetForm.style.display = 'none';
   const full = document.getElementById('otp-code-full'); if (full) full.value = '';
   document.getElementById('auth-panel-title').textContent = tab === 'login' ? 'Welcome to Janelle Writes' : 'Create Account';
   document.getElementById('auth-panel-sub').textContent = tab === 'login' ? 'Sign in or create an account to continue' : 'Join Janelle Writes today';
@@ -6603,6 +6637,7 @@ function buildMiniPayCard(info) {
 function showForgotPassword() {
   document.getElementById('login-form').style.display = 'none';
   document.getElementById('signup-form').style.display = 'none';
+  const resetForm = document.getElementById('password-reset-form'); if (resetForm) resetForm.style.display = 'none';
   document.getElementById('forgot-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Reset Password';
   document.getElementById('auth-panel-sub').textContent = 'We\'ll help you recover your account';
@@ -6615,6 +6650,7 @@ function showLogin() {
   document.getElementById('forgot-form').style.display = 'none';
   document.getElementById('signup-form').style.display = 'none';
   document.getElementById('twofa-form').style.display = 'none';
+  const resetForm = document.getElementById('password-reset-form'); if (resetForm) resetForm.style.display = 'none';
   document.getElementById('login-form').style.display = '';
   document.getElementById('auth-panel-title').textContent = 'Welcome to Janelle Writes';
   document.getElementById('auth-panel-sub').textContent = 'Sign in or create an account to continue';
@@ -6622,30 +6658,148 @@ function showLogin() {
   _authMode = 'login';
 }
 
-function doForgotPassword() {
+async function doForgotPassword() {
   const email = document.getElementById('forgot-email').value.trim().toLowerCase();
-  if (!email) { notify('⚠️ Please enter your email address'); return; }
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    notify('⚠️ Please enter a valid email address');
+    return;
+  }
+
   const resultEl = document.getElementById('forgot-result');
+  resultEl.style.display = '';
+  resultEl.style.background = 'var(--teal-pale)';
+  resultEl.style.borderLeftColor = 'var(--teal)';
+  resultEl.style.color = 'var(--teal-dark)';
+  resultEl.innerHTML = '⏳ Sending secure password reset link…';
+
   setLoading(true);
-  dbGetUserByEmail(email).then(u => {
-    setLoading(false);
-    if (!u) {
-      resultEl.style.display = '';
-      resultEl.style.background = '#fce8e6';
-      resultEl.style.borderLeftColor = 'var(--danger)';
-      resultEl.style.color = 'var(--danger)';
-      resultEl.innerHTML = '❌ No account found with that email address.';
-      return;
-    }
-    const newPass = 'Reset' + Math.floor(100000 + Math.random() * 900000);
-    return dbUpdateUser(email, { password: newPass }).then(() => {
-      resultEl.style.display = '';
-      resultEl.style.background = '#e0f5f3';
-      resultEl.style.borderLeftColor = 'var(--teal)';
-      resultEl.style.color = 'var(--teal-dark)';
-      resultEl.innerHTML = `✅ Password reset! Your new temporary password is:<br><br><strong style="font-size:18px;letter-spacing:2px;font-family:monospace;">${newPass}</strong><br><br>Please sign in and change it soon.`;
+  try {
+    localStorage.setItem('jw_password_recovery_pending', '1');
+    localStorage.setItem('jw_password_recovery_email', email);
+
+    const { error } = await _sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname + '?type=recovery'
     });
-  }).catch(err => { setLoading(false); notify('❌ Error: ' + err.message); });
+
+    setLoading(false);
+
+    if (error) throw error;
+
+    resultEl.style.display = '';
+    resultEl.style.background = '#e0f5f3';
+    resultEl.style.borderLeftColor = 'var(--teal)';
+    resultEl.style.color = 'var(--teal-dark)';
+    resultEl.innerHTML = `✅ If this email is registered, a secure reset link has been sent to <strong>${esc(email)}</strong>.<br><br>Open the email and click the reset link to create a new password.`;
+    notify('📨 Password reset email sent if the account exists.');
+  } catch (err) {
+    setLoading(false);
+    resultEl.style.display = '';
+    resultEl.style.background = '#fce8e6';
+    resultEl.style.borderLeftColor = 'var(--danger)';
+    resultEl.style.color = 'var(--danger)';
+    resultEl.innerHTML = '❌ Could not send reset email: ' + esc(err.message);
+    notify('❌ Password reset error: ' + err.message);
+  }
+}
+
+function showPasswordResetForm(email = '') {
+  hideAuthCallbackLoading();
+
+  const landing = document.getElementById('landing-page');
+  const app = document.getElementById('app-shell');
+  const auth = document.getElementById('auth-screen');
+  if (landing) landing.style.display = 'none';
+  if (app) app.style.display = 'none';
+  if (auth) auth.style.display = 'flex';
+
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('forgot-form').style.display = 'none';
+  document.getElementById('twofa-form').style.display = 'none';
+
+  const resetForm = document.getElementById('password-reset-form');
+  if (resetForm) resetForm.style.display = '';
+
+  document.getElementById('auth-panel-title').textContent = 'Create New Password';
+  document.getElementById('auth-panel-sub').textContent = 'Set a secure password for your account';
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+
+  const display = document.getElementById('reset-email-display');
+  const knownEmail = email || localStorage.getItem('jw_password_recovery_email') || 'your account';
+  if (display) display.textContent = knownEmail;
+
+  const result = document.getElementById('reset-result');
+  if (result) result.style.display = 'none';
+
+  const newPass = document.getElementById('reset-new-password');
+  const confirm = document.getElementById('reset-confirm-password');
+  if (newPass) newPass.value = '';
+  if (confirm) confirm.value = '';
+  setTimeout(() => newPass?.focus(), 120);
+  initPasswordToggles?.();
+}
+
+async function doUpdatePassword() {
+  const pass = document.getElementById('reset-new-password')?.value || '';
+  const confirm = document.getElementById('reset-confirm-password')?.value || '';
+  const result = document.getElementById('reset-result');
+
+  if (pass.length < 8) {
+    notify('⚠️ Password must be at least 8 characters.');
+    return;
+  }
+  if (pass !== confirm) {
+    notify('⚠️ Passwords do not match.');
+    return;
+  }
+
+  if (result) {
+    result.style.display = '';
+    result.style.background = 'var(--teal-pale)';
+    result.style.borderLeftColor = 'var(--teal)';
+    result.style.color = 'var(--teal-dark)';
+    result.innerHTML = '⏳ Updating password securely…';
+  }
+
+  setLoading(true);
+  try {
+    const { error } = await _sb.auth.updateUser({ password: pass });
+    setLoading(false);
+    if (error) throw error;
+
+    localStorage.removeItem('jw_password_recovery_pending');
+    localStorage.removeItem('jw_password_recovery_email');
+
+    if (result) {
+      result.style.display = '';
+      result.style.background = '#e0f5f3';
+      result.style.borderLeftColor = 'var(--teal)';
+      result.style.color = 'var(--teal-dark)';
+      result.innerHTML = '✅ Password updated successfully. You can now sign in with your new password.';
+    }
+
+    notify('✅ Password updated successfully.');
+    try { await _sb.auth.signOut(); } catch {}
+    setTimeout(() => {
+      showLogin();
+      const auth = document.getElementById('auth-screen');
+      const landing = document.getElementById('landing-page');
+      const app = document.getElementById('app-shell');
+      if (landing) landing.style.display = 'none';
+      if (app) app.style.display = 'none';
+      if (auth) auth.style.display = 'flex';
+    }, 900);
+  } catch (err) {
+    setLoading(false);
+    if (result) {
+      result.style.display = '';
+      result.style.background = '#fce8e6';
+      result.style.borderLeftColor = 'var(--danger)';
+      result.style.color = 'var(--danger)';
+      result.innerHTML = '❌ Could not update password: ' + esc(err.message);
+    }
+    notify('❌ Could not update password: ' + err.message);
+  }
 }
 
 
