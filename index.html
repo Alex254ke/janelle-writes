@@ -4457,13 +4457,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
         </div>
 
         <div class="footer-col">
-          <h4>Contact</h4>
-          <a class="footer-contact-link" href="https://wa.me/254723156622" target="_blank" rel="noopener">
-            <span class="footer-icon">🟢</span> WhatsApp Support
-          </a>
-          <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
-            <span class="footer-icon">📩</span> Email Support
-          </a>
+          <h4>Account</h4>
           <a class="footer-contact-link" href="javascript:void(0)" onclick="openAuthScreen('login')">
             <span class="footer-icon">🔐</span> Member Sign In
           </a>
@@ -4712,18 +4706,9 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
   </nav>
 
   <div class="sidebar-footer sidebar-footer-compact">
-    <button type="button" class="sidebar-support-mini" onclick="window.open('https://wa.me/254723156622','_blank')">💬 Contact Support</button>
     <div class="btn-logout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
 </aside>
-
-<div class="floating-support-widget" aria-label="Customer support">
-  <a class="support-trigger" href="https://wa.me/254723156622" target="_blank" rel="noopener" aria-label="Open WhatsApp support">💬</a>
-  <a class="support-popover" href="https://wa.me/254723156622" target="_blank" rel="noopener">
-    <strong>Contact Support</strong>
-    <small>Chat with Janelle Writes on WhatsApp</small>
-  </a>
-</div>
 
 <!-- Mobile Overlay -->
 <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
@@ -6308,7 +6293,7 @@ async function doLogin() {
 // ══════════════════════════════════════════════════════
 //  2FA VIA SUPABASE AUTH OTP — real email verification
 // ══════════════════════════════════════════════════════
-let _pending2FA = null; // { name, email, pass, role }
+let _pending2FA = null; // { name, email, role }
 let _otpTimerInterval = null;
 let _otpResendCooldown = false;
 let _writerPayMethod = 'mpesa'; // for payment settings page
@@ -6358,7 +6343,7 @@ async function doSignup() {
       return;
     }
 
-    const pending = { name, email, pass, role: _selectedRole };
+    const pending = { name, email, role: _selectedRole };
 
     // When Supabase email confirmation is enabled, no session is returned yet.
     // Keep the user on the verification screen so they can enter the emailed code.
