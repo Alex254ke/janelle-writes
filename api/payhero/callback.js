@@ -4,6 +4,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const callbackSecret = process.env.PAYHERO_CALLBACK_SECRET;
+  if (!callbackSecret) {
+    console.error('PAYHERO_CALLBACK_SECRET is missing; refusing callback.');
+    return res.status(500).json({ error: 'Payment callback is not configured' });
+  }
+
   if (callbackSecret && req.query.secret !== callbackSecret) {
     return res.status(401).json({ error: 'Invalid callback secret' });
   }
@@ -50,13 +55,23 @@ export default async function handler(req, res) {
 
   await admin.from('jw_payments').update(update).eq('id', payment.id);
 
-  if (success && (!amount || Number(payment.amount) === amount)) {
+  const expectedAmount = Number(payment.amount);
+  const amountMatches = Number.isFinite(amount) && amount > 0 && Number.isFinite(expectedAmount) && expectedAmount === amount;
+
+  if (success && amountMatches) {
     await admin.from('jw_tasks').update({
       payment: 'paid',
       mpesa_code: receipt,
       payhero_reference: payment.payhero_reference || merchantRef || checkout || externalReference,
       paid_at: new Date().toISOString()
     }).eq('id', payment.task_id);
+  } else if (success && !amountMatches) {
+    console.warn('PayHero callback success did not mark task paid because amount did not match', {
+      payment_id: payment.id,
+      task_id: payment.task_id,
+      expectedAmount,
+      callbackAmount: amount || null
+    });
   }
 
   await admin.from('jw_payment_callbacks').insert([{ payload, external_reference: externalReference || null, checkout_request_id: checkout || null, payment_id: payment.id, processed: true }]).catch(() => {});
