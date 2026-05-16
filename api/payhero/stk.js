@@ -124,7 +124,7 @@ export default async function handler(req, res) {
     return res.status(response.status || 502).json({
       error: publicErrorFromPayhero(body),
       payhero_status: response.status,
-      payhero_response: body,
+      payhero_response: process.env.NODE_ENV === 'development' ? body : undefined,
       hint: 'Check PAYHERO_BASIC_AUTH_TOKEN, PAYHERO_CHANNEL_ID, PAYHERO_PROVIDER, and whether the channel is active in PayHero.'
     });
   }
