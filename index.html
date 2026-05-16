@@ -18,108 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <!-- Supabase JS client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// Mobile-only message layout: show selected thread as a full screen conversation.
-function isMobileMessageLayout() {
-  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
-}
-
-function openMobileMessageThreadView() {
-  const shell = document.querySelector('#page-messages .message-shell');
-  if (shell && isMobileMessageLayout()) {
-    shell.classList.add('mobile-thread-open');
-    setTimeout(() => {
-      const panel = document.querySelector('#page-messages .message-panel');
-      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 40);
-  }
-}
-
-function closeMobileMessageThreadView() {
-  const shell = document.querySelector('#page-messages .message-shell');
-  if (shell) shell.classList.remove('mobile-thread-open');
-}
-
-window.addEventListener('resize', () => {
-  const shell = document.querySelector('#page-messages .message-shell');
-  if (shell && !isMobileMessageLayout()) shell.classList.remove('mobile-thread-open');
-});
-
-
-// Mobile message conversation click handler.
-// On phones, tapping any conversation item opens only that thread and hides the conversation list.
-document.addEventListener('click', function(e) {
-  const item = e.target.closest('.message-list-item, .message-conversation-item, .message-order-item, [data-message-thread], [data-conversation-id], [onclick*="openMessage"], [onclick*="selectMessage"], [onclick*="openThread"], [onclick*="selectThread"]');
-  const inMessagesPage = e.target.closest('#page-messages');
-  if (inMessagesPage && item && isMobileMessageLayout()) {
-    setTimeout(openMobileMessageThreadView, 80);
-  }
-});
-
-
-// Keep general Messages page as an inbox on mobile, unless opened directly from an order.
-if (typeof navigate === 'function' && !window.__jwNavigateMobileMessagePatched) {
-  window.__jwNavigateMobileMessagePatched = true;
-  const __jwOriginalNavigate = navigate;
-  navigate = function(page, options) {
-    const result = __jwOriginalNavigate.apply(this, arguments);
-    if (page === 'messages' || page === 'emp-messages' || page === 'writer-messages') {
-      const directOrder = options && (options.orderId || options.taskId || options.threadId);
-      if (!directOrder) setTimeout(closeMobileMessageThreadView, 30);
-    }
-    return result;
-  };
-}
-
-
-// If Message is clicked from an order/action button on mobile, open the selected order conversation as the full thread view.
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('button, .btn, a');
-  if (!btn || !isMobileMessageLayout()) return;
-  const label = (btn.textContent || '').toLowerCase();
-  const action = (btn.getAttribute('onclick') || '').toLowerCase();
-  if ((label.includes('message') || action.includes('message')) && !btn.closest('.message-sidebar')) {
-    setTimeout(openMobileMessageThreadView, 220);
-  }
-});
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  initPasswordToggles();
-});
-
-
-function bootPasswordToggles() {
-  try {
-    initPasswordToggles();
-    setTimeout(initPasswordToggles, 80);
-    setTimeout(initPasswordToggles, 300);
-  } catch (err) {
-    console.warn('Password toggle init warning:', err);
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootPasswordToggles);
-} else {
-  bootPasswordToggles();
-}
-
-window.addEventListener('load', bootPasswordToggles);
-
-
-// Keep password toggles attached even if the auth form is re-rendered later.
-if (!window.__jwPasswordToggleObserver) {
-  window.__jwPasswordToggleObserver = true;
-  const __jwPwObserver = new MutationObserver(() => {
-    if (document.getElementById('login-password') || document.getElementById('signup-password')) {
-      bootPasswordToggles();
-    }
-  });
-  __jwPwObserver.observe(document.body, { childList: true, subtree: true });
-}
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --ink: #0f1923;
@@ -943,6 +842,129 @@ body.dark-mode .lateness-panel-text, body.dark .lateness-panel-text { color:#eef
 .qa-card .qa-title { font-size:13px; font-weight:600; color:var(--ink); }
 .qa-card .qa-sub { font-size:11px; color:var(--muted); margin-top:3px; }
 
+/* ── APP DASHBOARD POLISH ─────────────────── */
+.dashboard-lift {
+  display:grid;
+  grid-template-columns:1.15fr 0.85fr;
+  gap:18px;
+  margin:-8px 0 30px;
+}
+.dashboard-panel {
+  position:relative;
+  overflow:hidden;
+  min-height:150px;
+  padding:24px;
+  border-radius:18px;
+  border:1px solid rgba(205,224,221,0.86);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.98), rgba(246,252,250,0.92)),
+    radial-gradient(circle at 92% 0%, rgba(217,181,107,0.22), transparent 35%);
+  box-shadow:0 16px 42px rgba(15,25,35,0.08);
+}
+.dashboard-panel::after {
+  content:'';
+  position:absolute;
+  right:-44px;
+  bottom:-62px;
+  width:168px;
+  height:168px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(82,196,184,0.20), transparent 70%);
+  pointer-events:none;
+}
+.dashboard-panel-kicker {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:30px;
+  padding:6px 11px;
+  border-radius:999px;
+  background:rgba(42,157,143,0.10);
+  color:var(--teal-dark);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+.dashboard-panel h2 {
+  position:relative;
+  margin:14px 0 8px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:30px;
+  line-height:1.05;
+  color:var(--ink);
+}
+.dashboard-panel p {
+  position:relative;
+  max-width:580px;
+  color:var(--slate);
+  font-size:14px;
+  line-height:1.65;
+}
+.dashboard-checklist {
+  display:grid;
+  gap:10px;
+}
+.dashboard-check {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:44px;
+  padding:11px 13px;
+  border-radius:14px;
+  border:1px solid rgba(205,224,221,0.86);
+  background:rgba(255,255,255,0.76);
+  box-shadow:0 10px 24px rgba(15,25,35,0.045);
+}
+.dashboard-check span:first-child {
+  width:26px;
+  height:26px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  border-radius:50%;
+  background:var(--ink);
+  color:var(--teal-light);
+  font-size:13px;
+}
+.dashboard-check strong {
+  display:block;
+  font-size:13px;
+  color:var(--ink);
+}
+.dashboard-check small {
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.35;
+}
+.app-support-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  min-height:30px;
+  padding:6px 11px;
+  border-radius:999px;
+  background:rgba(82,196,184,0.13);
+  color:#8ee4d6;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+.app-support-meta {
+  flex-basis:100%;
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,0.10);
+  color:rgba(244,251,250,0.52);
+  font-size:11px;
+  line-height:1.55;
+}
+
 /* ── EMPLOYER TASK LIST ─── */
 .task-pill {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1226,10 +1248,37 @@ body::before {
   box-shadow:0 14px 34px rgba(15,25,35,0.075);
 }
 .stat-card::before, .order-card::before, .revision-card::before { height:4px; }
+.stat-card::after {
+  content:'';
+  position:absolute;
+  right:-30px;
+  bottom:-44px;
+  width:104px;
+  height:104px;
+  border-radius:50%;
+  background:rgba(42,157,143,0.075);
+  pointer-events:none;
+}
+.stat-card.slate::after { background:rgba(74,102,112,0.08); }
+.stat-card.rust::after { background:rgba(231,111,81,0.10); }
+.stat-card.ink::after { background:rgba(15,25,35,0.10); }
+.stat-card.revision::after { background:rgba(142,68,173,0.10); }
 .stat-icon, .qa-card .qa-icon { filter:drop-shadow(0 8px 18px rgba(15,25,35,0.12)); }
 .qa-card {
+  position:relative;
+  overflow:hidden;
   background:linear-gradient(180deg,#fff 0%,#fafdFC 100%);
   box-shadow:0 12px 28px rgba(15,25,35,0.055);
+}
+.qa-card::after {
+  content:'';
+  position:absolute;
+  inset:auto -24px -36px auto;
+  width:86px;
+  height:86px;
+  border-radius:50%;
+  background:rgba(217,181,107,0.13);
+  pointer-events:none;
 }
 .qa-card:hover { box-shadow:0 18px 42px rgba(15,25,35,0.10); }
 
@@ -1587,6 +1636,8 @@ body.dark-mode .modal-title,
 body.dark-mode .tracker-header h3,
 body.dark-mode .invoice-brand,
 body.dark-mode .qa-card .qa-title,
+body.dark-mode .dashboard-panel h2,
+body.dark-mode .dashboard-check strong,
 body.dark-mode .order-card-subject,
 body.dark-mode .order-card-meta-item strong,
 body.dark-mode .stat-value,
@@ -1603,6 +1654,8 @@ body.dark-mode .text-muted,
 body.dark-mode .modal-sub,
 body.dark-mode .stat-label,
 body.dark-mode .qa-card .qa-sub,
+body.dark-mode .dashboard-panel p,
+body.dark-mode .dashboard-check small,
 body.dark-mode .order-card-desc,
 body.dark-mode .order-card-meta-item,
 body.dark-mode .invoice-sub,
@@ -1622,6 +1675,8 @@ body.dark-mode .order-card,
 body.dark-mode .revision-card,
 body.dark-mode .stat-card,
 body.dark-mode .qa-card,
+body.dark-mode .dashboard-panel,
+body.dark-mode .dashboard-check,
 body.dark-mode .modal,
 body.dark-mode .message-sidebar,
 body.dark-mode .message-panel,
@@ -3365,24 +3420,26 @@ body.dark-mode .google-auth-separator::after {
 }
 .app-support-footer {
   margin: 36px 24px 28px;
-  padding: 24px;
-  border-radius: 24px;
+  padding: 28px;
+  border-radius: 22px;
   background:
-    radial-gradient(circle at top left, rgba(82,196,184,0.14), transparent 30%),
-    linear-gradient(135deg, #0f1923 0%, #132838 100%);
+    radial-gradient(circle at top left, rgba(82,196,184,0.18), transparent 28%),
+    radial-gradient(circle at 82% 18%, rgba(217,181,107,0.14), transparent 34%),
+    linear-gradient(135deg, #0f1923 0%, #132838 58%, #0d1720 100%);
   color: #f4fbfa;
-  box-shadow: 0 18px 48px rgba(15,25,35,0.12);
+  border:1px solid rgba(82,196,184,0.16);
+  box-shadow: 0 18px 48px rgba(15,25,35,0.14);
 }
 .app-support-footer-grid {
   display: grid;
-  grid-template-columns: 1.15fr 1.6fr auto;
-  gap: 22px;
+  grid-template-columns: 1.05fr 1.55fr auto;
+  gap: 24px;
   align-items: center;
 }
 .app-support-footer h3 {
   margin: 0 0 6px;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1;
   color: #fff;
 }
@@ -3419,8 +3476,12 @@ body.dark-mode .google-auth-separator::after {
 }
 .app-support-whatsapp {
   white-space: nowrap;
+  align-self:center;
 }
 @media (max-width: 1024px) {
+  .dashboard-lift {
+    grid-template-columns:1fr;
+  }
   .app-support-footer-grid {
     grid-template-columns: 1fr;
     align-items: start;
@@ -3430,6 +3491,16 @@ body.dark-mode .google-auth-separator::after {
   }
 }
 @media (max-width: 700px) {
+  .dashboard-panel {
+    padding:20px;
+    border-radius:16px;
+  }
+  .dashboard-panel h2 {
+    font-size:25px;
+  }
+  .dashboard-check {
+    align-items:flex-start;
+  }
   .app-support-footer {
     margin: 28px 14px 22px;
     padding: 20px;
@@ -4801,6 +4872,19 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
       </div>
     </div>
 
+    <div class="dashboard-lift">
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-kicker">Workspace Pulse</div>
+        <h2>Keep every order moving clearly.</h2>
+        <p>Start with a strong brief, watch the order status, then approve completed work once the delivery meets your instructions.</p>
+      </div>
+      <div class="dashboard-checklist">
+        <div class="dashboard-check"><span>1</span><div><strong>Post or assign an order</strong><small>Send new work to all writers or a preferred writer.</small></div></div>
+        <div class="dashboard-check"><span>2</span><div><strong>Follow messages and files</strong><small>Keep instructions, revisions, and submissions tied to the order.</small></div></div>
+        <div class="dashboard-check"><span>3</span><div><strong>Settle payments confidently</strong><small>Use invoices and payment status before closing the task.</small></div></div>
+      </div>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card teal"><div class="stat-icon">📋</div><div class="stat-value" id="emp-d-total">0</div><div class="stat-label">Total Orders</div></div>
       <div class="stat-card slate"><div class="stat-icon">⏳</div><div class="stat-value" id="emp-d-pending">0</div><div class="stat-label">Pending</div></div>
@@ -5101,12 +5185,31 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
       </div>
     </div>
 
+    <div class="dashboard-lift">
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-kicker">Writer Studio</div>
+        <h2>Find good work, deliver cleanly, build trust.</h2>
+        <p>Your dashboard keeps available orders, active tasks, revisions, and earnings close together so each writing session has a clear next move.</p>
+      </div>
+      <div class="dashboard-checklist">
+        <div class="dashboard-check"><span>1</span><div><strong>Review available orders</strong><small>Check the brief, deadline, files, and payout before accepting.</small></div></div>
+        <div class="dashboard-check"><span>2</span><div><strong>Submit with context</strong><small>Upload files, add notes, and keep everything attached to the task.</small></div></div>
+        <div class="dashboard-check"><span>3</span><div><strong>Protect your reputation</strong><small>Watch revisions, messages, ratings, and deadlines from one place.</small></div></div>
+      </div>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card teal clickable-stat" onclick="navigate('writer-available')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-available')"><div class="stat-icon">📥</div><div class="stat-value" id="writer-d-available">0</div><div class="stat-label">Available</div></div>
       <div class="stat-card slate clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✍️</div><div class="stat-value" id="writer-d-taken">0</div><div class="stat-label">My Tasks</div></div>
       <div class="stat-card rust clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✅</div><div class="stat-value" id="writer-d-completed">0</div><div class="stat-label">Completed</div></div>
       <div class="stat-card revision clickable-stat" onclick="navigate('writer-revisions')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-revisions')"><div class="stat-icon">🔄</div><div class="stat-value" id="writer-d-revision">0</div><div class="stat-label">Revisions</div></div>
       <div class="stat-card rust"><div class="stat-icon">⏰</div><div class="stat-value" id="writer-d-late-rate">0%</div><div class="stat-label">Lateness Rate</div></div>
+    </div>
+
+    <div class="quick-actions">
+      <div class="qa-card" onclick="navigate('writer-available')"><div class="qa-icon">📥</div><div class="qa-title">Browse Orders</div><div class="qa-sub">Find new writing work</div></div>
+      <div class="qa-card" onclick="navigate('writer-submit')"><div class="qa-icon">📎</div><div class="qa-title">Submit Work</div><div class="qa-sub">Upload files or links</div></div>
+      <div class="qa-card" onclick="navigate('writer-earnings')"><div class="qa-icon">💳</div><div class="qa-title">My Earnings</div><div class="qa-sub">Track payout status</div></div>
     </div>
   </div>
 
@@ -5369,14 +5472,16 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
   <footer class="app-support-footer">
     <div class="app-support-footer-grid">
       <div>
+        <div class="app-support-badge">Support Desk</div>
         <h3>Need help?</h3>
-        <p>Reach Janelle Writes support anytime for order, payment, revision, or account assistance.</p>
+        <p>Reach Janelle Writes support for order, payment, revision, dispute, or account assistance.</p>
       </div>
 
       <div class="app-support-links">
         <a class="app-support-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">📸 @Janelle_assignments</a>
         <a class="app-support-link" href="mailto:janellewrites979@gmail.com">✉️ janellewrites979@gmail.com</a>
         <a class="app-support-link" href="https://twitter.com/JW_Assignments" target="_blank" rel="noopener">𝕏 @JW_Assignments</a>
+        <div class="app-support-meta">Janelle Writes keeps order conversations, files, ratings, invoices, and support records connected to the right account.</div>
       </div>
 
       <a class="btn btn-primary app-support-whatsapp" href="https://wa.me/254723156622" target="_blank" rel="noopener">💬 WhatsApp Support</a>
@@ -10356,6 +10461,108 @@ document.addEventListener('keydown', handleMessageEnterKey);
     showLandingPage();
   }
 })();
+</script>
+<script>
+// Frontend helpers moved out of the external Supabase script tag so browsers execute them.
+// Mobile-only message layout: show selected thread as a full screen conversation.
+function isMobileMessageLayout() {
+  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
+}
+
+function openMobileMessageThreadView() {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell && isMobileMessageLayout()) {
+    shell.classList.add('mobile-thread-open');
+    setTimeout(() => {
+      const panel = document.querySelector('#page-messages .message-panel');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
+  }
+}
+
+function closeMobileMessageThreadView() {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell) shell.classList.remove('mobile-thread-open');
+}
+
+window.addEventListener('resize', () => {
+  const shell = document.querySelector('#page-messages .message-shell');
+  if (shell && !isMobileMessageLayout()) shell.classList.remove('mobile-thread-open');
+});
+
+
+// Mobile message conversation click handler.
+// On phones, tapping any conversation item opens only that thread and hides the conversation list.
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('.message-list-item, .message-conversation-item, .message-order-item, [data-message-thread], [data-conversation-id], [onclick*="openMessage"], [onclick*="selectMessage"], [onclick*="openThread"], [onclick*="selectThread"]');
+  const inMessagesPage = e.target.closest('#page-messages');
+  if (inMessagesPage && item && isMobileMessageLayout()) {
+    setTimeout(openMobileMessageThreadView, 80);
+  }
+});
+
+
+// Keep general Messages page as an inbox on mobile, unless opened directly from an order.
+if (typeof navigate === 'function' && !window.__jwNavigateMobileMessagePatched) {
+  window.__jwNavigateMobileMessagePatched = true;
+  const __jwOriginalNavigate = navigate;
+  navigate = function(page, options) {
+    const result = __jwOriginalNavigate.apply(this, arguments);
+    if (page === 'messages' || page === 'emp-messages' || page === 'writer-messages') {
+      const directOrder = options && (options.orderId || options.taskId || options.threadId);
+      if (!directOrder) setTimeout(closeMobileMessageThreadView, 30);
+    }
+    return result;
+  };
+}
+
+
+// If Message is clicked from an order/action button on mobile, open the selected order conversation as the full thread view.
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button, .btn, a');
+  if (!btn || !isMobileMessageLayout()) return;
+  const label = (btn.textContent || '').toLowerCase();
+  const action = (btn.getAttribute('onclick') || '').toLowerCase();
+  if ((label.includes('message') || action.includes('message')) && !btn.closest('.message-sidebar')) {
+    setTimeout(openMobileMessageThreadView, 220);
+  }
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPasswordToggles();
+});
+
+
+function bootPasswordToggles() {
+  try {
+    initPasswordToggles();
+    setTimeout(initPasswordToggles, 80);
+    setTimeout(initPasswordToggles, 300);
+  } catch (err) {
+    console.warn('Password toggle init warning:', err);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootPasswordToggles);
+} else {
+  bootPasswordToggles();
+}
+
+window.addEventListener('load', bootPasswordToggles);
+
+
+// Keep password toggles attached even if the auth form is re-rendered later.
+if (!window.__jwPasswordToggleObserver) {
+  window.__jwPasswordToggleObserver = true;
+  const __jwPwObserver = new MutationObserver(() => {
+    if (document.getElementById('login-password') || document.getElementById('signup-password')) {
+      bootPasswordToggles();
+    }
+  });
+  __jwPwObserver.observe(document.body, { childList: true, subtree: true });
+}
 </script>
 
 <!--Start of Tawk.to Script-->
