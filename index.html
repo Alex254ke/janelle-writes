@@ -4920,67 +4920,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
 
   <!-- PLATFORM GUIDE -->
   <div class="page content" id="page-guide">
-    <div class="guide-hero">
-      <h1>How Janelle Writes Works</h1>
-      <p>A quick guide for employers and writers. Use this page whenever you need to understand orders, messaging, invoices, revisions, disputes, ratings, and preferred writers.</p>
-    </div>
-
-    <div class="guide-grid">
-      <div class="guide-card">
-        <h2>For <span>Employers</span></h2>
-        <ul class="guide-list">
-          <li><span class="check">1</span><span>Create a task by adding the subject, deadline, pages or words, academic style, price, and instructions.</span></li>
-          <li><span class="check">2</span><span>Upload instruction files so writers can review the task details before accepting or starting work.</span></li>
-          <li><span class="check">3</span><span>Assign work to an available writer or choose a preferred writer you have successfully worked with before.</span></li>
-          <li><span class="check">4</span><span>Use the order-based message button to chat with the writer about that specific task automatically.</span></li>
-          <li><span class="check">5</span><span>Review submitted files, download completed work, request revisions, mark orders as paid, or open a dispute if needed.</span></li>
-          <li><span class="check">6</span><span>Rate writers and leave comments after completion to help build trust on the platform.</span></li>
-        </ul>
-      </div>
-
-      <div class="guide-card">
-        <h2>For <span>Writers</span></h2>
-        <ul class="guide-list">
-          <li><span class="check">1</span><span>Create your profile with a clear image, bio, personal details, and writing strengths.</span></li>
-          <li><span class="check">2</span><span>Browse available orders and read the full instructions before accepting the task.</span></li>
-          <li><span class="check">3</span><span>Download instruction files, track deadlines, and communicate with the employer inside the order conversation.</span></li>
-          <li><span class="check">4</span><span>Submit completed work through the task submission area and keep a downloadable copy of your uploaded file.</span></li>
-          <li><span class="check">5</span><span>Respond to revision requests when an employer needs changes made to submitted work.</span></li>
-          <li><span class="check">6</span><span>Rate employers after working with them based on communication, clarity, professionalism, and payment reliability.</span></li>
-        </ul>
-      </div>
-
-      <div class="guide-card full">
-        <h2>Important <span>Platform Features</span></h2>
-        <div class="guide-feature-strip">
-          <div class="guide-mini">
-            <strong>📌 Unique order IDs</strong>
-            <span>Every task gets a trackable order number to make follow-up easier.</span>
-          </div>
-          <div class="guide-mini">
-            <strong>💬 Smart messaging</strong>
-            <span>Messages opened from an order automatically attach to that order.</span>
-          </div>
-          <div class="guide-mini">
-            <strong>🧾 Auto invoices</strong>
-            <span>The site creates downloadable invoices from completed and paid order records.</span>
-          </div>
-          <div class="guide-mini">
-            <strong>⭐ Ratings</strong>
-            <span>Employers rate writers, and writers rate employers after working together.</span>
-          </div>
-        </div>
-
-        <ul class="guide-list" style="margin-top:18px;">
-          <li><span class="check">✓</span><span><strong>Preferred writers:</strong> employers can assign new work to writers they already trust.</span></li>
-          <li><span class="check">✓</span><span><strong>Revisions:</strong> employers can send work back for correction without opening a dispute immediately.</span></li>
-          <li><span class="check">✓</span><span><strong>Disputes:</strong> either side can move serious issues to the disputed tasks area for clearer tracking.</span></li>
-          <li><span class="check">✓</span><span><strong>Late task tracking:</strong> the platform can mark tasks late when they are submitted after the instructed deadline.</span></li>
-          <li><span class="check">✓</span><span><strong>Unread badges:</strong> message and task badges help users notice important updates quickly.</span></li>
-          <li><span class="check">✓</span><span><strong>File access:</strong> employers can download submitted work, and writers can view/download their own submitted files.</span></li>
-        </ul>
-      </div>
-    </div>
+    <div id="platform-guide-dynamic"></div>
   </div>
 
 
@@ -5264,8 +5204,8 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <select class="form-select" id="emp-level"><option>High School</option><option>Undergraduate</option><option>Masters</option><option>PhD</option><option>Professional</option></select></div>
         <div class="form-group"><label class="form-label">Number of Words</label><input type="number" class="form-input" id="emp-words" placeholder="e.g. 1500" min="100" oninput="empCalcTotal()"></div>
         <div class="form-group"><label class="form-label">Number of Pages</label><input type="number" class="form-input" id="emp-pages" placeholder="e.g. 5" min="1" oninput="empCalcTotal()"></div>
-        <div class="form-group"><label class="form-label">Price per Page (KES)</label><input type="number" class="form-input" id="emp-price" placeholder="e.g. 300" min="0" oninput="empCalcTotal()"></div>
-        <div class="form-group"><label class="form-label">Total Amount (KES)</label><input type="text" class="form-input" id="emp-total" placeholder="Auto-calculated" readonly style="background:var(--teal-pale);font-weight:600;color:var(--teal-dark);"></div>
+        <div class="form-group"><label class="form-label" id="emp-price-label">Price per Page (KES)</label><input type="number" class="form-input" id="emp-price" placeholder="e.g. 300" min="0" oninput="empCalcTotal()"></div>
+        <div class="form-group"><label class="form-label" id="emp-total-label">Total Amount (KES)</label><input type="text" class="form-input" id="emp-total" placeholder="Auto-calculated" readonly style="background:var(--teal-pale);font-weight:600;color:var(--teal-dark);"></div>
         <div class="form-group"><label class="form-label">Citation Style</label>
           <select class="form-select" id="emp-style">
             <option value="APA">APA</option><option value="MLA">MLA</option><option value="Harvard">Harvard</option>
@@ -8430,7 +8370,7 @@ function navigate(page, options = {}) {
   autoMarkLateTasks(true);
   // Page-specific init
   switch(page) {
-    case 'guide':           break;
+    case 'guide':           renderPlatformGuidePage(); break;
     case 'faq':             break;
     case 'rules':           break;
     case 'cancelled':       renderCancelledOrdersPage(); break;
@@ -12921,6 +12861,511 @@ verify2FA = async function() {
       if (!currentUser || app?.style.display !== 'block') restoreAuthScreenAfterFailedAuth('verify');
     }, 180);
   }
+};
+
+
+
+// ══════════════════════════════════════════════════════
+//  INTERNATIONAL STUDENT CURRENCY + PRIVATE PRICING PATCH
+// ══════════════════════════════════════════════════════
+const JW_STANDARD_STUDENT_WRITER_RATE_KES = 300;
+let _studentFinanceRows = [];
+
+const JW_COUNTRY_CURRENCY_MAP = {
+  'kenya': ['KES', 'KES'],
+  'united states': ['USD', '$'], 'usa': ['USD', '$'], 'us': ['USD', '$'], 'america': ['USD', '$'],
+  'united kingdom': ['GBP', '£'], 'uk': ['GBP', '£'], 'england': ['GBP', '£'], 'scotland': ['GBP', '£'], 'wales': ['GBP', '£'],
+  'canada': ['CAD', 'C$'],
+  'australia': ['AUD', 'A$'],
+  'new zealand': ['NZD', 'NZ$'],
+  'europe': ['EUR', '€'], 'germany': ['EUR', '€'], 'france': ['EUR', '€'], 'italy': ['EUR', '€'], 'spain': ['EUR', '€'], 'ireland': ['EUR', '€'], 'netherlands': ['EUR', '€'],
+  'uae': ['AED', 'AED'], 'united arab emirates': ['AED', 'AED'], 'dubai': ['AED', 'AED'],
+  'saudi arabia': ['SAR', 'SAR'], 'qatar': ['QAR', 'QAR'], 'kuwait': ['KWD', 'KWD'], 'oman': ['OMR', 'OMR'], 'bahrain': ['BHD', 'BHD'],
+  'china': ['CNY', '¥'], 'japan': ['JPY', '¥'], 'south korea': ['KRW', '₩'],
+  'india': ['INR', '₹'], 'pakistan': ['PKR', 'PKR'], 'bangladesh': ['BDT', 'BDT'],
+  'nigeria': ['NGN', '₦'], 'ghana': ['GHS', 'GHS'], 'south africa': ['ZAR', 'R'], 'uganda': ['UGX', 'UGX'], 'tanzania': ['TZS', 'TZS'], 'rwanda': ['RWF', 'RWF']
+};
+
+function countryCurrencyInfo(country = '') {
+  const key = String(country || '').trim().toLowerCase();
+  const exact = JW_COUNTRY_CURRENCY_MAP[key];
+  if (exact) return { code: exact[0], symbol: exact[1] };
+  const partialKey = Object.keys(JW_COUNTRY_CURRENCY_MAP).find(k => key.includes(k) || k.includes(key));
+  if (partialKey) {
+    const v = JW_COUNTRY_CURRENCY_MAP[partialKey];
+    return { code: v[0], symbol: v[1] };
+  }
+  return { code: 'USD', symbol: '$' };
+}
+
+function userCurrencyInfo(user = currentUser) {
+  const profile = normalizeProfile(user?.profile);
+  if (profile.currency_code) return { code: profile.currency_code, symbol: profile.currency_symbol || profile.currency_code };
+  return countryCurrencyInfo(profile.country || user?.country || '');
+}
+
+function currencyAmount(amount, info = userCurrencyInfo()) {
+  const n = Number(amount || 0);
+  return `${info.symbol || info.code || 'USD'} ${n.toLocaleString()}${info.symbol && info.symbol !== info.code ? ' ' + info.code : ''}`;
+}
+
+function isStudentTask(t) {
+  return !!t && (t.student_order === true || t.order_type === 'international_student');
+}
+
+function writerVisibleRate(t) {
+  if (isStudentTask(t)) return JW_STANDARD_STUDENT_WRITER_RATE_KES;
+  return Number(t?.price_per_page || 0);
+}
+
+function writerVisiblePayout(t) {
+  const pages = Number(t?.pages || 0);
+  if (isStudentTask(t)) return pages * JW_STANDARD_STUDENT_WRITER_RATE_KES;
+  const storedPayout = Number(t?.writer_payout || 0);
+  return storedPayout > 0 ? storedPayout : Number(t?.total || 0);
+}
+
+function writerPayoutText(t) {
+  return `KES ${writerVisiblePayout(t).toLocaleString()}`;
+}
+
+function writerRateText(t) {
+  return `KES ${writerVisibleRate(t).toLocaleString()}/page`;
+}
+
+function studentFinanceForTask(id) {
+  return (_studentFinanceRows || []).find(r => String(r.task_id || '') === String(id || '')) || null;
+}
+
+function studentTaskCurrencyInfo(t) {
+  const f = studentFinanceForTask(t?.id);
+  if (f?.currency_code) return { code: f.currency_code, symbol: f.currency_symbol || f.currency_code };
+  if (t?.student_currency_code) return { code: t.student_currency_code, symbol: t.student_currency_symbol || t.student_currency_code };
+  return userCurrencyInfo();
+}
+
+function studentTaskAmountText(t) {
+  const f = studentFinanceForTask(t?.id);
+  const info = studentTaskCurrencyInfo(t);
+  const amount = Number(f?.student_total || t?.student_total || t?.client_total || t?.total || 0);
+  return currencyAmount(amount, info);
+}
+
+function studentTaskRateText(t) {
+  const f = studentFinanceForTask(t?.id);
+  const info = studentTaskCurrencyInfo(t);
+  const rate = Number(f?.student_price_per_page || t?.student_price_per_page || t?.client_price_per_page || t?.price_per_page || 0);
+  return currencyAmount(rate, info) + '/page';
+}
+
+async function dbGetStudentAssignmentFinancials() {
+  const { data, error } = await _sb
+    .from('jw_student_assignment_financials')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbInsertStudentAssignmentFinancial(row) {
+  const { data, error } = await _sb
+    .from('jw_student_assignment_financials')
+    .insert([row])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+const _jwStudentOrigRefreshTasks = refreshTasks;
+refreshTasks = async function() {
+  await _jwStudentOrigRefreshTasks();
+  try {
+    _studentFinanceRows = await dbGetStudentAssignmentFinancials();
+  } catch (err) {
+    _studentFinanceRows = [];
+    console.warn('Student finance table not available or blocked by RLS:', err.message);
+  }
+};
+
+function updateAssignmentCurrencyLabels() {
+  const priceLabel = document.getElementById('emp-price-label');
+  const totalLabel = document.getElementById('emp-total-label');
+  const priceInput = document.getElementById('emp-price');
+  const totalInput = document.getElementById('emp-total');
+  if (!priceLabel || !totalLabel) return;
+  if (currentUser?.role === 'student') {
+    const info = userCurrencyInfo();
+    priceLabel.textContent = `Student Price per Page (${info.code})`;
+    totalLabel.textContent = `Student Total Amount (${info.code})`;
+    if (priceInput) priceInput.placeholder = `${info.symbol || info.code} per page`;
+    if (totalInput) totalInput.placeholder = `${info.symbol || info.code} auto-calculated`;
+  } else {
+    priceLabel.textContent = 'Price per Page (KES)';
+    totalLabel.textContent = 'Total Amount (KES)';
+    if (priceInput) priceInput.placeholder = 'e.g. 300';
+    if (totalInput) totalInput.placeholder = 'Auto-calculated';
+  }
+}
+
+const _jwStudentOrigEmpInitForm = empInitForm;
+empInitForm = function() {
+  _jwStudentOrigEmpInitForm();
+  updateAssignmentCurrencyLabels();
+  empCalcTotal();
+};
+
+empCalcTotal = function() {
+  const pages = parseFloat(document.getElementById('emp-pages')?.value) || 0;
+  const price = parseFloat(document.getElementById('emp-price')?.value) || 0;
+  const total = pages * price;
+  const totalEl = document.getElementById('emp-total');
+  if (!totalEl) return;
+  if (currentUser?.role === 'student') {
+    const info = userCurrencyInfo();
+    totalEl.value = total > 0 ? currencyAmount(total, info) : '';
+  } else {
+    totalEl.value = total > 0 ? total.toLocaleString() : '';
+  }
+};
+
+const _jwStudentOrigStudentSignupExtraProfile = studentSignupExtraProfile;
+studentSignupExtraProfile = function() {
+  const profile = _jwStudentOrigStudentSignupExtraProfile();
+  if (_selectedRole === 'student') {
+    const info = countryCurrencyInfo(profile.country || '');
+    profile.currency_code = info.code;
+    profile.currency_symbol = info.symbol;
+  }
+  return profile;
+};
+
+function renderPlatformGuidePage() {
+  const wrap = document.getElementById('platform-guide-dynamic');
+  if (!wrap) return;
+  if (currentUser?.role === 'student') {
+    const c = userCurrencyInfo();
+    wrap.innerHTML = `
+      <div class="guide-hero">
+        <h1>International Student Guide</h1>
+        <p>This guide explains how to post assignments, fund your student wallet, communicate with admin, track work, request revisions, and approve completed tasks.</p>
+      </div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h2>Posting <span>Assignments</span></h2>
+          <ul class="guide-list">
+            <li><span class="check">1</span><span>Choose <strong>Post Assignment</strong> and add the topic, academic level, number of pages, citation style, deadline, and instructions.</span></li>
+            <li><span class="check">2</span><span>Upload assignment files, marking guides, screenshots, lecture notes, or other instructions before submitting the order.</span></li>
+            <li><span class="check">3</span><span>Your pricing area uses your student currency. Your current account currency is <strong>${esc(c.code)}</strong>.</span></li>
+            <li><span class="check">4</span><span>Writers do not see what you paid per page. They only see the standard writer payout set by the platform.</span></li>
+          </ul>
+        </div>
+        <div class="guide-card">
+          <h2>Wallet & <span>Payments</span></h2>
+          <ul class="guide-list">
+            <li><span class="check">1</span><span>Open <strong>Wallet</strong> to request a top-up in your own currency.</span></li>
+            <li><span class="check">2</span><span>Because international students may not use the Kenyan Till directly, admin will message you with the best payment method for your country.</span></li>
+            <li><span class="check">3</span><span>After payment, admin reviews the transaction and credits your student wallet.</span></li>
+            <li><span class="check">4</span><span>Keep all payment communication inside the platform messages for safety and record keeping.</span></li>
+          </ul>
+        </div>
+        <div class="guide-card">
+          <h2>Tracking <span>Work</span></h2>
+          <ul class="guide-list">
+            <li><span class="check">1</span><span>Use <strong>My Orders</strong> to track pending, active, completed, revision, cancelled, and disputed assignments.</span></li>
+            <li><span class="check">2</span><span>Use the message button inside an assignment so each conversation remains attached to the correct order number.</span></li>
+            <li><span class="check">3</span><span>When work is submitted, download and review the file before approving it.</span></li>
+            <li><span class="check">4</span><span>If changes are needed, request a revision instead of opening a dispute immediately.</span></li>
+          </ul>
+        </div>
+        <div class="guide-card">
+          <h2>Approval, Revisions & <span>Disputes</span></h2>
+          <ul class="guide-list">
+            <li><span class="check">1</span><span>Approve the assignment only after checking that the submitted work follows your instructions.</span></li>
+            <li><span class="check">2</span><span>Use <strong>Request Revision</strong> when the writer needs to correct or improve the work.</span></li>
+            <li><span class="check">3</span><span>Use <strong>Dispute</strong> only for serious issues that need admin review.</span></li>
+            <li><span class="check">4</span><span>Admin controls payment release to writers after approval or dispute resolution.</span></li>
+          </ul>
+        </div>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="guide-hero">
+      <h1>How Janelle Writes Works</h1>
+      <p>A quick guide for employers and writers. Use this page whenever you need to understand orders, messaging, invoices, revisions, disputes, ratings, and preferred writers.</p>
+    </div>
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h2>For <span>Employers</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span>Create a task by adding the subject, deadline, pages or words, academic style, price, and instructions.</span></li>
+          <li><span class="check">2</span><span>Upload instruction files so writers can review the task details before accepting or starting work.</span></li>
+          <li><span class="check">3</span><span>Assign work to an available writer or choose a preferred writer you have successfully worked with before.</span></li>
+          <li><span class="check">4</span><span>Use the order-based message button to chat with the writer about that specific task automatically.</span></li>
+          <li><span class="check">5</span><span>Review submitted files, download completed work, request revisions, mark orders as paid, or open a dispute if needed.</span></li>
+          <li><span class="check">6</span><span>Rate writers and leave comments after completion to help build trust on the platform.</span></li>
+        </ul>
+      </div>
+      <div class="guide-card">
+        <h2>For <span>Writers</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span>Create your profile with a clear image, bio, personal details, and writing strengths.</span></li>
+          <li><span class="check">2</span><span>Browse available orders and read the full instructions before accepting the task.</span></li>
+          <li><span class="check">3</span><span>Download instruction files, track deadlines, and communicate with the employer inside the order conversation.</span></li>
+          <li><span class="check">4</span><span>Submit completed work through the task submission area and keep a downloadable copy of your uploaded file.</span></li>
+          <li><span class="check">5</span><span>Respond to revision requests when an employer needs changes made to submitted work.</span></li>
+          <li><span class="check">6</span><span>Rate employers after working with them based on communication, clarity, professionalism, and payment reliability.</span></li>
+        </ul>
+      </div>
+    </div>`;
+}
+
+renderAvailableOrders = function() {
+  const search = (document.getElementById('avail-search')?.value || '').toLowerCase();
+  const filterStyle = document.getElementById('avail-filter-style')?.value || '';
+  const filterLevel = document.getElementById('avail-filter-level')?.value || '';
+  let list = tasks.filter(t => !t.taken_by && t.status === 'pending');
+  if (search) list = list.filter(t => String(t.id).toLowerCase().includes(search) || String(t.subject).toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search));
+  if (filterStyle) list = list.filter(t => t.style === filterStyle);
+  if (filterLevel) list = list.filter(t => t.level === filterLevel);
+  const wrap = document.getElementById('avail-orders-wrap');
+  if (!wrap) return;
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No available orders right now. Check back soon!</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="orders-grid">${list.map(t => {
+    const student = isStudentTask(t);
+    return `
+    <div class="order-card">
+      <div class="order-card-header"><div class="order-card-id">${esc(t.id)}</div><span class="badge badge-style">${esc(t.style)}</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${student ? 'Posted by: International Student' : 'Employer: ' + esc(t.posted_by_name || t.posted_by || '—')} · ${ratingChipForUser(t.posted_by, 'employer')}</div>
+      ${publicRatingPanelForUser(t.posted_by, 'employer', { compact:false, limit:1 })}
+      <div class="order-card-subject">${esc(t.subject)}</div>
+      <div class="order-card-desc">${esc(t.description || 'No description provided.')}</div>
+      <div class="order-card-meta">
+        <div class="order-card-meta-item"><strong>${esc(t.level)}</strong>Level</div>
+        <div class="order-card-meta-item"><strong>${Number(t.pages || 0)} pages</strong>Length</div>
+        <div class="order-card-meta-item"><strong>${Number(t.words || 0).toLocaleString() || '—'}</strong>Words</div>
+        <div class="order-card-meta-item" style="color:var(--rust);"><strong style="color:var(--rust);">${fmtDate(t.deadline)}</strong>Deadline</div>
+      </div>
+      ${t.requirements ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">📌 ${esc(t.requirements)}</div>` : ''}
+      ${parseInstructionFiles(t.instruction_files).length ? `<div style="font-size:11px;color:var(--teal-dark);margin-bottom:12px;font-weight:700;">📎 ${parseInstructionFiles(t.instruction_files).length} instruction file(s) attached</div>` : ''}
+      <div class="order-card-footer">
+        <div>
+          <div class="order-card-amount">${writerPayoutText(t)} <span>/ ${Number(t.pages || 0)} pages</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${student ? 'Standard writer payout · ' : ''}${writerRateText(t)}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openTakeOrderModal('${escJS(t.id)}')">Read Instructions →</button>
+      </div>
+    </div>`; }).join('')}</div>`;
+  updateBadges();
+};
+
+openTakeOrderModal = function(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  _pendingTakeId = id;
+  const student = isStudentTask(t);
+  document.querySelector('#modal-take-order .modal-title').textContent = 'Read Instructions Before Accepting';
+  document.querySelector('#modal-take-order .modal-sub').textContent = 'Review the full brief and any instruction files before taking this order.';
+  document.getElementById('take-order-details').innerHTML = `
+    <div style="background:var(--teal-pale);border-radius:10px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--teal-dark);margin-bottom:8px;">${esc(t.id)} — ${esc(t.subject)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+        <div><span class="text-muted">Level: </span>${esc(t.level)}</div><div><span class="text-muted">Style: </span>${esc(t.style)}</div>
+        <div><span class="text-muted">Pages: </span>${esc(t.pages)}</div><div><span class="text-muted">Words: </span>${Number(t.words || 0).toLocaleString() || '—'}</div>
+        <div><span class="text-muted">Deadline: </span><span style="color:var(--rust);">${fmtDate(t.deadline)}</span></div><div><span class="text-muted">Posted by: </span>${student ? 'International Student' : esc(t.posted_by_name || t.posted_by || '—')}</div>
+      </div>
+      ${publicRatingPanelForUser(t.posted_by, 'employer', { limit:2 })}
+      <div style="margin-top:12px;font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--teal-dark);">${writerPayoutText(t)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">${student ? 'Standard writer payout. Student payment details are private.' : writerRateText(t)}</div>
+    </div>
+    <div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Task Description / Instructions</div><div style="font-size:13px;color:var(--charcoal);line-height:1.65;background:var(--cream);padding:12px;border-radius:8px;max-height:220px;overflow-y:auto;white-space:pre-wrap;">${esc(t.description || 'No written instructions were provided.')}</div></div>
+    ${t.requirements ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Special Requirements</div><div style="font-size:13px;color:var(--charcoal);line-height:1.55;background:#fff3e0;padding:12px;border-radius:8px;">${esc(t.requirements)}</div></div>` : ''}
+    ${renderInstructionFiles(t)}
+    <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px;">Only accept the order after you are comfortable with the instructions, attached files, deadline, and writer payout.</div>`;
+  document.getElementById('modal-take-order').classList.add('open');
+};
+
+const _jwStudentOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwStudentOrigEmpViewTask(id);
+  const t = tasks.find(x => x.id === id);
+  if (!t || !isStudentTask(t)) return;
+  const body = document.getElementById('vtm-body');
+  if (!body) return;
+  const amountLabel = Array.from(body.querySelectorAll('.text-muted')).find(el => el.textContent.trim() === 'Amount');
+  if (amountLabel?.nextElementSibling) {
+    if (currentUser?.role === 'writer') {
+      amountLabel.nextElementSibling.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">${writerPayoutText(t)}</span><div style="font-size:11px;color:var(--muted);">Standard writer payout · ${writerRateText(t)}</div>`;
+    } else if (isJwAdmin?.()) {
+      amountLabel.nextElementSibling.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">${studentTaskAmountText(t)}</span><div style="font-size:11px;color:var(--muted);">Student paid ${studentTaskRateText(t)} · Writer sees ${writerRateText(t)}</div>`;
+    } else if (currentUser?.role === 'student') {
+      amountLabel.nextElementSibling.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--teal-dark);">${studentTaskAmountText(t)}</span><div style="font-size:11px;color:var(--muted);">Your student order total</div>`;
+    }
+  }
+};
+
+renderWriterTasks = function() {
+  let list = tasks.filter(t => t.taken_by === currentUser.email);
+  if (_writerTaskFilter !== 'all') list = _writerTaskFilter === 'disputed' ? list.filter(t => hasOpenDispute(t)) : (_writerTaskFilter === 'late' ? list.filter(t => taskIsLate(t)) : list.filter(t => t.status === _writerTaskFilter));
+  const tbody = document.getElementById('writer-tasks-table');
+  if (!tbody) return;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>No tasks yet. Browse Available Orders to find work.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(t => `
+    <tr>
+      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${escJS(t.id)}')">${esc(t.id)}</button></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject)}<span class="public-rating-mini">${isStudentTask(t) ? 'International Student' : 'Employer: ' + esc(t.posted_by_name || t.posted_by || '—')} · ${ratingChipForUser(t.posted_by, 'employer')}</span></td>
+      <td><span class="badge badge-style">${esc(t.style)}</span></td><td>${Number(t.pages || 0)}</td><td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td><td>${statusBadgeForTask(t)}</td>
+      <td style="font-weight:600;">${writerPayoutText(t)}${isStudentTask(t) ? '<div style="font-size:11px;color:var(--muted);">Standard payout</div>' : ''}</td>
+      <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(t.id)}')">View</button>${!hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${escJS(t.id)}')">Dispute</button>` : `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>`}${t.status === 'completed' ? `<button class="btn btn-primary btn-sm" onclick="openRatingModal('${escJS(t.id)}','employer')">Rate</button>` : ''}</div></td>
+    </tr>`).join('');
+};
+
+const _jwStudentOrigRenderStudentDashboard = renderStudentDashboard;
+renderStudentDashboard = function() {
+  _jwStudentOrigRenderStudentDashboard();
+  const tbody = document.getElementById('student-dash-table');
+  if (!tbody || currentUser?.role !== 'student') return;
+  const amountCells = tbody.querySelectorAll('td.text-gold');
+  const recent = [...myTaskList()].reverse().slice(0, 6);
+  recent.forEach((t, i) => {
+    if (amountCells[i]) amountCells[i].textContent = studentTaskAmountText(t);
+  });
+};
+
+const _jwStudentOrigEmpPostTask = empPostTask;
+empPostTask = async function() {
+  if (currentUser?.role !== 'student') return _jwStudentOrigEmpPostTask();
+  const subject  = document.getElementById('emp-subject').value.trim();
+  const words    = parseInt(document.getElementById('emp-words').value) || 0;
+  const pages    = parseInt(document.getElementById('emp-pages').value) || 0;
+  const studentPrice = parseFloat(document.getElementById('emp-price').value) || 0;
+  const deadline = document.getElementById('emp-deadline').value;
+  const desc     = document.getElementById('emp-desc').value.trim();
+  if (!subject) { notify('⚠️ Please enter a subject'); return; }
+  if (!pages)   { notify('⚠️ Please enter number of pages'); return; }
+  if (!studentPrice) { notify('⚠️ Please enter your student price per page.'); return; }
+  if (!deadline) { notify('⚠️ Please set a deadline'); return; }
+
+  const taskId = nextOrderNum();
+  let instructionFiles = [];
+  try { instructionFiles = await storedInstructionFiles(taskId); }
+  catch (err) { notify('❌ ' + (err?.message || 'Could not save instruction files')); return; }
+
+  const currency = userCurrencyInfo();
+  const writerTotal = pages * JW_STANDARD_STUDENT_WRITER_RATE_KES;
+  const studentTotal = pages * studentPrice;
+  const task = {
+    id: taskId, subject,
+    level: document.getElementById('emp-level').value,
+    words, pages,
+    price_per_page: JW_STANDARD_STUDENT_WRITER_RATE_KES,
+    total: writerTotal,
+    writer_page_rate: JW_STANDARD_STUDENT_WRITER_RATE_KES,
+    writer_payout_estimate: writerTotal,
+    commission_rate: 0,
+    commission_amount: 0,
+    writer_payout: writerTotal,
+    style: document.getElementById('emp-style').value,
+    deadline, description: desc,
+    requirements: document.getElementById('emp-requirements').value.trim(),
+    order_date: document.getElementById('emp-date').value,
+    status: 'pending', payment: 'unpaid', mpesa_code: '',
+    posted_by: currentUser.email,
+    posted_by_name: 'International Student',
+    order_type: 'international_student',
+    student_order: true,
+    student_currency_code: currency.code,
+    student_currency_symbol: currency.symbol,
+    taken_by: null, taken_by_name: null,
+    instruction_files: instructionFiles,
+    submitted_files: [], submitted_link: '', submitted_text: '', submitted_notes: '',
+    revision_notes: '', revision_at: null, ratings: {}, disputes: []
+  };
+
+  setLoading(true);
+  try {
+    const saved = await dbInsertTaskSafe(task);
+    upsertLocalTask(saved);
+    try {
+      const finance = await dbInsertStudentAssignmentFinancial({
+        task_id: saved.id,
+        student_email: currentUser.email.toLowerCase(),
+        student_name: currentUser.name || '',
+        country: normalizeProfile(currentUser.profile).country || '',
+        currency_code: currency.code,
+        currency_symbol: currency.symbol,
+        student_price_per_page: studentPrice,
+        student_total: studentTotal,
+        writer_rate_kes: JW_STANDARD_STUDENT_WRITER_RATE_KES,
+        writer_total_kes: writerTotal,
+        status: 'pending_payment',
+        metadata: { pages, subject }
+      });
+      _studentFinanceRows.unshift(finance);
+    } catch (financeErr) {
+      console.warn('Student financial record not saved:', financeErr);
+      notify('⚠️ Assignment posted, but private student pricing was not saved. Run the student finance SQL.');
+    }
+    tasks = dedupeTasks(tasks);
+    empClearForm();
+    updateBadges();
+    notify('✦ Assignment ' + saved.id + ' posted successfully! Admin can review the student pricing privately.', 'order');
+    navigate('emp-tasks');
+  } catch (err) {
+    notify('❌ Error posting assignment: ' + err.message);
+  } finally { setLoading(false); }
+};
+
+renderWriterEarningsPage = function() {
+  const myDone = tasks.filter(t => t.taken_by === currentUser.email && t.status === 'completed');
+  const netTotal = myDone.reduce((s,t) => s + writerVisiblePayout(t), 0);
+  const paidNet = myDone.filter(t => t.payment === 'paid').reduce((s,t) => s + writerVisiblePayout(t), 0);
+  const pendingNet = Math.max(0, netTotal - paidNet);
+  const el = document.getElementById('writer-earnings-wrap');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="writer-earnings-card" style="margin-bottom:20px;"><div class="wec-label">Your Total Earnings</div><div class="wec-amount">KES ${netTotal.toLocaleString()}</div><div class="wec-sub">Student assignments use the standard KES ${JW_STANDARD_STUDENT_WRITER_RATE_KES}/page payout.</div><div class="wec-rows"><div class="wec-row"><span>✅ Paid out</span><span>KES ${paidNet.toLocaleString()}</span></div><div class="wec-row"><span>⏳ Pending</span><span>KES ${pendingNet.toLocaleString()}</span></div></div></div>
+    <div class="card" style="overflow:hidden;padding:0;"><div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Completed Orders</div>
+    ${!myDone.length ? '<div class="empty-state" style="padding:40px;"><div class="empty-icon">💰</div><p>Complete your first order to see earnings here.</p></div>' : `<div class="earnings-table-wrap"><table style="width:100%;border-collapse:collapse;min-width:720px;"><thead><tr style="background:var(--ink);"><th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Order</th><th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Subject</th><th style="padding:12px 14px;text-align:right;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Rate</th><th style="padding:12px 14px;text-align:right;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Your Payout</th><th style="padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#d9b56b;">Status</th></tr></thead><tbody>${myDone.map(t => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:12px 14px;font-size:13px;font-weight:700;">${esc(t.id)}</td><td style="padding:12px 14px;font-size:13px;">${esc(t.subject)}${isStudentTask(t) ? '<div style="font-size:11px;color:var(--muted);">International student assignment</div>' : ''}</td><td style="padding:12px 14px;text-align:right;font-size:13px;color:var(--muted);">${writerRateText(t)}</td><td style="padding:12px 14px;text-align:right;font-size:14px;font-weight:800;color:var(--teal-dark);">${writerPayoutText(t)}</td><td style="padding:12px 14px;">${payBadge(t.payment)}</td></tr>`).join('')}</tbody></table></div>`}</div>`;
+};
+
+const _jwStudentOrigRenderWalletPage = renderWalletPage;
+renderWalletPage = async function() {
+  if (currentUser?.role !== 'student') return _jwStudentOrigRenderWalletPage();
+  const wrap = document.getElementById('wallet-wrap');
+  if (!wrap || !currentUser) return;
+  wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💳</div><p>Loading wallet...</p></div>`;
+  let rows = [];
+  try { rows = (await dbGetWalletTransactionsForUser()).map(normalizeWalletTx); }
+  catch (err) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Wallet table is not ready yet. Run the wallet SQL setup, then refresh.</p><p class="text-muted">${esc(err.message)}</p></div>`; return; }
+  const info = userCurrencyInfo();
+  const available = Math.max(0, walletBalance(rows, true));
+  const pendingTopups = rows.filter(tx => tx.type === 'topup' && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:20px;"><div class="admin-control-card"><strong>${currencyAmount(available, info)}</strong><span>Available Student Balance</span></div><div class="admin-control-card"><strong>${currencyAmount(pendingTopups, info)}</strong><span>Pending Top Ups</span></div><div class="admin-control-card"><strong>${esc(info.code)}</strong><span>Your Wallet Currency</span></div></div>
+    <div class="wallet-action-grid" style="grid-template-columns:1fr;">
+      <div class="card"><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Request Student Wallet Top Up</div><p class="text-muted" style="margin-bottom:14px;">Enter the amount you want to load. Admin will message you with the most suitable payment channel for your country, because international students may not be able to use the Kenyan Till directly.</p><div class="form-group"><label class="form-label">Amount (${esc(info.code)})</label><input class="form-input" id="wallet-topup-amount" type="number" min="1" placeholder="${esc(info.symbol || info.code)}"></div><div class="form-group"><label class="form-label">Payment Note / Preferred Channel</label><input class="form-input" id="wallet-topup-code" placeholder="e.g. Wise, bank transfer, PayPal, card, family in Kenya"></div><button class="btn btn-primary btn-full" onclick="walletSubmitTopup()">Request Top Up Guidance</button></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Wallet History</div>${rows.length ? `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;min-width:820px;"><thead><tr style="background:var(--ink);"><th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Type</th><th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th><th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Reference</th><th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Status</th><th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Date</th></tr></thead><tbody>${rows.map(tx => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:12px 14px;font-weight:700;">${esc(walletTypeLabel(tx.type))}</td><td style="padding:12px 14px;text-align:right;font-weight:700;">${currencyAmount(walletTxAmount(tx), info)}</td><td style="padding:12px 14px;font-size:12px;">${esc(walletReference(tx))}</td><td style="padding:12px 14px;">${walletStatusBadge(tx.status)}</td><td style="padding:12px 14px;font-size:12px;color:var(--muted);">${tx.created_at ? fmtDate(tx.created_at) : '—'}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state"><div class="empty-icon">💳</div><p>No wallet transactions yet.</p></div>`}</div>`;
+};
+
+const _jwStudentOrigWalletSubmitTopup = walletSubmitTopup;
+walletSubmitTopup = async function() {
+  if (currentUser?.role !== 'student') return _jwStudentOrigWalletSubmitTopup();
+  const amount = Math.round(Number(document.getElementById('wallet-topup-amount')?.value || 0));
+  const note = String(document.getElementById('wallet-topup-code')?.value || '').trim();
+  if (!amount || amount < 1) { notify('⚠️ Enter a valid top-up amount'); return; }
+  const info = userCurrencyInfo();
+  await dbInsertWalletTransaction({ tx_ref: walletTxId(), user_email: currentUser.email.toLowerCase(), type: 'topup', amount, status: 'pending_review', code: '', till: '', note: note || 'Student top-up request', metadata: { currency_code: info.code, currency_symbol: info.symbol, country: normalizeProfile(currentUser.profile).country || '', student_topup: true } });
+  notify('✅ Top-up request submitted. Admin will message you with the best payment channel for your country.');
+  renderWalletPage();
 };
 
 </script>
