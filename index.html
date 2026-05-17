@@ -8508,12 +8508,12 @@ function navigate(page, options = {}) {
     case 'writer-revisions': renderRevisions(); break;
     case 'writer-tracker':  populateWriterTrackerSelect(); break;
     case 'writer-payment':  renderWriterPaymentPage(); break;
-    case 'writer-earnings': renderWriterEarningsPage(); break;
-    case 'admin-commission': renderCommissionDashboard(); break;
-    case 'admin-wallet':     renderAdminWalletPage(); break;
-    case 'admin-control':    renderAdminControlPage(); break;
-    case 'admin-student-orders': renderAdminStudentOrdersPage(); break;
-    case 'admin-student-messages': renderAdminStudentMessagesPage(); break;
+    case 'writer-earnings': if (typeof renderWriterEarningsPage === 'function') renderWriterEarningsPage(); break;
+    case 'admin-commission': if (typeof renderCommissionDashboard === 'function') renderCommissionDashboard(); break;
+    case 'admin-wallet':     if (typeof renderAdminWalletPage === 'function') renderAdminWalletPage(); break;
+    case 'admin-control':    if (typeof renderAdminControlPage === 'function') renderAdminControlPage(); break;
+    case 'admin-student-orders': if (typeof renderAdminStudentOrdersPage === 'function') renderAdminStudentOrdersPage(); break;
+    case 'admin-student-messages': if (typeof renderAdminStudentMessagesPage === 'function') renderAdminStudentMessagesPage(); break;
   }
 }
 
@@ -13767,6 +13767,50 @@ if (currentUser && isJwAdminEmail(currentUser.email)) {
   currentUser = forceAdminUserShape(currentUser);
   localStorage.setItem('jw_session', JSON.stringify(currentUser));
 }
+
+
+
+// ══════════════════════════════════════════════════════
+//  ADMIN BLANK-SCREEN RESCUE
+// ══════════════════════════════════════════════════════
+(function adminBlankScreenRescue() {
+  try {
+    if (!currentUser || !isJwAdminEmail(currentUser.email)) return;
+
+    currentUser = forceAdminUserShape(currentUser);
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+
+    const landing = document.getElementById('landing-page');
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-shell');
+    if (landing) landing.style.display = 'none';
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = 'block';
+
+    document.documentElement.classList.remove('jw-booting');
+
+    buildSidebar();
+    buildTopbar();
+    updateUserDisplay();
+
+    const page = document.getElementById('page-admin-control');
+    const anyActive = document.querySelector('.page.active');
+    if (!anyActive && page) page.classList.add('active');
+
+    if (!_currentPage || _currentPage === 'admin-control') {
+      _currentPage = 'admin-control';
+      const title = document.getElementById('page-title');
+      if (title) title.textContent = 'Admin Control Center';
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === 'admin-control'));
+      if (typeof renderAdminControlPage === 'function') renderAdminControlPage();
+    }
+
+    updateFloatingSupportForRole?.();
+  } catch (err) {
+    console.error('Admin blank-screen rescue failed:', err);
+    document.documentElement.classList.remove('jw-booting');
+  }
+})();
 
 </script>
 <!--End of Tawk.to Script-->
