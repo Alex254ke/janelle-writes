@@ -19,6 +19,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <!-- Supabase JS client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  try { history.scrollRestoration = 'manual'; } catch (err) {}
+  document.documentElement.classList.add('jw-booting');
+</script>
 <style>
 :root {
   --ink: #0f1923;
@@ -48,6 +52,11 @@
 html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
 body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
 body.nav-open { overflow:hidden; }
+html.jw-booting #landing-page,
+html.jw-booting #auth-screen,
+html.jw-booting #app-shell {
+  display:none !important;
+}
 
 /* ── AUTH SCREENS ─────────────────── */
 #auth-screen {
@@ -797,6 +806,10 @@ body.dark-mode .lateness-panel-text, body.dark .lateness-panel-text { color:#eef
   max-width:340px; border-left:3px solid var(--teal);
 }
 .notification.show { transform:translateX(0); }
+.notification.actionable { cursor:pointer; }
+.notification.actionable:hover { transform:translateX(0) translateY(-1px); }
+.notification-title { display:block; font-weight:800; margin-bottom:3px; }
+.notification-sub { display:block; color:rgba(255,255,255,0.78); font-size:12px; line-height:1.45; }
 
 /* ── MODAL ─── */
 .modal-overlay {
@@ -5183,9 +5196,9 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     <div class="section-header"><div class="section-title">Payment <span>Center</span></div></div>
 
     <div class="card payhero-card" style="margin-bottom:20px;">
-      <div class="payhero-card-title">📲 Collect Payment with PayHero STK Push</div>
+      <div class="payhero-card-title">📲 Collect Payment with M-Pesa STK Push</div>
       <div class="payhero-note">
-        Send an M-Pesa prompt to the employer phone number. The employer pays the full order amount; the platform fee and writer payout are handled by the system.
+        Send an M-Pesa prompt to the employer phone number. The order is marked paid only after the system receives a successful payment confirmation.
       </div>
       <div class="form-grid">
         <div class="form-group">
@@ -5219,12 +5232,13 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           </div>
         </div>
 
-        <!-- Record payment -->
+        <!-- Payment confirmation -->
         <div class="card">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:16px;">Record Payment Made</div>
-          <div class="form-group mb-4"><label class="form-label">Select Order</label><select class="form-select" id="emp-pay-select"><option value="">— Select Order —</option></select></div>
-          <div class="form-group mb-4"><label class="form-label">Transaction Code (M-Pesa / Airtel)</label><input type="text" class="form-input" id="emp-pay-code" placeholder="e.g. QHK7XXXXXX" style="text-transform:uppercase;"></div>
-          <button class="btn btn-success btn-full" onclick="empRecordPayment()">✓ Confirm Payment Sent</button>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:10px;">Payment Confirmation</div>
+          <p class="text-muted" style="margin-bottom:14px;">Orders are marked paid only after the system confirms a successful STK payment receipt.</p>
+          <div style="font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:8px;padding:12px;">
+            Employers cannot manually mark an order as paid. Use the STK payment request above, then wait for the provider callback to update the order automatically.
+          </div>
         </div>
       </div>
       <div>
@@ -6075,6 +6089,13 @@ function checkGoogleRedirectSetup() {
   }
 }
 
+function finishInitialPageBoot(scrollTop = true) {
+  document.documentElement.classList.remove('jw-booting');
+  if (scrollTop) {
+    try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (err) { window.scrollTo(0, 0); }
+  }
+}
+
 function cleanAuthReturnUrl() {
   try {
     window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
@@ -6327,6 +6348,7 @@ function showLandingPage() {
   if (landing) landing.style.display = 'block';
   if (auth) auth.style.display = 'none';
   if (app) app.style.display = 'none';
+  finishInitialPageBoot(false);
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
 }
 function openAuthScreen(tab = 'login', role = 'employer') {
@@ -6339,6 +6361,7 @@ function openAuthScreen(tab = 'login', role = 'employer') {
   if (auth) auth.style.display = 'flex';
   switchAuthTab(tab);
   if (tab === 'signup') selectRole(role || 'employer');
+  finishInitialPageBoot(false);
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
 }
 
@@ -7485,12 +7508,13 @@ function handleBackButtonAction(event) {
 
 window.addEventListener('popstate', handleBackButtonAction);
 
-function launchApp() {
+function launchApp(options = {}) {
   hideAuthCallbackLoading();
   const landing = document.getElementById('landing-page');
   if (landing) landing.style.display = 'none';
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
+  finishInitialPageBoot(true);
   buildSidebar();
   buildTopbar();
   updateUserDisplay();
@@ -7505,7 +7529,7 @@ function launchApp() {
     const home = getHomePage();
     navigate(home, { replaceHistory: true });
   });
-  notify('✦ Welcome, ' + currentUser.name + '!');
+  if (!options.silentWelcome) notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
   setTimeout(showRealtimeNotificationPromptIfNeeded, 900);
   startLateTaskWatcher();
@@ -9055,14 +9079,31 @@ function playSound(type = 'default') {
 }
 
 let notifTimer;
-function notify(msg, soundType = 'default') {
+let _notificationAction = null;
+function notify(msg, soundType = 'default', options = {}) {
   const el = document.getElementById('notification');
-  document.getElementById('notif-msg').textContent = msg;
+  const msgEl = document.getElementById('notif-msg');
+  _notificationAction = typeof options.onClick === 'function' ? options.onClick : null;
+  el.classList.toggle('actionable', !!_notificationAction);
+  if (options.title) {
+    msgEl.innerHTML = `<span class="notification-title">${esc(options.title)}</span><span class="notification-sub">${esc(options.body || msg || '')}</span>`;
+  } else {
+    msgEl.textContent = msg;
+  }
   el.classList.add('show');
   if (soundType) playSound(soundType);
   clearTimeout(notifTimer);
   notifTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
+
+document.getElementById('notification')?.addEventListener('click', () => {
+  if (typeof _notificationAction === 'function') {
+    const action = _notificationAction;
+    _notificationAction = null;
+    document.getElementById('notification')?.classList.remove('show', 'actionable');
+    action();
+  }
+});
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
@@ -9350,7 +9391,7 @@ function renderEmpTasks() {
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
           ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
-          ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
+          ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="openPaymentCenterForOrder('${t.id}')">Pay by STK</button>` : ''}
         </div>
       </td>
     </tr>
@@ -9417,20 +9458,14 @@ function empViewTask(id) {
     actions.innerHTML += `<button class="btn btn-danger" onclick="closeModal('modal-view-task');openCancelOrderModal('${t.id}')">🚫 Cancel Order</button>`;
   }
   if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0 && !isCancelledTask(t)) {
-    actions.innerHTML += `<button class="btn btn-success" onclick="empMarkPaid('${t.id}');closeModal('modal-view-task')">✓ Mark Paid</button>`;
+    actions.innerHTML += `<button class="btn btn-success" onclick="openPaymentCenterForOrder('${t.id}')">Pay by STK</button>`;
   }
   modal.classList.add('open');
 }
 
 function empMarkPaid(id) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  dbUpdateTask(id, { payment: 'paid' }).then(() => {
-    t.payment = 'paid';
-    renderEmpTasks();
-    renderEmpDashboard();
-    notify('✓ Payment marked as paid for ' + id);
-  }).catch(err => notify('❌ ' + err.message));
+  notify('Payment is confirmed automatically after a successful STK receipt. Use Payment Center to request payment.');
+  openPaymentCenterForOrder(id);
 }
 
 // ══════════════════════════════════════════════════════
@@ -9463,28 +9498,14 @@ function renderEmpInvoice() {
 //  EMPLOYER: PAYMENT
 // ══════════════════════════════════════════════════════
 function empPopulatePaySelect() {
-  const mine = myTaskList().filter(t => t.payment === 'unpaid' && !isCancelledTask(t));
   const sel = document.getElementById('emp-pay-select');
+  if (!sel) return;
+  const mine = myTaskList().filter(t => t.payment === 'unpaid' && !isCancelledTask(t));
   sel.innerHTML = '<option value="">— Select Order —</option>' + mine.map(t => `<option value="${t.id}">${t.id} — ${t.subject} (KES ${t.total.toLocaleString()})</option>`).join('');
 }
 
 function empRecordPayment() {
-  const id   = document.getElementById('emp-pay-select').value;
-  const code = document.getElementById('emp-pay-code').value.trim();
-  if (!id) { notify('⚠️ Please select an order'); return; }
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  const updates = { payment: 'paid' };
-  if (code) updates.mpesa_code = code.toUpperCase();
-  dbUpdateTask(id, updates).then(() => {
-    t.payment = 'paid';
-    if (code) t.mpesa_code = code.toUpperCase();
-    empPopulatePaySelect();
-    renderEmpPaySummary();
-    renderEmpDashboard();
-    document.getElementById('emp-pay-code').value = '';
-    notify('✓ Payment recorded for ' + id);
-  }).catch(err => notify('❌ ' + err.message));
+  notify('Manual payment confirmation is disabled. Paid status updates only after a confirmed STK receipt.');
 }
 
 function renderEmpPaySummary() {
@@ -10802,6 +10823,39 @@ function latestMessage(messages) {
   return messages && messages.length ? messages[messages.length - 1] : null;
 }
 
+const _notifiedMessageIds = new Set();
+
+function activeMessageThreadId() {
+  const activePage = document.querySelector('.page.active');
+  if (activePage?.id !== 'page-messages') return '';
+  return document.getElementById('msg-order-select')?.value || '';
+}
+
+function shouldAlertForIncomingMessage(task, lastMessage, previousMessages = [], nextMessages = []) {
+  if (!currentUser || !task || !lastMessage) return false;
+  if (!taskParticipant(task)) return false;
+  if (sameEmail(lastMessage.sender_email, currentUser.email)) return false;
+  if (activeMessageThreadId() === task.id) return false;
+  const messageId = lastMessage.id || `${task.id}:${lastMessage.sender_email || ''}:${lastMessage.at || nextMessages.length}`;
+  if (_notifiedMessageIds.has(messageId)) return false;
+  if (nextMessages.length <= previousMessages.length) return false;
+  _notifiedMessageIds.add(messageId);
+  return true;
+}
+
+function notifyIncomingMessage(task, lastMessage) {
+  const orderId = task?.id || 'this order';
+  notify('', 'message', {
+    title: 'New message received',
+    body: `Order ${orderId} has a new chat update.`,
+    onClick: () => openMessagesForTask(orderId)
+  });
+  sendRealtimeNotification('New message received', `Order ${orderId} has a new chat update.`, {
+    tag: 'jw-message-' + orderId,
+    taskId: orderId
+  });
+}
+
 function realtimeNotificationKey() {
   return 'jw_notify_prompt_' + String(currentUser?.email || 'guest').toLowerCase();
 }
@@ -10851,9 +10905,22 @@ function dismissRealtimeNotificationPrompt() {
   closeModal('modal-notification-permission');
 }
 
-function sendRealtimeNotification(title, body) {
+function sendRealtimeNotification(title, body, options = {}) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  try { new Notification(title, { body: body || '', tag: 'jw-' + Date.now() }); } catch {}
+  try {
+    const notice = new Notification(title, {
+      body: body || '',
+      tag: options.tag || ('jw-' + Date.now()),
+      renotify: !!options.renotify
+    });
+    if (options.taskId) {
+      notice.onclick = () => {
+        try { window.focus(); } catch {}
+        openMessagesForTask(options.taskId);
+        try { notice.close(); } catch {}
+      };
+    }
+  } catch {}
 }
 
 // ══════════════════════════════════════════════════════
@@ -10890,9 +10957,8 @@ function subscribeRealtime() {
           sendRealtimeNotification('Work submitted', `The writer submitted work for ${newRow.id}.`);
         }
         const last = latestMessage(nextMessages);
-        if (last && nextMessages.length > prevMessages.length && !sameEmail(last.sender_email, currentUser?.email) && taskParticipant(newRow)) {
-          notify('💬 New message on ' + newRow.id, 'message');
-          sendRealtimeNotification('New message', `New chat message on ${newRow.id}.`);
+        if (shouldAlertForIncomingMessage(newRow, last, prevMessages, nextMessages)) {
+          notifyIncomingMessage(newRow, last);
         }
         if (!wasCancelled && isCancelledTask(newRow) && taskParticipant(newRow)) {
           notify('🚫 Order cancelled: ' + newRow.id, 'notification');
@@ -11029,7 +11095,7 @@ document.addEventListener('keydown', handleMessageEnterKey);
 
   if (currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
-    launchApp();
+    launchApp({ silentWelcome: true });
     return;
   }
 
@@ -11277,54 +11343,12 @@ async function recordCommissionIfPaid(task) {
 }
 
 empMarkPaid = function(id) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be marked paid.'); return; }
-  const c = taskCommission(t);
-  const updates = {
-    payment: 'paid',
-    commission_rate: c.rate,
-    commission_amount: c.commission,
-    writer_payout: c.payout,
-    commission_paid: true
-  };
-  dbUpdateTask(id, updates).then(async () => {
-    Object.assign(t, updates);
-    await dbRecordCommission(t);
-    renderEmpTasks();
-    renderEmpDashboard();
-    updateBadges();
-    notify('✓ Payment marked as paid for ' + id);
-  }).catch(err => notify('❌ ' + err.message));
+  notify('Payment is confirmed automatically after a successful STK receipt. Use Payment Center to request payment.');
+  openPaymentCenterForOrder(id);
 };
 
 empRecordPayment = function() {
-  const id = document.getElementById('emp-pay-select').value;
-  const code = document.getElementById('emp-pay-code').value.trim();
-  if (!id) { notify('⚠️ Please select an order'); return; }
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be marked paid.'); return; }
-  const c = taskCommission(t);
-  const updates = {
-    payment: 'paid',
-    commission_rate: c.rate,
-    commission_amount: c.commission,
-    writer_payout: c.payout,
-    commission_paid: true
-  };
-  if (code) updates.mpesa_code = code.toUpperCase();
-
-  dbUpdateTask(id, updates).then(async () => {
-    Object.assign(t, updates);
-    await dbRecordCommission(t);
-    empPopulatePaySelect();
-    renderEmpPaySummary();
-    renderEmpWriterPayDetails();
-    renderEmpDashboard();
-    document.getElementById('emp-pay-code').value = '';
-    notify('✓ Payment recorded for ' + id);
-  }).catch(err => notify('❌ ' + err.message));
+  notify('Manual payment confirmation is disabled. Paid status updates only after a confirmed STK receipt.');
 };
 
 const _jwOrigRenderAvailableOrders = renderAvailableOrders;
@@ -11773,11 +11797,31 @@ function adminOverrideTask(id, field, value) {
   }).catch(err => notify('❌ Admin override failed: ' + err.message));
 }
 
+var _pendingPaymentOrderId = null;
+function openPaymentCenterForOrder(id) {
+  if (!id) return;
+  _pendingPaymentOrderId = id;
+  closeModal('modal-view-task');
+  navigate('emp-payment');
+  setTimeout(() => {
+    const sel = document.getElementById('payhero-order-select');
+    if (sel) {
+      sel.value = id;
+      payheroUpdatePreview();
+    }
+    document.getElementById('payhero-phone')?.focus();
+  }, 0);
+}
+
 function populatePayHeroOrderSelect() {
   const sel = document.getElementById('payhero-order-select');
   if (!sel || !currentUser || currentUser.role !== 'employer') return;
   const list = myTaskList().filter(t => t.payment !== 'paid' && Number(t.total || 0) > 0 && !isCancelledTask(t));
   sel.innerHTML = '<option value="">— Select unpaid order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)} (KES ${Number(t.total||0).toLocaleString()})</option>`).join('');
+  if (_pendingPaymentOrderId && list.some(t => String(t.id) === String(_pendingPaymentOrderId))) {
+    sel.value = _pendingPaymentOrderId;
+    _pendingPaymentOrderId = null;
+  }
   payheroUpdatePreview();
 }
 
@@ -11802,19 +11846,19 @@ async function startPayHeroStk() {
 
   if (status) {
     status.classList.add('show');
-    status.innerHTML = '⏳ Sending secure PayHero STK push. Please wait…';
+    status.innerHTML = '⏳ Sending secure M-Pesa STK push. Please wait…';
   }
 
   try {
-    const res = await fetch('/api/payhero/stk', {
+    const res = await fetch('/api/daraja/stk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ taskId, phone_number: phone })
     });
     const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || body.message || (body.details?.message) || 'Payment request failed. Check Vercel function logs for /api/payhero/stk.');
-    if (status) status.innerHTML = `✅ STK push queued. Ask the employer to check phone ${esc(phone)} and enter M-Pesa PIN.<br><strong>PayHero Reference:</strong> ${esc(body.reference || '—')}`;
-    notify('📲 PayHero STK push sent');
+    if (!res.ok) throw new Error(body.error || body.message || (body.details?.message) || 'Payment request failed. Check Vercel function logs for /api/daraja/stk.');
+    if (status) status.innerHTML = `✅ STK push queued. Ask the employer to check phone ${esc(phone)} and enter M-Pesa PIN.<br><strong>Payment Reference:</strong> ${esc(body.reference || body.checkout_request_id || '—')}`;
+    notify('📲 M-Pesa STK push sent');
   } catch (err) {
     if (status) status.innerHTML = '❌ ' + esc(err.message);
     notify('❌ ' + err.message);
