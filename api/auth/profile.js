@@ -12,10 +12,10 @@ function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
-function normalizeRole(role, fallback = 'employer') {
+function normalizeRole(role) {
   const r = String(role || '').trim().toLowerCase();
-  if (['student', 'employer', 'writer'].includes(r)) return r;
-  return fallback;
+  if (['admin', 'student', 'employer', 'writer'].includes(r)) return r;
+  return 'employer';
 }
 
 function safeObject(value) {
@@ -103,16 +103,7 @@ export default async function handler(req, res) {
     authBody.user_metadata?.full_name ||
     email.split('@')[0]
   );
-  const requestedRole = normalizeRole(payload.role || authBody.user_metadata?.role, existing?.role || 'employer');
-  const existingRole = existing?.role ? normalizeRole(existing.role, requestedRole) : null;
-  const requestedStudent =
-    requestedRole === 'student' ||
-    incomingProfile.student_private === true ||
-    authBody.user_metadata?.role === 'student';
-
-  // Preserve existing roles normally, but repair old rows that were accidentally saved as employer
-  // when the user explicitly signed up as an international student.
-  const role = requestedStudent ? 'student' : (existingRole || requestedRole);
+  const role = isAdmin ? 'admin' : (existing?.role || normalizeRole(payload.role || authBody.user_metadata?.role));
   const profile = {
     ...existingProfile,
     ...incomingProfile,
@@ -121,8 +112,6 @@ export default async function handler(req, res) {
     auth_provider: incomingProfile.auth_provider || existingProfile.auth_provider || authBody.app_metadata?.provider || 'email',
     updated_at: new Date().toISOString()
   };
-  if (role === 'student' && !profile.title) profile.title = 'International Student';
-  if (role === 'student') profile.student_private = profile.student_private !== false;
 
   const record = {
     email,
@@ -131,7 +120,18 @@ export default async function handler(req, res) {
     auth_id: authBody.id,
     profile
   };
-  if (isAdmin && payload.is_admin === true) record.is_admin = true;
+  if (isAdmin) {
+    record.is_admin = true;
+    record.role = 'admin';
+    record.profile = {
+      ...record.profile,
+      is_admin: true,
+      role_label: 'Platform Admin',
+      title: 'Platform Admin'
+    };
+  } else if (payload.is_admin === true) {
+    record.is_admin = false;
+  }
 
   const writeUrl = existing
     ? `${supabaseUrl}/rest/v1/jw_users?email=eq.${encodeURIComponent(email)}`
