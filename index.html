@@ -4772,7 +4772,12 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     <!-- SIGNUP FORM -->
     <div id="signup-form" style="display:none;">
       <div class="auth-role-select">
-        <div class="role-card selected" id="role-employer" onclick="selectRole('employer')">
+        <div class="role-card selected" id="role-student" onclick="selectRole('student')">
+          <div class="role-icon">🎓</div>
+          <div class="role-name">International Student</div>
+          <div class="role-desc">Post assignments with admin-guided support</div>
+        </div>
+        <div class="role-card" id="role-employer" onclick="selectRole('employer')">
           <div class="role-icon">🏢</div>
           <div class="role-name">Employer</div>
           <div class="role-desc">Post writing tasks & manage orders</div>
@@ -4782,17 +4787,12 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <div class="role-name">Writer</div>
           <div class="role-desc">Browse & complete writing orders</div>
         </div>
-        <div class="role-card" id="role-student" onclick="selectRole('student')">
-          <div class="role-icon">🎓</div>
-          <div class="role-name">International Student</div>
-          <div class="role-desc">Post assignments with admin-guided support</div>
-        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Full Name</label>
         <input type="text" class="form-input" id="signup-name" placeholder="Your full name">
       </div>
-      <div class="student-signup-fields" id="student-signup-fields">
+      <div class="student-signup-fields" id="student-signup-fields" style="display:block;">
         <div class="form-group">
           <label class="form-label">Country</label>
           <input type="text" class="form-input" id="signup-country" placeholder="e.g. United States">
@@ -6387,7 +6387,7 @@ function startGoogleAuth(intent = 'login') {
   try {
     localStorage.setItem('jw_google_intent', intent);
     if (intent === 'signup') {
-      localStorage.setItem('jw_google_role', _selectedRole || 'employer');
+      localStorage.setItem('jw_google_role', normalizePlatformRole(_selectedRole, 'student'));
       localStorage.setItem('jw_google_signup_profile', JSON.stringify(studentSignupExtraProfile()));
     } else {
       localStorage.removeItem('jw_google_role');
@@ -6410,7 +6410,7 @@ function startGoogleAuth(intent = 'login') {
 }
 
 function googleProfileFromSession(session) {
-  return authProfileFromSession(session, localStorage.getItem('jw_google_role') || _selectedRole || 'employer');
+  return authProfileFromSession(session, localStorage.getItem('jw_google_role') || _selectedRole || 'student');
 }
 
 async function createGooglePlatformUser(g, role) {
@@ -6435,7 +6435,7 @@ async function createGooglePlatformUser(g, role) {
 
 async function finishGoogleLoginWithSession(session) {
   const intent = localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = localStorage.getItem('jw_google_role') || _selectedRole || 'employer';
+  const selectedRole = normalizePlatformRole(localStorage.getItem('jw_google_role') || _selectedRole, 'student');
   return await finishSecureAuthSession(session, { intent, role: selectedRole });
 }
 
@@ -6693,7 +6693,7 @@ function localPlatformUserFromAuth(authUser, role = 'employer') {
     id: authUser.auth_id || authUser.email,
     email: authUser.email,
     name: authUser.name || authUser.email,
-    role: role || authUser.role || 'employer',
+    role: normalizePlatformRole(role || authUser.role, 'student'),
     profile
   };
 }
@@ -6712,12 +6712,19 @@ function promiseWithTimeout(promise, ms, label = 'Request') {
 function platformUserFromRecord(record, authUser, selectedRole) {
   const row = record || localPlatformUserFromAuth(authUser, selectedRole);
   const email = String(row.email || authUser.email || '').toLowerCase();
+  const profile = normalizeProfile(row.profile);
+  const selected = normalizePlatformRole(selectedRole || authUser.role, 'student');
+  const rowRole = normalizePlatformRole(row.role, selected);
+  const shouldPreserveStudent =
+    selected === 'student' &&
+    (profile.student_private === true || authUser?.role === 'student' || pendingSignupProfileForEmail(email)?.student_private === true);
+
   return {
     id: row.id || authUser.auth_id || email,
     email,
     name: row.name || authUser.name || email,
-    role: row.role || selectedRole || authUser.role || 'employer',
-    profile: normalizeProfile(row.profile)
+    role: shouldPreserveStudent ? 'student' : rowRole,
+    profile
   };
 }
 
@@ -6750,6 +6757,7 @@ function refreshAppChromeAfterProfileUpdate(previousRole) {
 }
 
 async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
+  selectedRole = normalizePlatformRole(selectedRole, 'student');
   const extraProfile = pendingSignupProfileForEmail(authUser.email);
   try {
     return await secureUpsertPlatformUser({
@@ -6779,12 +6787,13 @@ async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
 }
 
 async function safeLinkExistingPlatformUser(existing, authUser, selectedRole) {
+  selectedRole = normalizePlatformRole(selectedRole, existing?.role || 'student');
   try {
     const oldProfile = normalizeProfile(existing.profile);
     const linkedExisting = await secureUpsertPlatformUser({
       email: authUser.email,
       name: existing.name || authUser.name,
-      role: existing.role || selectedRole,
+      role: (selectedRole === 'student' && (oldProfile.student_private === true || pendingSignupProfileForEmail(authUser.email)?.student_private === true)) ? 'student' : (existing.role || selectedRole),
       auth_id: authUser.auth_id,
       profile: {
         ...oldProfile,
@@ -6811,20 +6820,20 @@ async function safeLinkExistingPlatformUser(existing, authUser, selectedRole) {
   return existing;
 }
 
-function authProfileFromSession(session, fallbackRole = 'employer') {
+function authProfileFromSession(session, fallbackRole = 'student') {
   const user = session?.user || {};
   const meta = user.user_metadata || {};
   const app = user.app_metadata || {};
   const provider = app.provider || 'email';
   const email = String(user.email || meta.email || '').toLowerCase();
   const name = meta.full_name || meta.name || email.split('@')[0] || 'User';
-  const role = meta.role || fallbackRole || 'employer';
+  const role = normalizePlatformRole(meta.role || fallbackRole, 'student');
   const photo = meta.avatar_url || meta.picture || '';
   return { email, name, role, photo, provider, auth_id: user.id, email_confirmed_at: user.email_confirmed_at };
 }
 
 async function finishSecureAuthSession(session, options = {}) {
-  const authUser = authProfileFromSession(session, options.role || 'employer');
+  const authUser = authProfileFromSession(session, options.role || 'student');
 
   if (!authUser.email) {
     notify('❌ No verified email was returned. Please try another sign-in method.');
@@ -6837,7 +6846,7 @@ async function finishSecureAuthSession(session, options = {}) {
   }
 
   const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole || 'employer';
+  const selectedRole = normalizePlatformRole(options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole, 'student');
   let existing = null;
   try {
     existing = await promiseWithTimeout(dbGetUserByEmail(authUser.email), 1600, 'Profile lookup');
@@ -6875,7 +6884,7 @@ async function finishSecureAuthSession(session, options = {}) {
 //  AUTH
 // ══════════════════════════════════════════════════════
 let _authMode = 'login';
-let _selectedRole = 'employer';
+let _selectedRole = 'student';
 let _pendingGoogleAuth = null;
 
 function switchAuthTab(tab) {
@@ -6902,6 +6911,13 @@ function selectRole(r) {
   document.getElementById('role-student')?.classList.toggle('selected', r==='student');
   const studentFields = document.getElementById('student-signup-fields');
   if (studentFields) studentFields.style.display = r === 'student' ? 'block' : 'none';
+}
+
+
+function normalizePlatformRole(role, fallback = 'employer') {
+  const r = String(role || '').trim().toLowerCase();
+  if (['student', 'employer', 'writer'].includes(r)) return r;
+  return fallback;
 }
 
 function roleTitle(role) {
