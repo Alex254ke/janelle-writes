@@ -5180,6 +5180,20 @@ body.dark-mode .bid-writer-name {
 
 
 
+
+  <!-- ADMIN: ALL ORDERS -->
+  <div class="page content" id="page-admin-all-orders">
+    <div class="section-header">
+      <div>
+        <div class="section-title">All <span>Platform Orders</span> <span class="admin-badge">ADMIN</span></div>
+        <p class="text-muted" style="margin-top:4px;">Admin-only view of every order on the platform, including employer orders, student assignments, assigned orders, completed work, cancelled orders, and disputed orders.</p>
+      </div>
+    </div>
+    <div id="admin-all-orders-wrap">
+      <div class="empty-state"><p>All platform orders will appear here.</p></div>
+    </div>
+  </div>
+
   <!-- ADMIN: REASSIGN REQUESTS -->
   <div class="page content" id="page-admin-reassign">
     <div class="section-header">
@@ -8638,6 +8652,7 @@ const pageTitles = {
   'admin-student-orders': 'Student Orders',
   'admin-student-messages': 'Student Messages',
   'admin-filtered-orders': 'Admin Orders',
+  'admin-all-orders': 'All Platform Orders',
 };
 
 function navigate(page, options = {}) {
@@ -8683,6 +8698,7 @@ function navigate(page, options = {}) {
     case 'admin-student-orders': if (typeof renderAdminStudentOrdersPage === 'function') renderAdminStudentOrdersPage(); break;
     case 'admin-student-messages': if (typeof renderAdminStudentMessagesPage === 'function') renderAdminStudentMessagesPage(); break;
     case 'admin-filtered-orders': if (typeof renderAdminFilteredOrdersPage === 'function') renderAdminFilteredOrdersPage(); break;
+    case 'admin-all-orders': if (typeof renderAdminAllOrdersPage === 'function') renderAdminAllOrdersPage(); break;
   }
 }
 
@@ -14975,6 +14991,109 @@ subscribeRealtime = function() {
   setTimeout(() => {
     if (isJwAdmin()) setCountBadge('admin-reassign-badge', countPendingReassignRequests(), '{count} pending reassign requests');
   }, 400);
+};
+
+
+
+// ══════════════════════════════════════════════════════
+//  ADMIN: DEDICATED ALL ORDERS TAB
+// ══════════════════════════════════════════════════════
+function renderAdminAllOrdersPage() {
+  const wrap = document.getElementById('admin-all-orders-wrap');
+  if (!wrap) return;
+
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>Admin access required.</p></div>`;
+    return;
+  }
+
+  const all = Array.isArray(tasks) ? [...tasks] : [];
+  const studentOrders = all.filter(t => {
+    try { return isStudentOrder(t) || isStudentTask(t); }
+    catch { return !!(t?.student_order || t?.order_type === 'international_student'); }
+  });
+  const standardOrders = all.filter(t => !studentOrders.some(s => s.id === t.id));
+  const completed = all.filter(t => t.status === 'completed').length;
+  const cancelled = all.filter(t => isCancelledTask(t)).length;
+  const disputed = all.filter(t => hasOpenDispute(t)).length;
+
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:18px;">
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('all')">
+        <strong>${all.length}</strong><span>Total Platform Orders</span><em class="admin-card-hint">Open all filters →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="navigate('admin-student-orders')">
+        <strong>${studentOrders.length}</strong><span>Student Orders</span><em class="admin-card-hint">Open student orders →</em>
+      </div>
+      <div class="admin-control-card">
+        <strong>${standardOrders.length}</strong><span>Standard Employer Orders</span>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('completed')">
+        <strong>${completed}</strong><span>Completed Orders</span><em class="admin-card-hint">Open completed →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('disputes')">
+        <strong>${disputed}</strong><span>Open Disputes</span><em class="admin-card-hint">Open disputes →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('cancelled')">
+        <strong>${cancelled}</strong><span>Cancelled Orders</span><em class="admin-card-hint">Open cancelled →</em>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="btn btn-primary btn-sm" onclick="renderAdminAllOrdersPage()">All Orders</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('admin-student-orders')">Student Orders Only</button>
+      <button class="btn btn-outline btn-sm" onclick="openAdminFilteredOrders('payments')">Payments to Confirm</button>
+      <button class="btn btn-outline btn-sm" onclick="openAdminFilteredOrders('paid')">Paid Orders</button>
+      <button class="btn btn-outline btn-sm" onclick="openAdminFilteredOrders('completed')">Completed</button>
+      <button class="btn btn-outline btn-sm" onclick="openAdminFilteredOrders('cancelled')">Cancelled</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('admin-reassign')">Reassign Requests</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">
+        All Platform Orders
+        <span style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;">${all.length} total record${all.length === 1 ? '' : 's'}</span>
+      </div>
+      ${typeof adminRenderOrderRows === 'function' ? adminRenderOrderRows(all) : '<div class="empty-state"><p>Order renderer is unavailable.</p></div>'}
+    </div>
+  `;
+}
+
+const _jwAllOrdersOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  _jwAllOrdersOrigBuildSidebar();
+
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav || !isJwAdmin()) return;
+
+  if (!nav.querySelector('[data-page="admin-all-orders"]')) {
+    const item = `<div class="nav-item" data-page="admin-all-orders" onclick="navigate('admin-all-orders')"><span class="icon">📚</span> All Orders <span class="nav-badge" id="admin-all-orders-badge">0</span></div>`;
+
+    const studentOrders = nav.querySelector('[data-page="admin-student-orders"]');
+    if (studentOrders) {
+      studentOrders.insertAdjacentHTML('beforebegin', item);
+    } else {
+      const control = nav.querySelector('[data-page="admin-control"]');
+      if (control) control.insertAdjacentHTML('afterend', item);
+      else nav.insertAdjacentHTML('afterbegin', item);
+    }
+  }
+
+  setCountBadge('admin-all-orders-badge', Array.isArray(tasks) ? tasks.length : 0, '{count} total platform orders');
+};
+
+const _jwAllOrdersOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  _jwAllOrdersOrigNavigate(page, options);
+  if (page === 'admin-all-orders') renderAdminAllOrdersPage();
+};
+
+const _jwAllOrdersOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwAllOrdersOrigUpdateBadges();
+  if (isJwAdmin()) {
+    setCountBadge('admin-all-orders-badge', Array.isArray(tasks) ? tasks.length : 0, '{count} total platform orders');
+  }
 };
 
 </script>
