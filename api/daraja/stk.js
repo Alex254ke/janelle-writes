@@ -105,6 +105,13 @@ function publicDarajaError(body) {
   return body?.errorMessage || body?.ResponseDescription || body?.responseDescription || body?.error || 'Unable to send M-Pesa STK push';
 }
 
+function darajaHint(message) {
+  if (/invalid\s+businessshortcode/i.test(String(message || ''))) {
+    return 'If DARAJA_ENV is sandbox, use Safaricom sandbox shortcode 174379 with the sandbox passkey. If this is a real PayBill/Till, set DARAJA_ENV=live and use live Daraja credentials approved for that shortcode.';
+  }
+  return undefined;
+}
+
 export default async function handler(req, res) {
   cors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -116,10 +123,10 @@ export default async function handler(req, res) {
 
   const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const consumerKey = process.env.DARAJA_CONSUMER_KEY;
-  const consumerSecret = process.env.DARAJA_CONSUMER_SECRET;
-  const shortcode = process.env.DARAJA_SHORTCODE || process.env.DARAJA_BUSINESS_SHORT_CODE;
-  const passkey = process.env.DARAJA_PASSKEY;
+  const consumerKey = String(process.env.DARAJA_CONSUMER_KEY || '').trim();
+  const consumerSecret = String(process.env.DARAJA_CONSUMER_SECRET || '').trim();
+  const shortcode = String(process.env.DARAJA_SHORTCODE || process.env.DARAJA_BUSINESS_SHORT_CODE || '').trim();
+  const passkey = String(process.env.DARAJA_PASSKEY || '').trim();
   const callbackSecret = process.env.DARAJA_CALLBACK_SECRET;
   const publicSiteUrl = (process.env.PUBLIC_SITE_URL || process.env.ALLOWED_ORIGIN || DEFAULT_SITE_URL).replace(/\/$/, '');
 
@@ -201,7 +208,8 @@ export default async function handler(req, res) {
         darajaBody,
         sentPayload: { ...payload, PhoneNumber: maskPhone(payload.PhoneNumber), PartyA: maskPhone(payload.PartyA), Password: 'hidden' }
       });
-      return json(res, response.status || 502, { error: publicDarajaError(darajaBody), daraja_status: response.status });
+      const message = publicDarajaError(darajaBody);
+      return json(res, response.status || 502, { error: message, hint: darajaHint(message), daraja_status: response.status });
     }
 
     const paymentRow = {
