@@ -4953,8 +4953,18 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     </div>
   </div>
 
-
-
+  <!-- WALLET -->
+  <div class="page content" id="page-wallet">
+    <div class="section-header">
+      <div>
+        <div class="section-title">My <span>Wallet</span></div>
+        <p class="text-muted" style="margin-top:4px;">Top up, withdraw, transfer, and track wallet activity.</p>
+      </div>
+    </div>
+    <div id="wallet-wrap">
+      <div class="empty-state"><div class="empty-icon">💳</div><p>Loading wallet...</p></div>
+    </div>
+  </div>
 
   <!-- ADMIN: CONTROL CENTER -->
   <div class="page content" id="page-admin-control">
@@ -5196,24 +5206,24 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     <div class="section-header"><div class="section-title">Payment <span>Center</span></div></div>
 
     <div class="card payhero-card" style="margin-bottom:20px;">
-      <div class="payhero-card-title">📲 Collect Payment with M-Pesa STK Push</div>
+      <div class="payhero-card-title">💳 Pay to Janelle Writes Till</div>
       <div class="payhero-note">
-        Send an M-Pesa prompt to the employer phone number. The order is marked paid only after the system receives a successful payment confirmation.
+        Pay the order amount to Till Number <strong>8627286</strong>. After M-Pesa sends the transaction code, submit it here for admin confirmation.
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">Select Unpaid Order</label>
+          <label class="form-label">Select Order</label>
           <select class="form-select" id="payhero-order-select" onchange="payheroUpdatePreview()">
-            <option value="">— Select unpaid order —</option>
+            <option value="">— Select order —</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Employer M-Pesa Phone</label>
-          <input class="form-input" id="payhero-phone" placeholder="07XXXXXXXX or 2547XXXXXXXX">
+          <label class="form-label">M-Pesa Transaction Code</label>
+          <input class="form-input" id="payhero-phone" placeholder="e.g. QHK7XXXXXX" style="text-transform:uppercase;">
         </div>
         <div class="form-group form-full" id="payhero-preview"></div>
       </div>
-      <button class="btn btn-primary" onclick="startPayHeroStk()">📲 Send M-Pesa STK Push</button>
+      <button class="btn btn-primary" onclick="empRecordPaymentFromQuickCard()">Submit Payment Code</button>
       <div class="payhero-status" id="payhero-status"></div>
     </div>
 
@@ -5234,11 +5244,15 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
 
         <!-- Payment confirmation -->
         <div class="card">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:10px;">Payment Confirmation</div>
-          <p class="text-muted" style="margin-bottom:14px;">Orders are marked paid only after the system confirms a successful STK payment receipt.</p>
-          <div style="font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:8px;padding:12px;">
-            Employers cannot manually mark an order as paid. Use the STK payment request above, then wait for the provider callback to update the order automatically.
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:10px;">Manual Payment Details</div>
+          <p class="text-muted" style="margin-bottom:14px;">Use this manual payment method for launch.</p>
+          <div style="font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:8px;padding:12px;margin-bottom:14px;">
+            <strong>Till Number:</strong> 8627286<br>
+            Submit the M-Pesa code after payment. The admin will verify it before the order becomes paid.
           </div>
+          <div class="form-group mb-4"><label class="form-label">Select Order</label><select class="form-select" id="emp-pay-select"><option value="">— Select Order —</option></select></div>
+          <div class="form-group mb-4"><label class="form-label">Transaction Code</label><input type="text" class="form-input" id="emp-pay-code" placeholder="e.g. QHK7XXXXXX" style="text-transform:uppercase;"></div>
+          <button class="btn btn-success btn-full" onclick="empRecordPayment()">Submit Payment Code</button>
         </div>
       </div>
       <div>
@@ -7620,6 +7634,7 @@ function buildSidebar() {
       <div class="nav-section">Finance</div>
       <div class="nav-item" data-page="emp-invoice" onclick="navigate('emp-invoice')"><span class="icon">🧾</span> Invoice</div>
       <div class="nav-item" data-page="emp-payment" onclick="navigate('emp-payment')"><span class="icon">💳</span> Payment</div>
+      <div class="nav-item" data-page="wallet" onclick="navigate('wallet')"><span class="icon">🏦</span> Wallet</div>
       <div class="nav-item" data-page="fines" onclick="navigate('fines')"><span class="icon">💸</span> Fines <span class="nav-badge" id="fines-badge">0</span></div>
     `;
   } else {
@@ -7640,6 +7655,7 @@ function buildSidebar() {
       <div class="nav-item" data-page="writer-tracker" onclick="navigate('writer-tracker')"><span class="icon">📡</span> Tracker</div>
       <div class="nav-section">Account</div>
       <div class="nav-item" data-page="writer-earnings" onclick="navigate('writer-earnings')"><span class="icon">💰</span> My Earnings</div>
+      <div class="nav-item" data-page="wallet" onclick="navigate('wallet')"><span class="icon">🏦</span> Wallet</div>
       <div class="nav-item" data-page="fines" onclick="navigate('fines')"><span class="icon">💸</span> Fines <span class="nav-badge" id="fines-badge">0</span></div>
       <div class="nav-item" data-page="writer-payment" onclick="navigate('writer-payment')"><span class="icon">💳</span> Payment Details</div>
     `;
@@ -8032,6 +8048,7 @@ const pageTitles = {
   'rules': 'Rules & Privacy',
   'cancelled': 'Cancelled Orders',
   'fines': 'Fines',
+  'wallet': 'Wallet',
   'emp-dashboard': 'Dashboard',
   'emp-post': 'Post New Task',
   'emp-tasks': 'My Orders',
@@ -8073,6 +8090,7 @@ function navigate(page, options = {}) {
     case 'rules':           break;
     case 'cancelled':       renderCancelledOrdersPage(); break;
     case 'fines':           renderFinesPage(); break;
+    case 'wallet':          renderWalletPage(); break;
     case 'emp-dashboard':   renderEmpDashboard(); break;
     case 'emp-post':        empInitForm(); break;
     case 'emp-tasks':       renderEmpTasks(); break;
@@ -8455,9 +8473,9 @@ function statusBadge(s) {
 }
 
 function payBadge(p) {
-  return p === 'paid'
-    ? '<span class="badge badge-paid">✓ Paid</span>'
-    : '<span class="badge badge-unpaid">Unpaid</span>';
+  if (p === 'paid') return '<span class="badge badge-paid">✓ Paid</span>';
+  if (p === 'pending_review') return '<span class="badge badge-pending">Pending Review</span>';
+  return '<span class="badge badge-unpaid">Unpaid</span>';
 }
 
 function esc(v) {
@@ -8673,6 +8691,150 @@ function renderFinesPage() {
       </table>
     </div>
   </div>`;
+}
+
+const JW_TILL_NUMBER = '8627286';
+
+function getWalletProfile(user = currentUser) {
+  const profile = normalizeProfile(user?.profile);
+  const wallet = normalizeProfile(profile.wallet);
+  wallet.transactions = Array.isArray(wallet.transactions) ? wallet.transactions : [];
+  return wallet;
+}
+
+function walletTxAmount(tx) {
+  return Math.max(0, Number(tx?.amount || 0));
+}
+
+function walletBalance(wallet, holdPendingDebits = true) {
+  const txs = Array.isArray(wallet?.transactions) ? wallet.transactions : [];
+  return txs.reduce((sum, tx) => {
+    const amount = walletTxAmount(tx);
+    const approved = tx.status === 'approved';
+    const pendingDebit = holdPendingDebits && tx.status === 'pending_review' && ['withdrawal', 'transfer_out'].includes(tx.type);
+    if (approved && ['topup', 'transfer_in', 'admin_credit'].includes(tx.type)) return sum + amount;
+    if ((approved || pendingDebit) && ['withdrawal', 'transfer_out'].includes(tx.type)) return sum - amount;
+    return sum;
+  }, 0);
+}
+
+function walletStatusBadge(status) {
+  if (status === 'approved') return '<span class="badge badge-paid">Approved</span>';
+  if (status === 'rejected') return '<span class="badge badge-unpaid">Rejected</span>';
+  return '<span class="badge badge-pending">Pending Review</span>';
+}
+
+function walletTypeLabel(type) {
+  return {
+    topup: 'Top Up',
+    withdrawal: 'Withdrawal',
+    transfer_out: 'Transfer Out',
+    transfer_in: 'Transfer In',
+    admin_credit: 'Admin Credit'
+  }[type] || type || 'Transaction';
+}
+
+function walletTxId() {
+  return 'WAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+async function saveCurrentWallet(wallet) {
+  if (!currentUser?.email) return;
+  const profile = { ...normalizeProfile(currentUser.profile), wallet: { ...wallet, updated_at: new Date().toISOString() } };
+  currentUser.profile = profile;
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+  await dbUpdateUser(currentUser.email, { profile });
+}
+
+function renderWalletPage() {
+  const wrap = document.getElementById('wallet-wrap');
+  if (!wrap || !currentUser) return;
+  const wallet = getWalletProfile();
+  const available = Math.max(0, walletBalance(wallet, true));
+  const pendingTopups = wallet.transactions.filter(tx => tx.type === 'topup' && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
+  const pendingDebits = wallet.transactions.filter(tx => ['withdrawal', 'transfer_out'].includes(tx.type) && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
+  const rows = wallet.transactions.slice().reverse();
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:20px;">
+      <div class="admin-control-card"><strong>KES ${available.toLocaleString()}</strong><span>Available Balance</span></div>
+      <div class="admin-control-card"><strong>KES ${pendingTopups.toLocaleString()}</strong><span>Pending Top Ups</span></div>
+      <div class="admin-control-card"><strong>KES ${pendingDebits.toLocaleString()}</strong><span>Pending Withdrawals / Transfers</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:20px;" class="payment-grid">
+      <div class="card">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Top Up</div>
+        <p class="text-muted" style="margin-bottom:14px;">Pay Till <strong>${JW_TILL_NUMBER}</strong>, then submit your M-Pesa code.</p>
+        <div class="form-group"><label class="form-label">Amount</label><input class="form-input" id="wallet-topup-amount" type="number" min="1" placeholder="KES"></div>
+        <div class="form-group"><label class="form-label">M-Pesa Code</label><input class="form-input" id="wallet-topup-code" placeholder="QHK7XXXXXX" style="text-transform:uppercase;"></div>
+        <button class="btn btn-primary btn-full" onclick="walletSubmitTopup()">Submit Top Up</button>
+      </div>
+      <div class="card">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Withdraw</div>
+        <p class="text-muted" style="margin-bottom:14px;">Request payout to your M-Pesa or Airtel number.</p>
+        <div class="form-group"><label class="form-label">Amount</label><input class="form-input" id="wallet-withdraw-amount" type="number" min="1" placeholder="KES"></div>
+        <div class="form-group"><label class="form-label">Payment Number / Name</label><input class="form-input" id="wallet-withdraw-destination" placeholder="0712345678 - Name"></div>
+        <button class="btn btn-outline btn-full" onclick="walletRequestWithdrawal()">Request Withdrawal</button>
+      </div>
+      <div class="card">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Transfer</div>
+        <p class="text-muted" style="margin-bottom:14px;">Send wallet funds to another Janelle Writes user.</p>
+        <div class="form-group"><label class="form-label">Recipient Email</label><input class="form-input" id="wallet-transfer-email" placeholder="user@example.com"></div>
+        <div class="form-group"><label class="form-label">Amount</label><input class="form-input" id="wallet-transfer-amount" type="number" min="1" placeholder="KES"></div>
+        <button class="btn btn-outline btn-full" onclick="walletRequestTransfer()">Request Transfer</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Wallet History</div>
+      ${rows.length ? `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;min-width:820px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Type</th>
+          <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Reference</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Status</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Date</th>
+        </tr></thead><tbody>
+          ${rows.map(tx => `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:12px 14px;font-weight:700;">${esc(walletTypeLabel(tx.type))}</td>
+            <td style="padding:12px 14px;text-align:right;font-weight:700;">KES ${walletTxAmount(tx).toLocaleString()}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(tx.code || tx.to_email || tx.destination || tx.note || tx.id)}</td>
+            <td style="padding:12px 14px;">${walletStatusBadge(tx.status)}</td>
+            <td style="padding:12px 14px;font-size:12px;color:var(--muted);">${tx.created_at ? fmtDate(tx.created_at) : '—'}</td>
+          </tr>`).join('')}
+        </tbody></table></div>` : `<div class="empty-state"><div class="empty-icon">💳</div><p>No wallet transactions yet.</p></div>`}
+    </div>`;
+}
+
+async function walletSubmitTopup() {
+  const amount = Math.round(Number(document.getElementById('wallet-topup-amount')?.value || 0));
+  const code = String(document.getElementById('wallet-topup-code')?.value || '').trim().toUpperCase();
+  if (!amount || amount < 1) { notify('⚠️ Enter a valid top-up amount'); return; }
+  if (!code || code.length < 6) { notify('⚠️ Enter the M-Pesa transaction code'); return; }
+  const wallet = getWalletProfile();
+  wallet.transactions.push({ id: walletTxId(), type: 'topup', amount, code, till: JW_TILL_NUMBER, status: 'pending_review', created_at: new Date().toISOString() });
+  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Top-up submitted for admin review.'); }).catch(err => notify('❌ Wallet top-up could not be saved: ' + err.message));
+}
+
+async function walletRequestWithdrawal() {
+  const amount = Math.round(Number(document.getElementById('wallet-withdraw-amount')?.value || 0));
+  const destination = String(document.getElementById('wallet-withdraw-destination')?.value || '').trim();
+  const wallet = getWalletProfile();
+  if (!amount || amount < 1) { notify('⚠️ Enter a valid withdrawal amount'); return; }
+  if (walletBalance(wallet, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
+  if (!destination) { notify('⚠️ Enter your payout number or name'); return; }
+  wallet.transactions.push({ id: walletTxId(), type: 'withdrawal', amount, destination, status: 'pending_review', created_at: new Date().toISOString() });
+  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Withdrawal request submitted.'); }).catch(err => notify('❌ Withdrawal request could not be saved: ' + err.message));
+}
+
+async function walletRequestTransfer() {
+  const toEmail = String(document.getElementById('wallet-transfer-email')?.value || '').trim().toLowerCase();
+  const amount = Math.round(Number(document.getElementById('wallet-transfer-amount')?.value || 0));
+  const wallet = getWalletProfile();
+  if (!toEmail || !toEmail.includes('@')) { notify('⚠️ Enter the recipient email'); return; }
+  if (sameEmail(toEmail, currentUser.email)) { notify('⚠️ You cannot transfer to your own account.'); return; }
+  if (!amount || amount < 1) { notify('⚠️ Enter a valid transfer amount'); return; }
+  if (walletBalance(wallet, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
+  wallet.transactions.push({ id: walletTxId(), type: 'transfer_out', amount, to_email: toEmail, status: 'pending_review', created_at: new Date().toISOString() });
+  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Transfer request submitted for admin review.'); }).catch(err => notify('❌ Transfer request could not be saved: ' + err.message));
 }
 
 function openCancelOrderModal(id) {
@@ -9455,7 +9617,7 @@ function renderEmpTasks() {
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
           ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
-          ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="openPaymentCenterForOrder('${t.id}')">Pay by STK</button>` : ''}
+          ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">Mark Paid</button>` : ''}
         </div>
       </td>
     </tr>
@@ -9522,13 +9684,13 @@ function empViewTask(id) {
     actions.innerHTML += `<button class="btn btn-danger" onclick="closeModal('modal-view-task');openCancelOrderModal('${t.id}')">🚫 Cancel Order</button>`;
   }
   if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0 && !isCancelledTask(t)) {
-    actions.innerHTML += `<button class="btn btn-success" onclick="openPaymentCenterForOrder('${t.id}')">Pay by STK</button>`;
+    actions.innerHTML += `<button class="btn btn-success" onclick="empMarkPaid('${t.id}')">Mark Paid</button>`;
   }
   modal.classList.add('open');
 }
 
 function empMarkPaid(id) {
-  notify('Payment is confirmed automatically after a successful STK receipt. Use Payment Center to request payment.');
+  notify('Enter your M-Pesa code so admin can verify this payment.');
   openPaymentCenterForOrder(id);
 }
 
@@ -9569,7 +9731,42 @@ function empPopulatePaySelect() {
 }
 
 function empRecordPayment() {
-  notify('Manual payment confirmation is disabled. Paid status updates only after a confirmed STK receipt.');
+  const id = document.getElementById('emp-pay-select')?.value || document.getElementById('payhero-order-select')?.value;
+  const code = (document.getElementById('emp-pay-code')?.value || document.getElementById('payhero-phone')?.value || '').trim().toUpperCase();
+  submitManualOrderPayment(id, code);
+}
+
+function empRecordPaymentFromQuickCard() {
+  const id = document.getElementById('payhero-order-select')?.value;
+  const code = (document.getElementById('payhero-phone')?.value || '').trim().toUpperCase();
+  submitManualOrderPayment(id, code);
+}
+
+function submitManualOrderPayment(id, code) {
+  if (!id) { notify('⚠️ Please select an order'); return; }
+  if (!code || code.length < 6) { notify('⚠️ Enter the M-Pesa transaction code'); return; }
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be marked paid.'); return; }
+  const updates = { payment: 'pending_review', mpesa_code: code };
+  dbUpdateTask(id, updates).then(() => {
+    Object.assign(t, updates);
+    empPopulatePaySelect();
+    populatePayHeroOrderSelect();
+    renderEmpPaySummary();
+    renderEmpDashboard();
+    updateBadges();
+    const status = document.getElementById('payhero-status');
+    if (status) {
+      status.classList.add('show');
+      status.innerHTML = `Payment code <strong>${esc(code)}</strong> submitted for admin verification.`;
+    }
+    const codeInput = document.getElementById('emp-pay-code');
+    if (codeInput) codeInput.value = '';
+    const quickCodeInput = document.getElementById('payhero-phone');
+    if (quickCodeInput) quickCodeInput.value = '';
+    notify('✅ Payment code submitted. Admin will confirm it shortly.');
+  }).catch(err => notify('❌ Payment code could not be saved: ' + err.message));
 }
 
 function renderEmpPaySummary() {
@@ -11407,12 +11604,14 @@ async function recordCommissionIfPaid(task) {
 }
 
 empMarkPaid = function(id) {
-  notify('Payment is confirmed automatically after a successful STK receipt. Use Payment Center to request payment.');
+  notify('Enter your M-Pesa code so admin can verify this payment.');
   openPaymentCenterForOrder(id);
 };
 
 empRecordPayment = function() {
-  notify('Manual payment confirmation is disabled. Paid status updates only after a confirmed STK receipt.');
+  const id = document.getElementById('emp-pay-select')?.value || document.getElementById('payhero-order-select')?.value;
+  const code = (document.getElementById('emp-pay-code')?.value || document.getElementById('payhero-phone')?.value || '').trim().toUpperCase();
+  submitManualOrderPayment(id, code);
 };
 
 const _jwOrigRenderAvailableOrders = renderAvailableOrders;
@@ -11825,12 +12024,12 @@ function renderAdminControlPage() {
               <td style="padding:12px 14px;font-size:12px;">${esc(t.posted_by_name || t.posted_by || '—')}</td>
               <td style="padding:12px 14px;font-size:12px;">${esc(t.taken_by_name || t.taken_by || 'Unassigned')}</td>
               <td style="padding:12px 14px;">${statusBadgeForTask(t)}</td>
-              <td style="padding:12px 14px;">${payBadge(t.payment)}</td>
+              <td style="padding:12px 14px;">${payBadge(t.payment)}${t.mpesa_code ? `<div style="font-size:11px;color:var(--teal);margin-top:4px;">Code: ${esc(t.mpesa_code)}</div>` : ''}</td>
               <td style="padding:12px 14px;text-align:right;font-weight:700;">KES ${Number(t.total || 0).toLocaleString()}</td>
               <td style="padding:12px 14px;">
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                   <button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>
-                  ${!isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="adminOverrideTask('${t.id}','payment','paid')">Mark Paid</button>` : ''}
+                  ${!isCancelledTask(t) && t.payment !== 'paid' ? `<button class="btn btn-success btn-sm" onclick="adminOverrideTask('${t.id}','payment','paid')">Confirm Paid</button>` : ''}
                   ${!isCancelledTask(t) ? `<button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${t.id}','status','completed')">Complete</button>` : ''}
                   ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
                 </div>
@@ -11839,7 +12038,106 @@ function renderAdminControlPage() {
           </tbody>
         </table>
       </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;margin-top:20px;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Wallet Requests</div>
+      <div id="admin-wallet-requests"><div class="empty-state"><p>Loading wallet requests...</p></div></div>
     </div>`;
+  renderAdminWalletRequests();
+}
+
+async function renderAdminWalletRequests() {
+  const wrap = document.getElementById('admin-wallet-requests');
+  if (!wrap || !isJwAdmin()) return;
+  try {
+    const allUsers = await dbGetUsers();
+    const requests = allUsers.flatMap(user => {
+      const wallet = getWalletProfile(user);
+      return wallet.transactions
+        .filter(tx => tx.status === 'pending_review')
+        .map(tx => ({ user, tx }));
+    });
+    if (!requests.length) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💳</div><p>No pending wallet requests.</p></div>`;
+      return;
+    }
+    wrap.innerHTML = `<div class="admin-table-wrap">
+      <table style="width:100%;border-collapse:collapse;min-width:860px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">User</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Type</th>
+          <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Reference</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Actions</th>
+        </tr></thead>
+        <tbody>
+          ${requests.map(({ user, tx }) => `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:12px 14px;font-size:12px;"><strong>${esc(user.name || user.email)}</strong><div style="color:var(--muted);">${esc(user.email)}</div></td>
+            <td style="padding:12px 14px;font-weight:700;">${esc(walletTypeLabel(tx.type))}</td>
+            <td style="padding:12px 14px;text-align:right;font-weight:700;">KES ${walletTxAmount(tx).toLocaleString()}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(tx.code || tx.to_email || tx.destination || tx.id)}</td>
+            <td style="padding:12px 14px;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-success btn-sm" onclick="adminResolveWalletTx('${escJS(user.email)}','${escJS(tx.id)}','approved')">Approve</button>
+                <button class="btn btn-outline btn-sm" onclick="adminResolveWalletTx('${escJS(user.email)}','${escJS(tx.id)}','rejected')">Reject</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } catch (err) {
+    wrap.innerHTML = `<div class="empty-state"><p>Wallet requests could not load: ${esc(err.message)}</p></div>`;
+  }
+}
+
+async function adminResolveWalletTx(email, txId, status) {
+  if (!isJwAdmin()) { notify('❌ Admin access required'); return; }
+  const user = await dbGetUserByEmail(email);
+  if (!user) { notify('❌ User not found'); return; }
+  const profile = normalizeProfile(user.profile);
+  const wallet = getWalletProfile(user);
+  const tx = wallet.transactions.find(item => item.id === txId);
+  if (!tx) { notify('❌ Wallet request not found'); return; }
+  if (tx.status !== 'pending_review') { notify('⚠️ This request has already been reviewed.'); return; }
+
+  if (status === 'approved' && tx.type === 'withdrawal' && walletBalance(wallet, false) < walletTxAmount(tx)) {
+    notify('⚠️ User balance is not enough for this withdrawal.');
+    return;
+  }
+
+  if (status === 'approved' && tx.type === 'transfer_out') {
+    const recipient = await dbGetUserByEmail(tx.to_email);
+    if (!recipient) { notify('❌ Recipient account was not found.'); return; }
+    if (walletBalance(wallet, false) < walletTxAmount(tx)) { notify('⚠️ Sender balance is not enough for this transfer.'); return; }
+    const recipientProfile = normalizeProfile(recipient.profile);
+    const recipientWallet = getWalletProfile(recipient);
+    recipientWallet.transactions.push({
+      id: walletTxId(),
+      type: 'transfer_in',
+      amount: walletTxAmount(tx),
+      from_email: email,
+      source_tx: tx.id,
+      status: 'approved',
+      created_at: new Date().toISOString(),
+      reviewed_by: currentUser.email
+    });
+    recipientProfile.wallet = { ...recipientWallet, updated_at: new Date().toISOString() };
+    await dbUpdateUser(recipient.email, { profile: recipientProfile });
+  }
+
+  tx.status = status;
+  tx.reviewed_by = currentUser.email;
+  tx.reviewed_at = new Date().toISOString();
+  profile.wallet = { ...wallet, updated_at: new Date().toISOString() };
+  await dbUpdateUser(user.email, { profile });
+  if (sameEmail(user.email, currentUser.email)) {
+    currentUser.profile = profile;
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+  }
+  await renderAdminWalletRequests();
+  if (document.getElementById('page-wallet')?.classList.contains('active')) renderWalletPage();
+  notify(status === 'approved' ? '✅ Wallet request approved.' : 'Wallet request rejected.');
 }
 
 function adminOverrideTask(id, field, value) {
@@ -11853,9 +12151,11 @@ function adminOverrideTask(id, field, value) {
     return;
   }
   const updates = { [field]: value, admin_override_at: new Date().toISOString(), admin_override_by: currentUser.email };
-  dbUpdateTask(id, updates).then(() => {
+  dbUpdateTask(id, updates).then(async () => {
     Object.assign(t, updates);
+    if (field === 'payment' && value === 'paid') await recordCommissionIfPaid(t);
     renderAdminControlPage();
+    renderEmpPaySummary();
     updateBadges();
     notify('🛡️ Admin override saved for ' + id);
   }).catch(err => notify('❌ Admin override failed: ' + err.message));
@@ -11881,7 +12181,7 @@ function populatePayHeroOrderSelect() {
   const sel = document.getElementById('payhero-order-select');
   if (!sel || !currentUser || currentUser.role !== 'employer') return;
   const list = myTaskList().filter(t => t.payment !== 'paid' && Number(t.total || 0) > 0 && !isCancelledTask(t));
-  sel.innerHTML = '<option value="">— Select unpaid order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)} (KES ${Number(t.total||0).toLocaleString()})</option>`).join('');
+  sel.innerHTML = '<option value="">— Select order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)} (KES ${Number(t.total||0).toLocaleString()})</option>`).join('');
   if (_pendingPaymentOrderId && list.some(t => String(t.id) === String(_pendingPaymentOrderId))) {
     sel.value = _pendingPaymentOrderId;
     _pendingPaymentOrderId = null;
