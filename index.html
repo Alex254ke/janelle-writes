@@ -337,7 +337,7 @@ html.jw-booting #app-shell {
 .auth-tab.active { background: var(--ink); color: var(--white); }
 
 .auth-role-select {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
   margin-bottom: 24px;
 }
 
@@ -352,6 +352,14 @@ html.jw-booting #app-shell {
 .role-card .role-icon { font-size: 28px; margin-bottom: 8px; }
 .role-card .role-name { font-size: 16px; font-weight: 700; color: var(--ink); }
 .role-card .role-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.student-signup-fields {
+  display: none;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--teal-light);
+  border-radius: 10px;
+  background: var(--teal-pale);
+}
 
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .form-label { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--slate); }
@@ -2996,7 +3004,7 @@ body.dark-mode .google-auth-separator::after {
 }
 .landing-role-grid {
   display:grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 22px;
 }
 .role-bleed-card {
@@ -4407,6 +4415,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <div class="landing-cta-row">
             <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
             <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
+            <button class="btn btn-outline" onclick="openAuthScreen('signup','student')">International Student</button>
           </div>
           <div class="landing-scroll-hint">Scroll to explore</div>
         </div>
@@ -4481,6 +4490,16 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
             <h3>Find tasks and deliver with confidence.</h3>
             <p>Review instructions, manage submissions, build ratings, and keep your workflow organized on any device.</p>
             <a href="javascript:void(0)" class="arrow-link" onclick="openAuthScreen('signup','writer')">Start here →</a>
+          </div>
+        </article>
+
+        <article class="role-bleed-card">
+          <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80" alt="International students studying together">
+          <div class="role-reveal">
+            <div class="tag">International Students</div>
+            <h3>Post assignments with guided support.</h3>
+            <p>Share your task, deadline, and length. Admin handles communication and payment guidance while qualified writers work through the platform.</p>
+            <a href="javascript:void(0)" class="arrow-link" onclick="openAuthScreen('signup','student')">Start here →</a>
           </div>
         </article>
       </div>
@@ -4763,10 +4782,37 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <div class="role-name">Writer</div>
           <div class="role-desc">Browse & complete writing orders</div>
         </div>
+        <div class="role-card" id="role-student" onclick="selectRole('student')">
+          <div class="role-icon">🎓</div>
+          <div class="role-name">International Student</div>
+          <div class="role-desc">Post assignments with admin-guided support</div>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Full Name</label>
         <input type="text" class="form-input" id="signup-name" placeholder="Your full name">
+      </div>
+      <div class="student-signup-fields" id="student-signup-fields">
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <input type="text" class="form-input" id="signup-country" placeholder="e.g. United States">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Institution / School</label>
+          <input type="text" class="form-input" id="signup-institution" placeholder="Optional">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Study Level</label>
+          <select class="form-select" id="signup-study-level">
+            <option value="">Select level</option>
+            <option>High School</option>
+            <option>College</option>
+            <option>Undergraduate</option>
+            <option>Masters</option>
+            <option>PhD</option>
+            <option>Other</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Email Address</label>
@@ -4780,7 +4826,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
       <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
       <div class="google-auth-separator">Or</div>
       <button type="button" class="google-auth-btn" onclick="startGoogleAuth('signup')"><span class="google-auth-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8 19.3-20c0-1.2-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.1 5.6l6.2 5.2c-.4.3 5.9-4.3 5.9-14.8 0-1.2-.1-2.3-.3-3.5z"/></svg></span><span>Sign up with Google</span></button>
-      <div class="google-auth-note">For new Google accounts, choose Employer or Writer above before continuing.</div>
+      <div class="google-auth-note">For new Google accounts, choose Employer, Writer, or International Student above before continuing.</div>
     </div>
 
     <!-- 2FA OTP VERIFICATION FORM -->
@@ -5077,6 +5123,58 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     </div>
   </div>
 
+  <!-- STUDENT DASHBOARD -->
+  <div class="page content" id="page-student-dashboard">
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h1>Welcome, <span id="student-hero-name">Student</span>!</h1>
+        <p>Post your assignment details, follow progress, and communicate privately with the Janelle Writes admin team.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="student-stat-total">0</div>
+          <div class="hero-stat-label">My Orders</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="student-stat-active">0</div>
+          <div class="hero-stat-label">Active</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="student-stat-done">0</div>
+          <div class="hero-stat-label">Completed</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual-strip">
+      <div class="visual-strip-item">
+        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=80" alt="Students studying" loading="lazy">
+        <div class="visual-strip-overlay"><span class="visual-strip-label">Student Support</span></div>
+      </div>
+      <div class="visual-strip-item">
+        <img src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=600&q=80" alt="Campus study space" loading="lazy">
+        <div class="visual-strip-overlay"><span class="visual-strip-label">Clear Deadlines</span></div>
+      </div>
+      <div class="visual-strip-item">
+        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80" alt="Online learning" loading="lazy">
+        <div class="visual-strip-overlay"><span class="visual-strip-label">Admin-Guided Flow</span></div>
+      </div>
+    </div>
+    <div class="quick-actions">
+      <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post Assignment</div><div class="qa-sub">Share instructions and deadline</div></div>
+      <div class="qa-card" onclick="navigate('emp-tasks')"><div class="qa-icon">📋</div><div class="qa-title">My Orders</div><div class="qa-sub">Track progress privately</div></div>
+      <div class="qa-card" onclick="openMessagesInbox()"><div class="qa-icon">💬</div><div class="qa-title">Message Admin</div><div class="qa-sub">Discuss payment and order details</div></div>
+    </div>
+    <div class="section-header"><div class="section-title">Recent <span>Assignments</span></div></div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Order #</th><th>Subject</th><th>Style</th><th>Deadline</th><th>Status</th><th>Payment</th><th>Amount</th></tr></thead>
+          <tbody id="student-dash-table"><tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📄</div><p>No assignments yet. Click <strong>Post Assignment</strong> to begin.</p></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ EMPLOYER PAGES ═══════════════════════════════════════ -->
 
   <!-- EMPLOYER DASHBOARD -->
@@ -5312,7 +5410,10 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
         </div>
         <div class="form-group form-full" id="payhero-preview"></div>
       </div>
-      <button class="btn btn-primary" onclick="empRecordPaymentFromQuickCard()">Submit Payment Code</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="empRecordPaymentFromQuickCard()">Submit Payment Code</button>
+        <button class="btn btn-outline" onclick="walletPaySelectedOrder()">Pay From Wallet</button>
+      </div>
       <div class="payhero-status" id="payhero-status"></div>
     </div>
 
@@ -5331,18 +5432,6 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           </div>
         </div>
 
-        <!-- Payment confirmation -->
-        <div class="card">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:10px;">Manual Payment Details</div>
-          <p class="text-muted" style="margin-bottom:14px;">Use this manual payment method for launch.</p>
-          <div style="font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:8px;padding:12px;margin-bottom:14px;">
-            <div class="till-number-display" style="margin:0 0 12px;"><span>Till Number</span><strong>8627286</strong></div>
-            Submit the M-Pesa code after payment. The admin will verify it before the order becomes paid.
-          </div>
-          <div class="form-group mb-4"><label class="form-label">Select Order</label><select class="form-select" id="emp-pay-select"><option value="">— Select Order —</option></select></div>
-          <div class="form-group mb-4"><label class="form-label">Transaction Code</label><input type="text" class="form-input" id="emp-pay-code" placeholder="e.g. QHK7XXXXXX" style="text-transform:uppercase;"></div>
-          <button class="btn btn-success btn-full" onclick="empRecordPayment()">Submit Payment Code</button>
-        </div>
       </div>
       <div>
         <div class="card">
@@ -5624,6 +5713,10 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
         <div id="msg-thread-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Messages</div>
         <div id="msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select an assigned order to start messaging.</p></div></div>
         <div class="message-composer" id="msg-composer" style="display:none;">
+          <select class="form-select" id="msg-student-channel" style="display:none;max-width:220px;">
+            <option value="student">Reply to student</option>
+            <option value="writer">Reply to writer</option>
+          </select>
           <textarea class="form-textarea" id="msg-input" rows="2" placeholder="Write a message..."></textarea>
           <button class="btn btn-primary" onclick="sendTaskMessage()">Send →</button>
         </div>
@@ -6295,8 +6388,10 @@ function startGoogleAuth(intent = 'login') {
     localStorage.setItem('jw_google_intent', intent);
     if (intent === 'signup') {
       localStorage.setItem('jw_google_role', _selectedRole || 'employer');
+      localStorage.setItem('jw_google_signup_profile', JSON.stringify(studentSignupExtraProfile()));
     } else {
       localStorage.removeItem('jw_google_role');
+      localStorage.removeItem('jw_google_signup_profile');
     }
   } catch {}
 
@@ -6319,6 +6414,7 @@ function googleProfileFromSession(session) {
 }
 
 async function createGooglePlatformUser(g, role) {
+  const extraProfile = pendingSignupProfileForEmail(g.email);
   return await secureUpsertPlatformUser({
     email: g.email,
     name: g.name,
@@ -6327,11 +6423,12 @@ async function createGooglePlatformUser(g, role) {
     profile: {
       name: g.name,
       photo: g.photo || '',
-      title: role === 'writer' ? 'Academic Writer' : 'Employer',
+      title: roleTitle(role),
       bio: '',
       skills: '',
       auth_provider: 'google',
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      ...extraProfile
     }
   });
 }
@@ -6583,12 +6680,14 @@ async function secureUpsertPlatformUser(payload) {
 }
 
 function localPlatformUserFromAuth(authUser, role = 'employer') {
+  const extraProfile = pendingSignupProfileForEmail(authUser.email);
   const profile = {
     name: authUser.name || authUser.email,
     photo: authUser.photo || '',
-    title: role === 'writer' ? 'Academic Writer' : 'Employer',
+    title: roleTitle(role),
     auth_provider: authUser.provider || 'email',
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    ...extraProfile
   };
   return {
     id: authUser.auth_id || authUser.email,
@@ -6651,6 +6750,7 @@ function refreshAppChromeAfterProfileUpdate(previousRole) {
 }
 
 async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
+  const extraProfile = pendingSignupProfileForEmail(authUser.email);
   try {
     return await secureUpsertPlatformUser({
       email: authUser.email,
@@ -6660,11 +6760,12 @@ async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
       profile: {
         name: authUser.name,
         photo: authUser.photo || '',
-        title: selectedRole === 'writer' ? 'Academic Writer' : 'Employer',
+        title: roleTitle(selectedRole),
         bio: '',
         skills: '',
         auth_provider: authUser.provider,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        ...extraProfile
       }
     });
   } catch (err) {
@@ -6798,6 +6899,43 @@ function selectRole(r) {
   _selectedRole = r;
   document.getElementById('role-employer').classList.toggle('selected', r==='employer');
   document.getElementById('role-writer').classList.toggle('selected', r==='writer');
+  document.getElementById('role-student')?.classList.toggle('selected', r==='student');
+  const studentFields = document.getElementById('student-signup-fields');
+  if (studentFields) studentFields.style.display = r === 'student' ? 'block' : 'none';
+}
+
+function roleTitle(role) {
+  if (role === 'writer') return 'Academic Writer';
+  if (role === 'student') return 'International Student';
+  return 'Employer';
+}
+
+function studentSignupExtraProfile() {
+  if (_selectedRole !== 'student') return {};
+  return {
+    country: document.getElementById('signup-country')?.value?.trim() || '',
+    institution: document.getElementById('signup-institution')?.value?.trim() || '',
+    study_level: document.getElementById('signup-study-level')?.value || '',
+    student_private: true
+  };
+}
+
+function rememberPendingSignupProfile(email, profile) {
+  try {
+    if (email && profile && Object.keys(profile).length) {
+      localStorage.setItem('jw_signup_profile_' + String(email).toLowerCase(), JSON.stringify(profile));
+    }
+  } catch {}
+}
+
+function pendingSignupProfileForEmail(email) {
+  try {
+    const googleProfile = JSON.parse(localStorage.getItem('jw_google_signup_profile') || '{}');
+    const emailProfile = JSON.parse(localStorage.getItem('jw_signup_profile_' + String(email || '').toLowerCase()) || '{}');
+    return normalizeProfile({ ...googleProfile, ...emailProfile });
+  } catch {
+    return {};
+  }
 }
 
 async function doLogin() {
@@ -6853,9 +6991,12 @@ async function doSignup() {
   const name  = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const pass  = document.getElementById('signup-password').value;
+  const extraProfile = studentSignupExtraProfile();
   if (!name || !email || !pass) { notify('⚠️ Please fill in all fields'); return; }
   if (!/^\S+@\S+\.\S+$/.test(email)) { notify('⚠️ Please enter a valid email address'); return; }
   if (pass.length < 8) { notify('⚠️ Password must be at least 8 characters'); return; }
+  if (_selectedRole === 'student' && !extraProfile.country) { notify('⚠️ Please enter your country.'); return; }
+  rememberPendingSignupProfile(email, extraProfile);
 
   setLoading(true);
   try {
@@ -6864,7 +7005,7 @@ async function doSignup() {
       password: pass,
       options: {
         emailRedirectTo: googleRedirectUrl(),
-        data: { name, role: _selectedRole }
+        data: { name, role: _selectedRole, ...extraProfile }
       }
     });
 
@@ -6875,7 +7016,7 @@ async function doSignup() {
       return;
     }
 
-    const pending = { name, email, role: _selectedRole };
+    const pending = { name, email, role: _selectedRole, profile: extraProfile };
 
     // When Supabase email confirmation is enabled, no session is returned yet.
     // Keep the user on the verification screen so they can enter the emailed code.
@@ -7654,6 +7795,7 @@ let _suppressHistoryPush = false;
 
 function getHomePage() {
   if (!currentUser) return 'login';
+  if (currentUser.role === 'student') return 'student-dashboard';
   return currentUser.role === 'employer' ? 'emp-dashboard' : 'writer-dashboard';
 }
 
@@ -7765,7 +7907,21 @@ function launchApp(options = {}) {
 // ══════════════════════════════════════════════════════
 function buildSidebar() {
   const nav = document.getElementById('sidebar-nav');
-  if (currentUser.role === 'employer') {
+  if (currentUser.role === 'student') {
+    nav.innerHTML = `
+      <div class="nav-section">Student</div>
+      <div class="nav-item" data-page="student-dashboard" onclick="navigate('student-dashboard')"><span class="icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post Assignment</div>
+      <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
+      <div class="nav-item" data-page="cancelled" onclick="navigate('cancelled')"><span class="icon">🚫</span> Cancelled Orders <span class="nav-badge" id="cancelled-badge">0</span></div>
+      <div class="nav-item" data-page="messages" onclick="openMessagesInbox()"><span class="icon">💬</span> Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
+      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
+      <div class="nav-item" data-page="faq" onclick="navigate('faq')"><span class="icon">❓</span> FAQ</div>
+      <div class="nav-item" data-page="rules" onclick="navigate('rules')"><span class="icon">📜</span> Rules & Privacy</div>
+      <div class="nav-section">Finance</div>
+      <div class="nav-item" data-page="wallet" onclick="navigate('wallet')"><span class="icon">🏦</span> Wallet</div>
+    `;
+  } else if (currentUser.role === 'employer') {
     nav.innerHTML = `
       <div class="nav-section">Employer</div>
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
@@ -7810,7 +7966,13 @@ function buildSidebar() {
 
 function buildTopbar() {
   const actions = document.getElementById('topbar-actions');
-  if (currentUser.role === 'employer') {
+  if (currentUser.role === 'student') {
+    actions.innerHTML = `
+      <button class="btn btn-outline btn-sm dark-toggle-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode"><span id="dark-mode-icon">🌙</span> <span class="dark-toggle-label" id="dark-mode-label">Dark</span></button>
+      <button class="btn btn-outline btn-sm" onclick="openMessagesInbox()">💬 Messages <span class="message-unread-badge" id="topbar-msg-unread-badge">0</span></button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('emp-post')">＋ Post Assignment</button>
+    `;
+  } else if (currentUser.role === 'employer') {
     actions.innerHTML = `
       <button class="btn btn-outline btn-sm dark-toggle-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode"><span id="dark-mode-icon">🌙</span> <span class="dark-toggle-label" id="dark-mode-label">Dark</span></button>
       <button class="btn btn-outline btn-sm" onclick="openMessagesInbox()">💬 Messages <span class="message-unread-badge" id="topbar-msg-unread-badge">0</span></button>
@@ -7829,11 +7991,14 @@ function buildTopbar() {
 function updateUserDisplay() {
   const profile = getCurrentProfileSync();
   document.getElementById('nav-username').textContent = currentUser.name;
-  document.getElementById('nav-role').textContent = currentUser.role === 'employer' ? 'Employer' : 'Writer';
+  document.getElementById('nav-role').textContent = currentUser.role === 'student' ? 'International Student' : (currentUser.role === 'employer' ? 'Employer' : 'Writer');
   const avatar = document.getElementById('nav-avatar');
   if (profile.photo) avatar.innerHTML = `<img src="${profile.photo}" alt="Profile image">`;
   else avatar.textContent = currentUser.name[0].toUpperCase();
-  if (currentUser.role === 'employer') {
+  if (currentUser.role === 'student') {
+    const el = document.getElementById('student-hero-name');
+    if (el) el.textContent = currentUser.name.split(' ')[0];
+  } else if (currentUser.role === 'employer') {
     document.getElementById('emp-hero-name').textContent = currentUser.name.split(' ')[0];
   } else {
     document.getElementById('writer-hero-name').textContent = currentUser.name.split(' ')[0];
@@ -7876,6 +8041,22 @@ function currentBadgeCounts() {
     };
   }
 
+  if (currentUser.role === 'student') {
+    return {
+      role: 'student',
+      totalOrders: employerTasks.length,
+      pending: employerTasks.filter(t => t.status === 'pending').length,
+      inProgress: employerTasks.filter(t => t.status === 'progress').length,
+      completed: employerTasks.filter(t => t.status === 'completed').length,
+      revisions: employerTasks.filter(t => t.status === 'revision').length,
+      late: employerTasks.filter(t => taskIsLate(t)).length,
+      disputes: employerTasks.filter(t => hasOpenDispute(t)).length,
+      cancelled: visibleTasks.filter(isCancelledTask).length,
+      fines: visibleTasks.reduce((sum, t) => sum + getTaskFines(t).length, 0),
+      unread: totalUnreadMessages()
+    };
+  }
+
   return {
     role: 'writer',
     available: publicAvailable.length,
@@ -7897,7 +8078,7 @@ function updateBadges() {
   const c = currentBadgeCounts();
   if (!c) return;
 
-  if (c.role === 'employer') {
+  if (c.role === 'employer' || c.role === 'student') {
     // Sidebar: "My Orders" should show all employer orders, not only pending orders.
     setCountBadge('emp-pending-badge', c.totalOrders, '{count} total orders');
     setCountBadge('emp-dispute-badge', c.disputes, '{count} disputed orders');
@@ -8195,6 +8376,7 @@ const pageTitles = {
   'cancelled': 'Cancelled Orders',
   'fines': 'Fines',
   'wallet': 'Wallet',
+  'student-dashboard': 'Student Dashboard',
   'emp-dashboard': 'Dashboard',
   'emp-post': 'Post New Task',
   'emp-tasks': 'My Orders',
@@ -8238,6 +8420,7 @@ function navigate(page, options = {}) {
     case 'cancelled':       renderCancelledOrdersPage(); break;
     case 'fines':           renderFinesPage(); break;
     case 'wallet':          renderWalletPage(); break;
+    case 'student-dashboard': renderStudentDashboard(); break;
     case 'emp-dashboard':   renderEmpDashboard(); break;
     case 'emp-post':        empInitForm(); break;
     case 'emp-tasks':       renderEmpTasks(); break;
@@ -8779,7 +8962,7 @@ function getTaskRatings(t) {
 function visibleTasksForCurrentUser() {
   if (!currentUser || !Array.isArray(tasks)) return [];
   if (typeof isJwAdmin === 'function' && isJwAdmin()) return tasks;
-  if (currentUser.role === 'employer') return tasks.filter(t => taskForEmployer(t, currentUser.email));
+  if (currentUser.role === 'employer' || currentUser.role === 'student') return tasks.filter(t => taskForEmployer(t, currentUser.email));
   return tasks.filter(t => taskForWriter(t, currentUser.email));
 }
 
@@ -8943,7 +9126,7 @@ function walletTxId() {
 }
 
 function walletReference(tx) {
-  return tx.code || tx.to_email || tx.destination || tx.note || tx.tx_ref || tx.id || '—';
+  return tx.code || tx.note || tx.to_email || tx.destination || tx.tx_ref || tx.id || '—';
 }
 
 async function renderWalletPage() {
@@ -9064,6 +9247,46 @@ async function walletRequestTransfer() {
     status: 'pending_review',
     created_at: new Date().toISOString()
   }).then(() => { renderWalletPage(); notify('✅ Transfer request submitted for admin review.'); }).catch(err => notify('❌ Transfer request could not be saved: ' + err.message));
+}
+
+async function walletPaySelectedOrder() {
+  if (!currentUser || currentUser.role !== 'employer') { notify('⚠️ Wallet order payment is available to employers.'); return; }
+  const taskId = document.getElementById('payhero-order-select')?.value || document.getElementById('emp-pay-select')?.value;
+  const t = getTaskById(taskId);
+  if (!t) { notify('⚠️ Select an unpaid order first'); return; }
+  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be paid.'); return; }
+  if (t.payment === 'paid') { notify('✅ This order is already marked paid.'); return; }
+  if (!t.taken_by) { notify('⚠️ A writer must accept or be assigned to this order before wallet payment.'); return; }
+  const amount = Math.round(Number(t.total || 0));
+  if (!amount || amount < 1) { notify('⚠️ This order has no payable amount.'); return; }
+
+  const rows = await dbGetWalletTransactionsForUser().catch(err => { notify('❌ Wallet balance could not load: ' + err.message); return null; });
+  if (!rows) return;
+  if (walletBalance(rows, true) < amount) { notify('⚠️ Your available wallet balance is not enough. Top up first, then try again.'); return; }
+
+  const split = calcCommission(amount);
+  await dbInsertWalletTransaction({
+    tx_ref: walletTxId(),
+    user_email: currentUser.email.toLowerCase(),
+    type: 'transfer_out',
+    amount,
+    to_email: String(t.taken_by).toLowerCase(),
+    status: 'pending_review',
+    note: `Wallet payment for order ${t.id}`,
+    metadata: {
+      order_payment: true,
+      task_id: t.id,
+      writer_email: String(t.taken_by).toLowerCase(),
+      gross: amount,
+      commission_rate: COMMISSION_RATE,
+      commission_amount: split.commission,
+      writer_payout: split.payout
+    },
+    created_at: new Date().toISOString()
+  }).then(() => {
+    renderWalletPage();
+    notify('✅ Wallet payment submitted for admin approval.');
+  }).catch(err => notify('❌ Wallet payment could not be saved: ' + err.message));
 }
 
 function openCancelOrderModal(id) {
@@ -9741,7 +9964,9 @@ async function empPostTask() {
     payment: 'unpaid',
     mpesa_code: '',
     posted_by: currentUser.email,
-    posted_by_name: currentUser.name,
+    posted_by_name: currentUser.role === 'student' ? 'International Student' : currentUser.name,
+    order_type: currentUser.role === 'student' ? 'international_student' : 'local_order',
+    student_order: currentUser.role === 'student',
     taken_by: preferredWriter ? preferredWriter.email : null,
     taken_by_name: preferredWriter ? preferredWriter.name : null,
     instruction_files: instructionFiles,
@@ -9800,6 +10025,42 @@ function renderEmpDashboard() {
       <td>${statusBadgeForTask(t)}</td>
       <td>${payBadge(t.payment)}</td>
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function renderStudentDashboard() {
+  const mine = myTaskList();
+  const total = mine.length;
+  const active = mine.filter(t => ['pending','progress','late','revision'].includes(t.status)).length;
+  const done = mine.filter(t => t.status === 'completed').length;
+  const unpaid = mine.filter(t => t.payment !== 'paid').reduce((s,t) => s + Number(t.total || 0), 0);
+
+  const name = document.getElementById('student-hero-name');
+  if (name) name.textContent = (currentUser?.name || 'Student').split(' ')[0];
+  const totalEl = document.getElementById('student-stat-total');
+  const activeEl = document.getElementById('student-stat-active');
+  const doneEl = document.getElementById('student-stat-done');
+  if (totalEl) totalEl.textContent = total;
+  if (activeEl) activeEl.textContent = active;
+  if (doneEl) doneEl.textContent = done;
+
+  const tbody = document.getElementById('student-dash-table');
+  if (!tbody) return;
+  const recent = [...mine].reverse().slice(0, 6);
+  if (!recent.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📄</div><p>No assignments yet. Click <strong>Post Assignment</strong> to begin.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = recent.map(t => `
+    <tr onclick="empViewTask('${t.id}')" style="cursor:pointer;">
+      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${esc(t.id)}</button></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject || '')}</td>
+      <td><span class="badge badge-style">${esc(t.style || '')}</span></td>
+      <td style="color:var(--rust);">${fmtDate(t.deadline)}</td>
+      <td>${statusBadgeForTask(t)}</td>
+      <td>${payBadge(t.payment)}</td>
+      <td class="text-gold">KES ${Number(t.total || 0).toLocaleString()}</td>
     </tr>
   `).join('');
 }
@@ -10905,10 +11166,10 @@ function collectProfileForm() {
 function updateProfilePreview() {
   const profile = collectProfileForm();
   const name = profile.name || currentUser?.name || 'Your Name';
-  const title = profile.title || (currentUser?.role === 'writer' ? 'Academic Writer' : 'Employer');
+  const title = profile.title || roleTitle(currentUser?.role);
   document.getElementById('profile-preview-name').textContent = name;
   document.getElementById('profile-preview-title').textContent = title;
-  document.getElementById('profile-preview-role').textContent = currentUser?.role === 'writer' ? 'Writer Profile' : 'Employer Profile';
+  document.getElementById('profile-preview-role').textContent = currentUser?.role === 'student' ? 'Student Profile' : (currentUser?.role === 'writer' ? 'Writer Profile' : 'Employer Profile');
   document.getElementById('profile-preview-bio').textContent = profile.bio || 'Add a short bio so other users can quickly understand who you are, what you do, and how you work.';
   setAvatarBox('profile-avatar-large', profile, name);
   setAvatarBox('profile-mini-avatar', profile, name);
@@ -11128,9 +11389,29 @@ function setTaskMessages(t, messages) {
   t.messages = messages;
   saveLocalMessages(t.id, messages);
 }
+function isStudentOrder(t) {
+  return !!(t?.student_order || t?.order_type === 'international_student');
+}
+function messageChannelForUser(t, m) {
+  if (!isStudentOrder(t)) return 'standard';
+  return m?.channel || (m?.sender_role === 'student' ? 'student' : 'writer');
+}
+function canCurrentUserSeeMessage(t, m) {
+  if (!currentUser || !m) return false;
+  if (isJwAdmin()) return true;
+  if (!isStudentOrder(t)) return true;
+  const channel = messageChannelForUser(t, m);
+  if (currentUser.role === 'student') return channel === 'student';
+  if (currentUser.role === 'writer') return channel === 'writer';
+  return true;
+}
+function visibleMessagesForCurrentUser(t, messages = getTaskMessages(t)) {
+  return (messages || []).filter(m => canCurrentUserSeeMessage(t, m));
+}
 function messageableTasks() {
   if (!currentUser) return [];
   if (currentUser.role === 'employer') return myTaskList().filter(t => t.taken_by);
+  if (currentUser.role === 'student') return myTaskList();
   return tasks.filter(t => t.taken_by === currentUser.email);
 }
 
@@ -11139,7 +11420,7 @@ function getReadByList(m) {
 }
 function unreadMessagesForTask(t) {
   if (!currentUser || !t) return 0;
-  return getTaskMessages(t).filter(m => {
+  return visibleMessagesForCurrentUser(t).filter(m => {
     if (!m || m.sender_email === currentUser.email) return false;
     return !getReadByList(m).includes(currentUser.email);
   }).length;
@@ -11163,6 +11444,7 @@ function markTaskMessagesRead(t) {
   const messages = getTaskMessages(t);
   let changed = false;
   const next = messages.map(m => {
+    if (!canCurrentUserSeeMessage(t, m)) return m;
     if (!m || m.sender_email === currentUser.email) return m;
     const readBy = getReadByList(m);
     if (readBy.includes(currentUser.email)) return m;
@@ -11185,12 +11467,14 @@ function openMessagesInbox() {
   navigate('messages');
 }
 function messageSortValue(t) {
-  const last = latestMessage(getTaskMessages(t));
+  const last = latestMessage(visibleMessagesForCurrentUser(t));
   const d = last?.at || t.updated_at || t.created_at || t.date || '';
   return d ? new Date(d).getTime() || 0 : 0;
 }
 function conversationOtherName(t) {
   if (!t) return 'User';
+  if (isStudentOrder(t) && currentUser?.role === 'student') return 'Janelle Writes Admin';
+  if (isStudentOrder(t) && currentUser?.role === 'writer') return 'Janelle Writes Admin';
   if (currentUser?.role === 'employer') return t.taken_by_name || t.taken_by || 'Writer';
   return t.posted_by_name || t.posted_by || 'Employer';
 }
@@ -11201,7 +11485,7 @@ function renderMessageConversationList(listOverride, selectedId) {
   const sorted = [...list].sort((a, b) => {
     const unreadDiff = unreadMessagesForTask(b) - unreadMessagesForTask(a);
     if (unreadDiff) return unreadDiff;
-    const msgDiff = getTaskMessages(b).length - getTaskMessages(a).length;
+    const msgDiff = visibleMessagesForCurrentUser(b).length - visibleMessagesForCurrentUser(a).length;
     if (msgDiff) return msgDiff;
     return messageSortValue(b) - messageSortValue(a);
   });
@@ -11210,7 +11494,7 @@ function renderMessageConversationList(listOverride, selectedId) {
     return;
   }
   wrap.innerHTML = sorted.map(t => {
-    const messages = getTaskMessages(t);
+    const messages = visibleMessagesForCurrentUser(t);
     const last = latestMessage(messages);
     const unread = unreadMessagesForTask(t);
     const preview = last ? `${last.sender_email === currentUser.email ? 'You' : (last.sender_name || conversationOtherName(t))}: ${last.body || ''}` : 'No messages yet. Click to start this order conversation.';
@@ -11239,7 +11523,7 @@ function renderMessagesPage() {
   const previousSelected = sel.value;
   const preselected = _preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId) ? _preselectMessageTaskId : '';
   const latestExistingConversation = [...list]
-    .filter(t => getTaskMessages(t).length > 0)
+    .filter(t => visibleMessagesForCurrentUser(t).length > 0)
     .sort((a, b) => messageSortValue(b) - messageSortValue(a))[0]?.id || '';
   const fallbackAssignedTask = list.length === 1 ? list[0].id : '';
   const selectedId = preselected || (previousSelected && list.some(t => t.id === previousSelected) ? previousSelected : '') || latestExistingConversation || fallbackAssignedTask;
@@ -11255,18 +11539,23 @@ function loadMessageThread() {
   const summary = document.getElementById('msg-order-summary');
   const thread = document.getElementById('msg-thread');
   const composer = document.getElementById('msg-composer');
+  const channelSelect = document.getElementById('msg-student-channel');
   const title = document.getElementById('msg-thread-title');
   if (!t || !canCurrentUserSeeTask(t)) {
     summary.innerHTML = 'Open a previous conversation or message directly from an order.';
     title.textContent = 'Messages';
     thread.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Your message inbox will appear here. Open a conversation from the left or click Message from a specific order.</p></div>';
     composer.style.display = 'none';
+    if (channelSelect) channelSelect.style.display = 'none';
     renderMessageConversationList(messageableTasks(), '');
     return;
   }
   title.innerHTML = `${esc(t.id)} — ${esc(t.subject)}`;
-  summary.innerHTML = `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
-  const messages = markTaskMessagesRead(t);
+  summary.innerHTML = isStudentOrder(t)
+    ? `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Support: Janelle Writes Admin<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`
+    : `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
+  markTaskMessagesRead(t);
+  const messages = visibleMessagesForCurrentUser(t);
   const currentOption = Array.from(document.getElementById('msg-order-select').options).find(opt => opt.value === t.id);
   if (currentOption) currentOption.textContent = messageOptionLabel(t);
   renderMessageConversationList(messageableTasks(), t.id);
@@ -11284,6 +11573,7 @@ function loadMessageThread() {
     thread.scrollTop = thread.scrollHeight;
   }
   composer.style.display = '';
+  if (channelSelect) channelSelect.style.display = isStudentOrder(t) && isJwAdmin() ? '' : 'none';
 }
 function sendTaskMessage() {
   const id = document.getElementById('msg-order-select').value;
@@ -11297,12 +11587,16 @@ function sendTaskMessage() {
     return;
   }
   const messages = getTaskMessages(t);
+  const channel = isStudentOrder(t)
+    ? (currentUser.role === 'student' ? 'student' : (currentUser.role === 'writer' ? 'writer' : 'student'))
+    : 'standard';
   const msg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(16).slice(2),
     task_id: t.id,
     sender_email: currentUser.email,
     sender_name: currentUser.name,
     sender_role: currentUser.role,
+    channel,
     body,
     at: new Date().toISOString(),
     read_by: [currentUser.email]
@@ -11337,6 +11631,7 @@ function activeMessageThreadId() {
 function shouldAlertForIncomingMessage(task, lastMessage, previousMessages = [], nextMessages = []) {
   if (!currentUser || !task || !lastMessage) return false;
   if (!taskParticipant(task)) return false;
+  if (!canCurrentUserSeeMessage(task, lastMessage)) return false;
   if (sameEmail(lastMessage.sender_email, currentUser.email)) return false;
   if (activeMessageThreadId() === task.id) return false;
   const messageId = lastMessage.id || `${task.id}:${lastMessage.sender_email || ''}:${lastMessage.at || nextMessages.length}`;
@@ -11604,7 +11899,7 @@ document.addEventListener('keydown', handleMessageEnterKey);
 
   const hash = String(window.location.hash || '').toLowerCase();
   if (hash.includes('signup')) {
-    openAuthScreen('signup', hash.includes('writer') ? 'writer' : 'employer');
+    openAuthScreen('signup', hash.includes('student') ? 'student' : (hash.includes('writer') ? 'writer' : 'employer'));
   } else if (hash.includes('login')) {
     openAuthScreen('login');
   } else {
@@ -12175,12 +12470,14 @@ sendTaskMessage = function() {
   if (!t) { notify('⚠️ Select an order first'); return; }
   if (!body) { notify('⚠️ Type a message first'); return; }
   const messages = getTaskMessages(t);
+  const channel = isStudentOrder(t) ? (document.getElementById('msg-student-channel')?.value || 'student') : 'standard';
   const msg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(16).slice(2),
     task_id: t.id,
     sender_email: currentUser.email,
     sender_name: currentUser.name,
     sender_role: 'admin',
+    channel,
     body,
     at: new Date().toISOString(),
     read_by: [currentUser.email]
@@ -12207,9 +12504,10 @@ loadMessageThread = function() {
     const mine = m.sender_email === currentUser.email;
     const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
     const admin = m.sender_role === 'admin' || isJwAdminEmail(m.sender_email);
+    const channel = isStudentOrder(t) && m.channel ? ` · ${m.channel === 'student' ? 'Student channel' : 'Writer channel'}` : '';
     return `<div class="message-bubble ${mine ? 'mine' : ''}">
       <div class="message-meta ${admin ? 'admin-message-meta' : ''}">
-        ${esc(m.sender_name || m.sender_email || 'User')} ${admin ? adminBadgeHtml('dark') : ''} · ${esc(senderRoleLabel(m.sender_role))} · ${esc(when)}
+        ${esc(m.sender_name || m.sender_email || 'User')} ${admin ? adminBadgeHtml('dark') : ''} · ${esc(senderRoleLabel(m.sender_role))}${esc(channel)} · ${esc(when)}
       </div>
       <div class="message-text">${esc(m.body || '')}</div>
     </div>`;
@@ -12378,20 +12676,53 @@ async function adminResolveWalletTx(email, txId, status) {
   }
 
   if (status === 'approved' && tx.type === 'transfer_out') {
-    const recipient = await dbGetUserByEmail(tx.to_email);
+    const meta = typeof tx.metadata === 'string' ? safeParseJSON(tx.metadata, {}) : normalizeProfile(tx.metadata);
+    const isOrderPayment = !!meta.order_payment && !!meta.task_id;
+    const gross = walletTxAmount(tx);
+    const split = isOrderPayment ? calcCommission(gross) : { commission: 0, payout: gross };
+    const recipientEmail = String(meta.writer_email || tx.to_email || '').toLowerCase();
+    const recipient = await dbGetUserByEmail(recipientEmail);
     if (!recipient) { notify('❌ Recipient account was not found.'); return; }
-    if (walletBalance(userRows, false) < walletTxAmount(tx)) { notify('⚠️ Sender balance is not enough for this transfer.'); return; }
+    if (walletBalance(userRows, false) < gross) { notify('⚠️ Sender balance is not enough for this transfer.'); return; }
     await dbInsertWalletTransaction({
       tx_ref: walletTxId(),
-      user_email: String(recipient.email || tx.to_email).toLowerCase(),
+      user_email: String(recipient.email || recipientEmail).toLowerCase(),
       type: 'transfer_in',
-      amount: walletTxAmount(tx),
+      amount: split.payout,
       from_email: userEmail,
       source_tx: tx.id,
+      note: isOrderPayment ? `Writer payout for order ${meta.task_id}` : '',
       status: 'approved',
       created_at: new Date().toISOString(),
       reviewed_by: currentUser.email
     });
+    if (isOrderPayment && split.commission > 0) {
+      await dbInsertWalletTransaction({
+        tx_ref: walletTxId(),
+        user_email: currentUser.email.toLowerCase(),
+        type: 'admin_credit',
+        amount: split.commission,
+        from_email: userEmail,
+        source_tx: tx.id,
+        note: `Platform fee for order ${meta.task_id}`,
+        status: 'approved',
+        created_at: new Date().toISOString(),
+        reviewed_by: currentUser.email
+      });
+      const task = getTaskById(meta.task_id);
+      if (task) {
+        const taskUpdates = {
+          payment: 'paid',
+          payment_method: 'wallet',
+          wallet_payment_tx: tx.id,
+          mpesa_code: tx.tx_ref || tx.id,
+          wallet_paid_at: new Date().toISOString()
+        };
+        await dbUpdateTask(task.id, taskUpdates);
+        Object.assign(task, taskUpdates);
+        await recordCommissionIfPaid(task);
+      }
+    }
   }
 
   await dbUpdateWalletTransaction(tx.id, {
