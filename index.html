@@ -5853,9 +5853,9 @@ const SUBMISSIONS_BUCKET = 'jw-submissions';
 const SECURE_PROFILE_API = '/api/auth/profile';
 
 // Google OAuth redirect setting.
-// When you deploy the site, replace the empty string below with your live page URL, for example:
-// const JW_GOOGLE_REDIRECT_URL = 'https://www.janellewrites.it.com/';
-const JW_GOOGLE_REDIRECT_URL = 'https://www.janellewrites.it.com/';
+// Leave this blank so Google returns to the same domain that started the login.
+// OAuth state is stored per browser + domain, so forcing a different domain can cause "bad_oauth_state".
+const JW_GOOGLE_REDIRECT_URL = '';
 
 // ══════════════════════════════════════════════════════
 //  STATE
@@ -6055,10 +6055,10 @@ async function refreshTasks() {
 function googleRedirectUrl() {
   const fixedUrl = String(JW_GOOGLE_REDIRECT_URL || '').trim();
 
-  // Use the fixed deployment URL once it is set above.
+  // Only use a fixed URL if one is deliberately configured.
   if (fixedUrl) return fixedUrl;
 
-  // Local testing fallback. This keeps Google OAuth working on localhost.
+  // Return to the same origin/path that started OAuth so Supabase can find its saved state.
   if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     return window.location.origin + window.location.pathname;
   }
@@ -6073,6 +6073,33 @@ function checkGoogleRedirectSetup() {
   if (!String(JW_GOOGLE_REDIRECT_URL || '').trim() && window.location.protocol === 'file:') {
     console.warn('Google OAuth needs an http/https redirect URL. Serve this file from localhost or set JW_GOOGLE_REDIRECT_URL to your live site URL.');
   }
+}
+
+function cleanAuthReturnUrl() {
+  try {
+    window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+  } catch {}
+}
+
+function handleSupabaseAuthErrorReturn() {
+  const url = new URL(window.location.href);
+  const error = url.searchParams.get('error');
+  const errorCode = url.searchParams.get('error_code');
+  const description = url.searchParams.get('error_description');
+
+  if (!error && !errorCode) return false;
+
+  cleanAuthReturnUrl();
+  hideAuthCallbackLoading();
+  openAuthScreen('login');
+
+  if (errorCode === 'bad_oauth_state') {
+    notify('⚠️ Google sign-in expired or started from a different browser/domain. Please try again from this same tab.');
+  } else {
+    notify('⚠️ Sign-in could not finish: ' + (description || errorCode || error));
+  }
+
+  return true;
 }
 
 function startGoogleAuth(intent = 'login') {
@@ -6444,7 +6471,7 @@ async function finishSecureAuthSession(session, options = {}) {
   localStorage.setItem('jw_session', JSON.stringify(currentUser));
   localStorage.removeItem('jw_google_intent');
   localStorage.removeItem('jw_google_role');
-  try { history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch {}
+  cleanAuthReturnUrl();
   document.getElementById('auth-screen').style.display = 'none';
   playSound('login');
   launchApp();
@@ -10925,6 +10952,7 @@ document.addEventListener('keydown', handleMessageEnterKey);
   clearOldAuthAttemptLocks();
   applyDarkMode(localStorage.getItem('jw_dark_mode') === '1');
   checkGoogleRedirectSetup();
+  if (handleSupabaseAuthErrorReturn()) return;
   if (handleSupabaseMagicLinkReturn()) return;
 
   if (currentUser) {
