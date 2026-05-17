@@ -5039,6 +5039,50 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     </div>
   </div>
 
+
+  <!-- ADMIN: STUDENT ORDERS -->
+  <div class="page content" id="page-admin-student-orders">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Student <span>Orders</span> <span class="admin-badge">ADMIN</span></div>
+        <p class="text-muted" style="margin-top:4px;">Admin-only view of international student assignments, private pricing, payment status, writers, and order actions.</p>
+      </div>
+    </div>
+    <div id="admin-student-orders-wrap">
+      <div class="empty-state"><p>Student orders will appear here.</p></div>
+    </div>
+  </div>
+
+  <!-- ADMIN: STUDENT MESSAGES -->
+  <div class="page content" id="page-admin-student-messages">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Student Order <span>Messages</span> <span class="admin-badge">ADMIN</span></div>
+        <p class="text-muted" style="margin-top:4px;">Separate admin inbox for student assignment conversations. Choose whether each admin reply goes to the student or to the assigned writer.</p>
+      </div>
+    </div>
+    <div class="message-shell">
+      <div class="message-sidebar">
+        <div class="message-context-chip">🎓 Student conversations</div>
+        <div id="admin-student-msg-list" class="message-conversation-list"></div>
+        <div class="text-muted" style="line-height:1.6;">Select a student order conversation to review private student/admin and admin/writer messages.</div>
+      </div>
+      <div class="message-panel">
+        <div id="admin-student-msg-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Student Messages</div>
+        <div id="admin-student-msg-summary" class="text-muted" style="line-height:1.6;margin-bottom:10px;">Select a student order from the left.</div>
+        <div id="admin-student-msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select a student assignment conversation.</p></div></div>
+        <div class="message-composer" id="admin-student-msg-composer" style="display:none;">
+          <select class="form-select" id="admin-student-msg-channel" style="max-width:190px;">
+            <option value="student">Reply to student</option>
+            <option value="writer">Reply to writer</option>
+          </select>
+          <textarea class="form-textarea" id="admin-student-msg-input" placeholder="Type admin message..."></textarea>
+          <button class="btn btn-primary" onclick="adminSendStudentOrderMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN: WALLET REQUESTS -->
   <div class="page content" id="page-admin-wallet">
     <div class="section-header">
@@ -6019,6 +6063,37 @@ let currentUser = null; // { id, email, name, role }
   try { currentUser = JSON.parse(localStorage.getItem('jw_session')) || null; } catch { currentUser = null; }
 })();
 
+// ── EARLY ADMIN ROLE GUARD ─────────────────────────────────
+// This runs before the app init so admin does not briefly load as student/employer after refresh.
+window.JW_ADMIN_EMAILS_BOOT = ['janellewrites979@gmail.com'];
+function isJwAdminEmail(email) {
+  return window.JW_ADMIN_EMAILS_BOOT.includes(String(email || '').trim().toLowerCase());
+}
+function isJwAdmin() {
+  return !!currentUser && (currentUser.is_admin === true || isJwAdminEmail(currentUser.email));
+}
+function forceAdminUserShape(user) {
+  if (!user || !isJwAdminEmail(user.email)) return user;
+  const profile = normalizeProfile ? normalizeProfile(user.profile) : (user.profile || {});
+  return {
+    ...user,
+    role: 'admin',
+    is_admin: true,
+    role_label: 'Platform Admin',
+    profile: {
+      ...profile,
+      is_admin: true,
+      role_label: 'Platform Admin',
+      title: 'Platform Admin'
+    }
+  };
+}
+currentUser = forceAdminUserShape(currentUser);
+if (currentUser) {
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+}
+
+
 let _taskFilter = 'all';
 let _empTaskFilter = 'all';
 let _writerTaskFilter = 'all';
@@ -6679,7 +6754,7 @@ function cachedPlatformUserForAuth(authUser, selectedRole) {
 }
 
 function saveCurrentSessionUser(user) {
-  currentUser = user;
+  currentUser = forceAdminUserShape(user);
   localStorage.setItem('jw_session', JSON.stringify(currentUser));
 }
 
@@ -6856,11 +6931,12 @@ function selectRole(r) {
 
 function normalizePlatformRole(role, fallback = 'employer') {
   const r = String(role || '').trim().toLowerCase();
-  if (['student', 'employer', 'writer'].includes(r)) return r;
+  if (['admin', 'student', 'employer', 'writer'].includes(r)) return r;
   return fallback;
 }
 
 function roleTitle(role) {
+  if (role === 'admin') return 'Platform Admin';
   if (role === 'writer') return 'Academic Writer';
   if (role === 'student') return 'International Student';
   return 'Employer';
@@ -7751,6 +7827,7 @@ let _suppressHistoryPush = false;
 
 function getHomePage() {
   if (!currentUser) return 'login';
+  if (isJwAdmin()) return 'admin-control';
   if (currentUser.role === 'student') return 'student-dashboard';
   return currentUser.role === 'employer' ? 'emp-dashboard' : 'writer-dashboard';
 }
@@ -7863,6 +7940,20 @@ function launchApp(options = {}) {
 // ══════════════════════════════════════════════════════
 function buildSidebar() {
   const nav = document.getElementById('sidebar-nav');
+  if (isJwAdmin()) {
+    nav.innerHTML = `
+      <div class="nav-section">Admin</div>
+      <div class="nav-item" data-page="admin-control" onclick="navigate('admin-control')"><span class="icon">🛡️</span> Admin Control</div>
+      <div class="nav-item" data-page="admin-student-orders" onclick="navigate('admin-student-orders')"><span class="icon">🎓</span> Student Orders</div>
+      <div class="nav-item" data-page="admin-student-messages" onclick="navigate('admin-student-messages')"><span class="icon">💬</span> Student Messages</div>
+      <div class="nav-item" data-page="admin-wallet" onclick="navigate('admin-wallet')"><span class="icon">🏦</span> Wallet Requests</div>
+      <div class="nav-item" data-page="admin-commission" onclick="navigate('admin-commission')"><span class="icon">💰</span> Commission Ledger</div>
+      <div class="nav-section">General</div>
+      <div class="nav-item" data-page="messages" onclick="openMessagesInbox()"><span class="icon">📨</span> All Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
+      <div class="nav-item" data-page="profile" onclick="navigate('profile')"><span class="icon">👤</span> Admin Profile</div>
+    `;
+    return;
+  }
   if (currentUser.role === 'student') {
     nav.innerHTML = `
       <div class="nav-section">Student</div>
@@ -7922,6 +8013,16 @@ function buildSidebar() {
 
 function buildTopbar() {
   const actions = document.getElementById('topbar-actions');
+  if (isJwAdmin()) {
+    actions.innerHTML = `
+      <button class="btn btn-outline btn-sm dark-toggle-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode"><span id="dark-mode-icon">🌙</span> <span class="dark-toggle-label" id="dark-mode-label">Dark</span></button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('admin-student-messages')">💬 Student Messages</button>
+      <button class="btn btn-outline btn-sm" onclick="navigate('admin-student-orders')">🎓 Student Orders</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('admin-control')">🛡️ Admin</button>
+    `;
+    updateDarkModeButton();
+    return;
+  }
   if (currentUser.role === 'student') {
     actions.innerHTML = `
       <button class="btn btn-outline btn-sm dark-toggle-btn" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode"><span id="dark-mode-icon">🌙</span> <span class="dark-toggle-label" id="dark-mode-label">Dark</span></button>
@@ -7946,6 +8047,19 @@ function buildTopbar() {
 
 function updateUserDisplay() {
   const profile = getCurrentProfileSync();
+  if (isJwAdmin()) {
+    const nameEl = document.getElementById('nav-username');
+    const roleEl = document.getElementById('nav-role');
+    const avatar = document.getElementById('nav-avatar');
+    if (nameEl) nameEl.innerHTML = `${esc(currentUser.name || 'Admin')} <span class="admin-badge dark">ADMIN</span>`;
+    if (roleEl) roleEl.innerHTML = `Platform Admin <span class="admin-badge dark">ADMIN</span>`;
+    if (avatar) {
+      if (profile.photo) avatar.innerHTML = `<img src="${profile.photo}" alt="Profile image">`;
+      else avatar.textContent = (currentUser.name || 'A')[0].toUpperCase();
+    }
+    updateBadges();
+    return;
+  }
   document.getElementById('nav-username').textContent = currentUser.name;
   document.getElementById('nav-role').textContent = currentUser.role === 'student' ? 'International Student' : (currentUser.role === 'employer' ? 'Employer' : 'Writer');
   const avatar = document.getElementById('nav-avatar');
@@ -8354,6 +8468,8 @@ const pageTitles = {
   'admin-commission': 'Commission Dashboard',
   'admin-wallet': 'Wallet Requests',
   'admin-control': 'Admin Control Center',
+  'admin-student-orders': 'Student Orders',
+  'admin-student-messages': 'Student Messages',
 };
 
 function navigate(page, options = {}) {
@@ -8395,6 +8511,9 @@ function navigate(page, options = {}) {
     case 'writer-earnings': renderWriterEarningsPage(); break;
     case 'admin-commission': renderCommissionDashboard(); break;
     case 'admin-wallet':     renderAdminWalletPage(); break;
+    case 'admin-control':    renderAdminControlPage(); break;
+    case 'admin-student-orders': renderAdminStudentOrdersPage(); break;
+    case 'admin-student-messages': renderAdminStudentMessagesPage(); break;
   }
 }
 
@@ -12354,13 +12473,14 @@ finishSecureAuthSession = async function(session, options = {}) {
   const ok = await _jwAdminOrigFinishSecureAuthSession(session, options);
   if (ok && currentUser && isJwAdminEmail(currentUser.email)) {
     currentUser.is_admin = true;
-    currentUser.role_label = 'Admin';
+    currentUser.role = 'admin';
+    currentUser.role_label = 'Platform Admin';
     localStorage.setItem('jw_session', JSON.stringify(currentUser));
     try {
       await secureUpsertPlatformUser({
         email: currentUser.email,
         name: currentUser.name,
-        role: currentUser.role || 'employer',
+        role: 'admin',
         auth_id: session?.user?.id,
         is_admin: true,
         profile: {
@@ -12395,13 +12515,13 @@ buildSidebar = function() {
   _jwAdminOrigBuildSidebar();
   if (!isJwAdmin()) return;
   const nav = document.getElementById('sidebar-nav');
-  if (!nav || nav.querySelector('[data-page="admin-control"]')) return;
-  nav.innerHTML += `
-    <div class="nav-section">Admin</div>
-    <div class="nav-item" data-page="admin-control" onclick="navigate('admin-control')"><span class="icon">🛡️</span> Admin Control</div>
-    <div class="nav-item" data-page="admin-wallet" onclick="navigate('admin-wallet')"><span class="icon">🏦</span> Wallet Requests</div>
-    <div class="nav-item" data-page="admin-commission" onclick="navigate('admin-commission')"><span class="icon">💰</span> Commission Ledger</div>
-  `;
+  if (!nav) return;
+  if (!nav.querySelector('[data-page="admin-student-orders"]')) {
+    nav.innerHTML += `
+      <div class="nav-item" data-page="admin-student-orders" onclick="navigate('admin-student-orders')"><span class="icon">🎓</span> Student Orders</div>
+      <div class="nav-item" data-page="admin-student-messages" onclick="navigate('admin-student-messages')"><span class="icon">💬</span> Student Messages</div>
+    `;
+  }
 };
 
 const _jwAdminOrigCanCurrentUserSeeTask = canCurrentUserSeeTask;
@@ -13367,6 +13487,286 @@ walletSubmitTopup = async function() {
   notify('✅ Top-up request submitted. Admin will message you with the best payment channel for your country.');
   renderWalletPage();
 };
+
+
+
+// ══════════════════════════════════════════════════════
+//  ADMIN ROLE STABILITY + STUDENT ADMIN TABS + SUPPORT ROUTING
+// ══════════════════════════════════════════════════════
+const JW_STUDENT_SUPPORT_WA = '447365596402';
+const JW_GENERAL_SUPPORT_WA = '254723156622';
+
+function jwSupportNumberForCurrentUser() {
+  return currentUser?.role === 'student' ? JW_STUDENT_SUPPORT_WA : JW_GENERAL_SUPPORT_WA;
+}
+
+function updateFloatingSupportForRole() {
+  const number = jwSupportNumberForCurrentUser();
+  const isStudent = currentUser?.role === 'student';
+  const msg = isStudent
+    ? 'Hi Janelle Writes student support! I need help with my assignment account.'
+    : 'Hi Janelle Writes support!';
+  const href = `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
+  document.querySelectorAll('.support-trigger, .support-popover').forEach(a => {
+    a.href = href;
+  });
+  const pop = document.querySelector('.support-popover small');
+  if (pop) pop.textContent = isStudent
+    ? 'Open a chat with international student support.'
+    : 'Open a chat with Janelle Writes support.';
+  const popStrong = document.querySelector('.support-popover strong');
+  if (popStrong) popStrong.textContent = isStudent ? 'Student WhatsApp Support' : 'WhatsApp Support';
+}
+
+function adminStudentOrders() {
+  return (Array.isArray(tasks) ? tasks : []).filter(t => {
+    try { return isStudentOrder(t) || isStudentTask(t); }
+    catch { return !!(t?.student_order || t?.order_type === 'international_student'); }
+  }).sort((a,b) => new Date(b.created_at || b.date || 0) - new Date(a.created_at || a.date || 0));
+}
+
+function adminStudentOrderAmount(t) {
+  try { return studentTaskAmountText(t); } catch {}
+  const amount = Number(t?.student_total || t?.client_total || t?.total || 0);
+  const code = t?.student_currency_code || t?.currency_code || 'USD';
+  return `${code} ${amount.toLocaleString()}`;
+}
+
+function adminStudentOrderRate(t) {
+  try { return studentTaskRateText(t); } catch {}
+  const amount = Number(t?.student_price_per_page || t?.client_price_per_page || t?.price_per_page || 0);
+  const code = t?.student_currency_code || t?.currency_code || 'USD';
+  return `${code} ${amount.toLocaleString()}/page`;
+}
+
+function renderAdminStudentOrdersPage() {
+  const wrap = document.getElementById('admin-student-orders-wrap');
+  if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>Admin access required.</p></div>`;
+    return;
+  }
+  const list = adminStudentOrders();
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🎓</div><p>No international student orders yet.</p></div>`;
+    return;
+  }
+  const totalPrivate = list.reduce((sum, t) => {
+    const f = typeof studentFinanceForTask === 'function' ? studentFinanceForTask(t.id) : null;
+    return sum + Number(f?.student_total || t.student_total || t.client_total || t.total || 0);
+  }, 0);
+  const assigned = list.filter(t => t.taken_by).length;
+  const paid = list.filter(t => t.payment === 'paid').length;
+
+  wrap.innerHTML = `
+    <div class="admin-control-grid">
+      <div class="admin-control-card"><strong>${list.length}</strong><span>Student Orders</span></div>
+      <div class="admin-control-card"><strong>${assigned}</strong><span>Assigned Orders</span></div>
+      <div class="admin-control-card"><strong>${paid}</strong><span>Paid Orders</span></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">
+        International Student Orders
+        <span style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;">Private student pricing is visible to admin only.</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:1100px;">
+          <thead><tr style="background:var(--ink);">
+            <th>Order</th><th>Student</th><th>Subject</th><th>Pages</th><th>Student Rate</th><th>Student Total</th><th>Writer Payout</th><th>Writer</th><th>Status</th><th>Payment</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${list.map(t => {
+              const writerPayout = typeof writerPayoutText === 'function' ? writerPayoutText(t) : `KES ${(Number(t.pages || 0) * 300).toLocaleString()}`;
+              return `<tr>
+                <td style="font-weight:800;"><button class="order-link" onclick="empViewTask('${esc(t.id)}')">${esc(t.id)}</button></td>
+                <td style="font-size:12px;">${esc(t.posted_by_name || t.posted_by || 'Student')}</td>
+                <td>${esc(t.subject || 'Untitled')}</td>
+                <td>${Number(t.pages || 0)}</td>
+                <td><span class="comm-rate-badge">${esc(adminStudentOrderRate(t))}</span></td>
+                <td style="font-weight:800;color:var(--teal-dark);">${esc(adminStudentOrderAmount(t))}</td>
+                <td style="font-weight:800;">${esc(writerPayout)}</td>
+                <td style="font-size:12px;">${esc(t.taken_by_name || t.taken_by || 'Unassigned')}</td>
+                <td>${statusBadgeForTask(t)}</td>
+                <td>${payBadge(t.payment)}</td>
+                <td>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="btn btn-outline btn-sm" onclick="adminOpenStudentOrderMessages('${esc(t.id)}')">Messages</button>
+                    <button class="btn btn-success btn-sm" onclick="adminOverrideTask('${esc(t.id)}','payment','paid')">Mark Paid</button>
+                    <button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${esc(t.id)}','status','completed')">Complete</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+let _adminStudentMessageTaskId = null;
+
+function adminOpenStudentOrderMessages(id) {
+  _adminStudentMessageTaskId = id;
+  navigate('admin-student-messages');
+}
+
+function adminStudentMessageLabel(t) {
+  const messages = typeof getTaskMessages === 'function' ? getTaskMessages(t) : [];
+  const last = latestMessage(messages);
+  const when = last?.at ? new Date(last.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : 'No messages yet';
+  return { messages, last, when };
+}
+
+function renderAdminStudentMessagesPage() {
+  const listWrap = document.getElementById('admin-student-msg-list');
+  const title = document.getElementById('admin-student-msg-title');
+  const summary = document.getElementById('admin-student-msg-summary');
+  const thread = document.getElementById('admin-student-msg-thread');
+  const composer = document.getElementById('admin-student-msg-composer');
+  if (!listWrap || !thread) return;
+  if (!isJwAdmin()) {
+    listWrap.innerHTML = '';
+    thread.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>Admin access required.</p></div>`;
+    if (composer) composer.style.display = 'none';
+    return;
+  }
+  const list = adminStudentOrders();
+  if (!list.length) {
+    listWrap.innerHTML = `<div class="message-conversation-empty">No student order conversations yet.</div>`;
+    thread.innerHTML = `<div class="empty-state"><div class="empty-icon">🎓</div><p>No student messages yet.</p></div>`;
+    if (composer) composer.style.display = 'none';
+    return;
+  }
+  const selected = list.find(t => t.id === _adminStudentMessageTaskId) || list[0];
+  _adminStudentMessageTaskId = selected.id;
+
+  listWrap.innerHTML = list.map(t => {
+    const info = adminStudentMessageLabel(t);
+    const preview = info.last ? `${info.last.sender_name || info.last.sender_email || 'User'}: ${info.last.body || ''}` : 'No messages yet.';
+    return `<div class="message-conversation-card ${t.id === selected.id ? 'active' : ''}" onclick="adminSelectStudentMessageThread('${esc(t.id)}')">
+      <div class="message-conversation-top">
+        <span class="message-conversation-id">${esc(t.id)}</span>
+        <span class="message-unread-badge show">${info.messages.length}</span>
+      </div>
+      <div class="message-conversation-subject">${esc(t.subject || 'Untitled order')}</div>
+      <div class="message-conversation-meta">Student: ${esc(t.posted_by_name || t.posted_by || 'Student')} · ${esc(info.when)}</div>
+      <div class="message-conversation-preview">${esc(preview)}</div>
+    </div>`;
+  }).join('');
+
+  const messages = getTaskMessages(selected);
+  if (title) title.innerHTML = `${esc(selected.id)} — ${esc(selected.subject || 'Student order')}`;
+  if (summary) summary.innerHTML = `
+    <strong>Student:</strong> ${esc(selected.posted_by_name || selected.posted_by || 'Student')}<br>
+    <strong>Writer:</strong> ${esc(selected.taken_by_name || selected.taken_by || 'Unassigned')}<br>
+    <strong>Student paid:</strong> ${esc(adminStudentOrderAmount(selected))} · <strong>Writer payout:</strong> ${esc(typeof writerPayoutText === 'function' ? writerPayoutText(selected) : 'KES ' + (Number(selected.pages || 0) * 300).toLocaleString())}
+  `;
+  if (!messages.length) {
+    thread.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet. Use the composer below to message the student or assigned writer.</p></div>`;
+  } else {
+    thread.innerHTML = messages.map(m => {
+      const channel = messageChannelForUser(selected, m);
+      const mine = m.sender_email === currentUser.email;
+      const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
+      const targetBadge = channel === 'writer' ? 'Writer channel' : (channel === 'student' ? 'Student channel' : 'Standard');
+      return `<div class="message-bubble ${mine ? 'mine' : ''}">
+        <div class="message-meta ${m.sender_role === 'admin' ? 'admin-message-meta' : ''}">
+          ${esc(m.sender_name || m.sender_email || 'User')} ${m.sender_role === 'admin' ? adminBadgeHtml('dark') : ''} · ${esc(m.sender_role || '')} · ${esc(targetBadge)} · ${esc(when)}
+        </div>
+        <div class="message-text">${esc(m.body || '')}</div>
+      </div>`;
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+  }
+  if (composer) composer.style.display = '';
+}
+
+function adminSelectStudentMessageThread(id) {
+  _adminStudentMessageTaskId = id;
+  renderAdminStudentMessagesPage();
+}
+
+function adminSendStudentOrderMessage() {
+  if (!isJwAdmin()) return notify('❌ Admin access required.');
+  const t = getTaskById(_adminStudentMessageTaskId);
+  const input = document.getElementById('admin-student-msg-input');
+  const channel = document.getElementById('admin-student-msg-channel')?.value || 'student';
+  const body = input?.value?.trim() || '';
+  if (!t) return notify('⚠️ Select a student order first.');
+  if (!body) return notify('⚠️ Type a message first.');
+  const messages = getTaskMessages(t);
+  const msg = {
+    id: 'msg-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+    task_id: t.id,
+    sender_email: currentUser.email,
+    sender_name: currentUser.name || 'Janelle Writes Admin',
+    sender_role: 'admin',
+    channel,
+    body,
+    at: new Date().toISOString(),
+    read_by: [currentUser.email]
+  };
+  const next = [...messages, msg];
+  if (input) input.value = '';
+  setTaskMessages(t, next);
+  dbUpdateTask(t.id, { messages: next }).then(() => {
+    notify('🛡️ Admin message sent');
+    renderAdminStudentMessagesPage();
+    updateBadges();
+  }).catch(err => {
+    console.warn('Admin student message sync failed:', err);
+    notify('⚠️ Message saved locally, but database sync failed.');
+    renderAdminStudentMessagesPage();
+  });
+}
+
+// Keep admin stable even after async profile sync or localStorage refresh.
+const _jwStrictAdminOrigSaveCurrentSessionUser = saveCurrentSessionUser;
+saveCurrentSessionUser = function(user) {
+  return _jwStrictAdminOrigSaveCurrentSessionUser(forceAdminUserShape(user));
+};
+
+const _jwStrictAdminOrigRefreshChrome = refreshAppChromeAfterProfileUpdate;
+refreshAppChromeAfterProfileUpdate = function(previousRole) {
+  if (isJwAdminEmail(currentUser?.email)) currentUser = forceAdminUserShape(currentUser);
+  _jwStrictAdminOrigRefreshChrome(previousRole);
+  updateFloatingSupportForRole();
+};
+
+const _jwStrictAdminOrigLaunchApp = launchApp;
+launchApp = function(options = {}) {
+  if (isJwAdminEmail(currentUser?.email)) currentUser = forceAdminUserShape(currentUser);
+  _jwStrictAdminOrigLaunchApp(options);
+  updateFloatingSupportForRole();
+  if (isJwAdmin()) {
+    setTimeout(() => {
+      buildSidebar();
+      buildTopbar();
+      updateUserDisplay();
+      if (_currentPage === 'admin-control' && typeof renderAdminControlPage === 'function') renderAdminControlPage();
+    }, 120);
+  }
+};
+
+const _jwStrictAdminOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  _jwStrictAdminOrigNavigate(page, options);
+  if (page === 'admin-student-orders') renderAdminStudentOrdersPage();
+  if (page === 'admin-student-messages') renderAdminStudentMessagesPage();
+  updateFloatingSupportForRole();
+};
+
+const _jwSupportOrigUpdateUserDisplay = updateUserDisplay;
+updateUserDisplay = function() {
+  _jwSupportOrigUpdateUserDisplay();
+  updateFloatingSupportForRole();
+};
+
+updateFloatingSupportForRole();
+if (currentUser && isJwAdminEmail(currentUser.email)) {
+  currentUser = forceAdminUserShape(currentUser);
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+}
 
 </script>
 <!--End of Tawk.to Script-->
