@@ -4353,6 +4353,115 @@ body.dark-mode .admin-control-card.clickable:hover {
   background: linear-gradient(135deg, rgba(82,196,184,.12), #14202b);
 }
 
+
+/* ── BIDDING + REASSIGNMENT WORKFLOW ─────────────────── */
+.bid-panel, .reassign-panel {
+  border: 1.5px solid rgba(42,157,143,.22);
+  background: linear-gradient(135deg, rgba(82,196,184,.10), rgba(255,255,255,.96));
+  border-radius: 16px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.bid-panel-title, .reassign-panel-title {
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--teal-dark);
+  margin-bottom: 10px;
+}
+.bid-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--white);
+  padding: 14px;
+  margin: 10px 0;
+  box-shadow: 0 8px 22px rgba(15,25,35,.04);
+}
+.bid-card-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:8px;
+}
+.bid-writer-name {
+  font-weight: 800;
+  color: var(--ink);
+}
+.bid-message {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--charcoal);
+  white-space: pre-wrap;
+  margin-top: 8px;
+}
+.bid-advantage {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(217,181,107,.15);
+  color: #a77c20;
+  border: 1px solid rgba(217,181,107,.35);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing:.5px;
+  text-transform: uppercase;
+}
+.bid-status-pill, .reassign-status-pill {
+  display:inline-flex;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+.bid-status-pending, .reassign-status-pending { background:#fff3cd; color:#8a6500; }
+.bid-status-selected, .reassign-status-approved { background:#d9f3e6; color:#116b3b; }
+.bid-status-declined, .reassign-status-rejected { background:#fce8e6; color:#b42318; }
+.bid-textarea {
+  width:100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  background: var(--white);
+}
+.bid-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+.order-card-bid-summary {
+  font-size: 11px;
+  color: var(--teal-dark);
+  font-weight: 800;
+  margin-top: 6px;
+}
+.reassign-request-row {
+  border-bottom: 1px solid var(--border);
+}
+body.dark-mode .bid-panel,
+body.dark-mode .reassign-panel {
+  background: rgba(82,196,184,.08);
+  border-color: rgba(142,228,214,.22);
+}
+body.dark-mode .bid-card {
+  background: #14202b;
+  border-color: rgba(142,228,214,.18);
+}
+body.dark-mode .bid-writer-name {
+  color: #f4fbfa;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -5069,6 +5178,20 @@ body.dark-mode .admin-control-card.clickable:hover {
   </div>
 
 
+
+
+  <!-- ADMIN: REASSIGN REQUESTS -->
+  <div class="page content" id="page-admin-reassign">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Reassign <span>Requests</span> <span class="admin-badge">ADMIN</span></div>
+        <p class="text-muted" style="margin-top:4px;">Review employer requests to reopen successfully cancelled orders before they become available again.</p>
+      </div>
+    </div>
+    <div id="admin-reassign-wrap">
+      <div class="empty-state"><p>Reassign requests will appear here.</p></div>
+    </div>
+  </div>
 
   <!-- ADMIN: FILTERED ORDERS -->
   <div class="page content" id="page-admin-filtered-orders">
@@ -14393,6 +14516,465 @@ renderAdminControlPage = function() {
       <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Recent Orders</div>
       ${adminRenderOrderRows(all.slice(0, 12))}
     </div>`;
+};
+
+
+
+// ══════════════════════════════════════════════════════
+//  WRITER BIDDING + ADMIN-APPROVED REASSIGNMENT
+// ══════════════════════════════════════════════════════
+function taskWorkflowMeta(t) {
+  const r = getTaskRatings(t) || {};
+  return (r && typeof r === 'object') ? r : {};
+}
+function saveTaskWorkflowMeta(t, patch) {
+  return { ...taskWorkflowMeta(t), ...patch };
+}
+function getTaskBids(t) {
+  const bids = taskWorkflowMeta(t).__bids;
+  return Array.isArray(bids) ? bids : [];
+}
+function writerBidForTask(t, email = currentUser?.email) {
+  return getTaskBids(t).find(b => sameEmail(b.writer_email, email));
+}
+function writerBidStats(email) {
+  const r = averageRatingForUser(email, 'writer');
+  return {
+    avg: r?.avg ? Number(r.avg) : 0,
+    count: r?.count ? Number(r.count) : 0
+  };
+}
+function bidStatusHtml(status = 'pending') {
+  const s = String(status || 'pending');
+  return `<span class="bid-status-pill bid-status-${esc(s)}">${esc(s)}</span>`;
+}
+function sortBidsByAdvantage(bids) {
+  return [...bids].sort((a,b) => {
+    const avgDiff = Number(b.rating_avg || 0) - Number(a.rating_avg || 0);
+    if (avgDiff) return avgDiff;
+    const countDiff = Number(b.rating_count || 0) - Number(a.rating_count || 0);
+    if (countDiff) return countDiff;
+    return new Date(a.at || 0) - new Date(b.at || 0);
+  });
+}
+function topBidEmail(t) {
+  const sorted = sortBidsByAdvantage(getTaskBids(t).filter(b => b.status !== 'declined'));
+  return sorted[0]?.writer_email || '';
+}
+function renderBidSummaryMini(t) {
+  const bids = getTaskBids(t);
+  const mine = writerBidForTask(t);
+  if (!bids.length && currentUser?.role === 'writer') return '';
+  if (currentUser?.role === 'writer' && mine) {
+    return `<div class="order-card-bid-summary">✓ You requested this task · ${bidStatusHtml(mine.status)}</div>`;
+  }
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin()) && bids.length) {
+    return `<div class="order-card-bid-summary">📝 ${bids.length} writer request${bids.length === 1 ? '' : 's'} received</div>`;
+  }
+  return '';
+}
+function bidRequestPanelForWriter(t) {
+  const existing = writerBidForTask(t);
+  if (existing) {
+    return `<div class="bid-panel">
+      <div class="bid-panel-title">Your Task Request</div>
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+        <div>
+          <strong>${bidStatusHtml(existing.status)}</strong>
+          <div class="bid-note">You have already requested this task. The employer will review writer requests and assign the task.</div>
+        </div>
+      </div>
+      <div class="bid-message">${esc(existing.message || 'No message added.')}</div>
+    </div>`;
+  }
+  return `<div class="bid-panel">
+    <div class="bid-panel-title">Request / Bid for this Task</div>
+    <textarea class="bid-textarea" id="writer-bid-message" placeholder="Write a short request to the employer. Mention your relevant experience, availability, and why you are a good fit for this order."></textarea>
+    <div class="bid-note">Top-rated writers appear higher in the employer's bid list, so strong ratings improve your chances.</div>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="submitWriterBid('${escJS(t.id)}')">📝 Bid / Request Task</button>
+  </div>`;
+}
+function renderEmployerBidPanel(t) {
+  const bids = sortBidsByAdvantage(getTaskBids(t));
+  if (!bids.length) {
+    if (t.taken_by) return '';
+    return `<div class="bid-panel"><div class="bid-panel-title">Writer Requests</div><div class="text-muted" style="font-size:13px;">No writer has requested this order yet.</div></div>`;
+  }
+  const topEmail = topBidEmail(t);
+  return `<div class="bid-panel">
+    <div class="bid-panel-title">Writer Requests / Bids</div>
+    <div class="bid-note">Writers with stronger ratings appear first. You can assign the task to the writer you trust most.</div>
+    ${bids.map(b => {
+      const selected = t.taken_by && sameEmail(t.taken_by, b.writer_email);
+      const isTop = sameEmail(topEmail, b.writer_email) && Number(b.rating_avg || 0) > 0;
+      return `<div class="bid-card">
+        <div class="bid-card-top">
+          <div>
+            <div class="bid-writer-name">${esc(b.writer_name || b.writer_email)} ${isTop ? '<span class="bid-advantage">Top rated advantage</span>' : ''}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${ratingChipForUser(b.writer_email, 'writer')} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
+          </div>
+          <div>${selected ? '<span class="bid-status-pill bid-status-selected">Assigned</span>' : bidStatusHtml(b.status)}</div>
+        </div>
+        <div class="bid-message">${esc(b.message || 'No message added.')}</div>
+        ${publicRatingPanelForUser(b.writer_email, 'writer', { compact:false, limit:1 })}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
+          ${!t.taken_by && !isCancelledTask(t) ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function submitWriterBid(taskId) {
+  const t = getTaskById(taskId);
+  if (!t || currentUser?.role !== 'writer') return notify('❌ Only writers can request tasks.');
+  if (t.taken_by) return notify('⚠️ This order is already assigned.');
+  if (t.status !== 'pending') return notify('⚠️ This order is not open for requests.');
+  const msg = (document.getElementById('writer-bid-message')?.value || '').trim();
+  if (!msg || msg.length < 20) return notify('⚠️ Please write a short bid/request message of at least 20 characters.');
+
+  const bids = getTaskBids(t);
+  if (bids.some(b => sameEmail(b.writer_email, currentUser.email))) {
+    return notify('⚠️ You have already requested this task.');
+  }
+  const stats = writerBidStats(currentUser.email);
+  const bid = {
+    id: 'BID-' + Date.now().toString(36).toUpperCase(),
+    writer_email: currentUser.email,
+    writer_name: currentUser.name,
+    message: msg,
+    status: 'pending',
+    rating_avg: stats.avg,
+    rating_count: stats.count,
+    at: new Date().toISOString()
+  };
+  const ratings = saveTaskWorkflowMeta(t, { __bids: [...bids, bid] });
+  dbUpdateTask(t.id, { ratings }).then(() => {
+    t.ratings = ratings;
+    notify('✓ Task request sent to employer.', 'message');
+    closeModal('modal-take-order');
+    renderAvailableOrders();
+    updateBadges();
+  }).catch(err => notify('❌ Bid failed: ' + err.message));
+}
+function assignTaskToBidder(taskId, writerEmail) {
+  const t = getTaskById(taskId);
+  if (!t) return;
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return notify('❌ Only the order owner or admin can assign this task.');
+  if (!isJwAdmin() && !taskForEmployer(t, currentUser.email)) return notify('❌ You can only assign your own orders.');
+  if (t.taken_by) return notify('⚠️ This task is already assigned.');
+  const bid = getTaskBids(t).find(b => sameEmail(b.writer_email, writerEmail));
+  if (!bid) return notify('⚠️ Writer request not found.');
+  const alreadyLate = isPastDeadline(t);
+  const bids = getTaskBids(t).map(b => {
+    if (sameEmail(b.writer_email, writerEmail)) return { ...b, status: 'selected', selected_at: new Date().toISOString(), selected_by: currentUser.email };
+    return { ...b, status: b.status === 'pending' ? 'declined' : b.status };
+  });
+  const ratings = saveTaskWorkflowMeta(t, {
+    __bids: bids,
+    __assignment_method: 'employer_selected_bid',
+    __assigned_from_bid_at: new Date().toISOString()
+  });
+  const updates = {
+    taken_by: bid.writer_email,
+    taken_by_name: bid.writer_name || bid.writer_email,
+    status: alreadyLate ? 'late' : 'progress',
+    ratings
+  };
+  dbUpdateTask(t.id, updates).then(() => {
+    Object.assign(t, updates);
+    notify('✓ Task assigned to ' + (bid.writer_name || bid.writer_email));
+    empViewTask(t.id);
+    renderEmpTasks?.();
+    updateBadges();
+  }).catch(err => notify('❌ Assignment failed: ' + err.message));
+}
+function reassignStatusHtml(status = 'pending') {
+  const s = String(status || 'pending');
+  return `<span class="reassign-status-pill reassign-status-${esc(s)}">${esc(s.replace('_',' '))}</span>`;
+}
+function getReassignRequest(t) {
+  const req = taskWorkflowMeta(t).__reassign_request;
+  return req && typeof req === 'object' ? req : null;
+}
+function countPendingReassignRequests() {
+  return (Array.isArray(tasks) ? tasks : []).filter(t => getReassignRequest(t)?.status === 'pending').length;
+}
+function renderReassignStatusPanel(t) {
+  const req = getReassignRequest(t);
+  if (!req) return '';
+  return `<div class="reassign-panel">
+    <div class="reassign-panel-title">Reassign Request</div>
+    <div>${reassignStatusHtml(req.status)}</div>
+    <div class="bid-note" style="margin-top:8px;">Requested by ${esc(req.requested_by_name || req.requested_by_email || 'Employer')} ${req.requested_at ? 'on ' + fmtDate(req.requested_at) : ''}.</div>
+    ${req.note ? `<div class="bid-message">${esc(req.note)}</div>` : ''}
+    ${req.status === 'approved' ? '<div class="bid-note">Admin approved this order for reassignment. It is available for writer requests again.</div>' : ''}
+    ${req.status === 'rejected' ? `<div class="bid-note">Admin rejected this request.${req.admin_note ? ' Note: ' + esc(req.admin_note) : ''}</div>` : ''}
+  </div>`;
+}
+function canRequestReassign(t) {
+  if (!currentUser || !(currentUser.role === 'employer' || currentUser.role === 'student')) return false;
+  if (!taskForEmployer(t, currentUser.email)) return false;
+  if (!isCancelledTask(t)) return false;
+  const req = getReassignRequest(t);
+  return !req || ['rejected'].includes(req.status);
+}
+function requestReassignOrder(taskId) {
+  const t = getTaskById(taskId);
+  if (!t || !canRequestReassign(t)) return notify('⚠️ This order cannot be requested for reassignment.');
+  const note = prompt('Add a short note for admin about why this cancelled order should be reassigned:', '') || '';
+  const ratings = saveTaskWorkflowMeta(t, {
+    __reassign_request: {
+      status: 'pending',
+      requested_by_email: currentUser.email,
+      requested_by_name: currentUser.name,
+      requested_at: new Date().toISOString(),
+      note
+    }
+  });
+  dbUpdateTask(t.id, { ratings }).then(() => {
+    t.ratings = ratings;
+    notify('✓ Reassign request sent to admin for approval.', 'notification');
+    renderCancelledOrdersPage?.();
+    empViewTask?.(t.id);
+    updateBadges();
+  }).catch(err => notify('❌ Reassign request failed: ' + err.message));
+}
+function approveReassignRequest(taskId) {
+  if (!isJwAdmin()) return notify('❌ Admin access required.');
+  const t = getTaskById(taskId);
+  if (!t) return;
+  const meta = taskWorkflowMeta(t);
+  const req = meta.__reassign_request;
+  if (!req || req.status !== 'pending') return notify('⚠️ No pending reassign request found.');
+  const history = Array.isArray(meta.__cancellation_history) ? meta.__cancellation_history : [];
+  if (meta.__cancellation) history.push(meta.__cancellation);
+  const ratings = {
+    ...meta,
+    __reassign_request: {
+      ...req,
+      status: 'approved',
+      approved_by: currentUser.email,
+      approved_at: new Date().toISOString()
+    },
+    __cancellation_history: history,
+    __bids: []
+  };
+  delete ratings.__cancellation;
+
+  const updates = {
+    status: 'pending',
+    taken_by: null,
+    taken_by_name: null,
+    submitted_notes: null,
+    submitted_link: null,
+    submitted_text: null,
+    submitted_files: [],
+    revision_notes: null,
+    ratings
+  };
+  dbUpdateTask(t.id, updates).then(() => {
+    Object.assign(t, updates);
+    notify('✓ Reassign request approved. Order is open again.');
+    renderAdminReassignPage();
+    updateBadges();
+  }).catch(err => notify('❌ Approval failed: ' + err.message));
+}
+function rejectReassignRequest(taskId) {
+  if (!isJwAdmin()) return notify('❌ Admin access required.');
+  const t = getTaskById(taskId);
+  if (!t) return;
+  const meta = taskWorkflowMeta(t);
+  const req = meta.__reassign_request;
+  if (!req || req.status !== 'pending') return notify('⚠️ No pending reassign request found.');
+  const adminNote = prompt('Optional admin note for rejecting this request:', '') || '';
+  const ratings = saveTaskWorkflowMeta(t, {
+    __reassign_request: {
+      ...req,
+      status: 'rejected',
+      rejected_by: currentUser.email,
+      rejected_at: new Date().toISOString(),
+      admin_note: adminNote
+    }
+  });
+  dbUpdateTask(t.id, { ratings }).then(() => {
+    t.ratings = ratings;
+    notify('✓ Reassign request rejected.');
+    renderAdminReassignPage();
+    updateBadges();
+  }).catch(err => notify('❌ Rejection failed: ' + err.message));
+}
+function renderAdminReassignPage() {
+  const wrap = document.getElementById('admin-reassign-wrap');
+  if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>Admin access required.</p></div>`;
+    return;
+  }
+  const list = (Array.isArray(tasks) ? tasks : []).filter(t => getReassignRequest(t)).sort((a,b) => {
+    const ra = getReassignRequest(a);
+    const rb = getReassignRequest(b);
+    if ((ra?.status === 'pending') !== (rb?.status === 'pending')) return ra?.status === 'pending' ? -1 : 1;
+    return new Date(rb?.requested_at || 0) - new Date(ra?.requested_at || 0);
+  });
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔁</div><p>No reassign requests yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">
+    <div class="admin-table-wrap">
+      <table style="width:100%;border-collapse:collapse;min-width:980px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Order</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Employer/Student</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Subject</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Status</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Note</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Actions</th>
+        </tr></thead>
+        <tbody>${list.map(t => {
+          const req = getReassignRequest(t) || {};
+          return `<tr class="reassign-request-row">
+            <td style="padding:12px 14px;font-weight:800;"><button class="order-link" onclick="empViewTask('${esc(t.id)}')">${esc(t.id)}</button></td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(t.posted_by_name || t.posted_by || '—')}</td>
+            <td style="padding:12px 14px;">${esc(t.subject || 'Untitled')}</td>
+            <td style="padding:12px 14px;">${reassignStatusHtml(req.status)}</td>
+            <td style="padding:12px 14px;font-size:12px;max-width:260px;white-space:pre-wrap;">${esc(req.note || '—')}</td>
+            <td style="padding:12px 14px;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="empViewTask('${esc(t.id)}')">View</button>
+                ${req.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="approveReassignRequest('${esc(t.id)}')">Approve</button><button class="btn btn-danger btn-sm" onclick="rejectReassignRequest('${esc(t.id)}')">Reject</button>` : ''}
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// Override available orders so writer sees request/bid status.
+const _jwBidOrigRenderAvailableOrders = renderAvailableOrders;
+renderAvailableOrders = function() {
+  _jwBidOrigRenderAvailableOrders();
+  const cards = document.querySelectorAll('#avail-orders-wrap .order-card');
+  cards.forEach(card => {
+    const id = card.querySelector('.order-card-id')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+    if (!card.querySelector('[data-bid-summary]')) {
+      const summary = document.createElement('div');
+      summary.dataset.bidSummary = '1';
+      summary.innerHTML = renderBidSummaryMini(t);
+      const footer = card.querySelector('.order-card-footer');
+      if (footer) footer.parentNode.insertBefore(summary, footer);
+    }
+    const btn = card.querySelector('button.btn-primary');
+    if (btn && currentUser?.role === 'writer') {
+      const mine = writerBidForTask(t);
+      btn.textContent = mine ? 'View My Request →' : 'Read & Request Task →';
+    }
+  });
+};
+
+// Override read-instructions modal so bidding/requesting replaces direct taking.
+const _jwBidOrigOpenTakeOrderModal = openTakeOrderModal;
+openTakeOrderModal = function(id) {
+  _jwBidOrigOpenTakeOrderModal(id);
+  const t = getTaskById(id);
+  if (!t) return;
+  document.querySelector('#modal-take-order .modal-title').textContent = 'Read Instructions & Request Task';
+  document.querySelector('#modal-take-order .modal-sub').textContent = 'Review the full brief, then send a short bid/request to the employer.';
+  const details = document.getElementById('take-order-details');
+  if (details && !details.querySelector('[data-bid-request-panel]')) {
+    const div = document.createElement('div');
+    div.dataset.bidRequestPanel = '1';
+    div.innerHTML = bidRequestPanelForWriter(t);
+    details.appendChild(div);
+  }
+  const actions = document.querySelector('#modal-take-order .modal-actions');
+  if (actions) {
+    actions.innerHTML = `<button class="btn btn-outline" onclick="closeModal('modal-take-order')">Close</button>`;
+  }
+};
+
+// Override employer view modal by appending bid/reassign panels and actions.
+const _jwBidOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwBidOrigEmpViewTask(id);
+  const t = getTaskById(id);
+  if (!t) return;
+  const body = document.getElementById('vtm-body');
+  const actions = document.getElementById('vtm-actions');
+  if (body && !body.querySelector('[data-bid-employer-panel]') && (currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) {
+    const div = document.createElement('div');
+    div.dataset.bidEmployerPanel = '1';
+    div.innerHTML = renderEmployerBidPanel(t) + renderReassignStatusPanel(t);
+    body.appendChild(div);
+  }
+  if (actions && canRequestReassign(t) && !actions.querySelector('[data-reassign-request-btn]')) {
+    actions.innerHTML += `<button class="btn btn-primary" data-reassign-request-btn="1" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`;
+  }
+  if (actions && isJwAdmin() && getReassignRequest(t)?.status === 'pending' && !actions.querySelector('[data-admin-reassign-actions]')) {
+    actions.innerHTML += `<span data-admin-reassign-actions="1" style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-success" onclick="approveReassignRequest('${escJS(t.id)}')">Approve Reassign</button><button class="btn btn-danger" onclick="rejectReassignRequest('${escJS(t.id)}')">Reject Reassign</button></span>`;
+  }
+};
+
+// Add reassign action to cancelled orders page.
+const _jwBidOrigRenderCancelledOrdersPage = renderCancelledOrdersPage;
+renderCancelledOrdersPage = function() {
+  _jwBidOrigRenderCancelledOrdersPage();
+  const wrap = document.getElementById('cancelled-orders-wrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('tbody tr').forEach(row => {
+    const orderId = row.querySelector('.order-link')?.textContent?.trim();
+    const t = getTaskById(orderId);
+    const actionCell = row.querySelector('td:last-child div');
+    if (t && actionCell && canRequestReassign(t) && !actionCell.querySelector('[data-reassign-row-btn]')) {
+      actionCell.innerHTML += `<button class="btn btn-primary btn-sm" data-reassign-row-btn="1" onclick="requestReassignOrder('${escJS(t.id)}')">Request Reassign</button>`;
+    }
+    if (t && actionCell && getReassignRequest(t) && !actionCell.querySelector('[data-reassign-status-row]')) {
+      actionCell.innerHTML += `<span data-reassign-status-row="1">${reassignStatusHtml(getReassignRequest(t).status)}</span>`;
+    }
+  });
+};
+
+// Admin sidebar and page route.
+const _jwBidOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  _jwBidOrigBuildSidebar();
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav || !isJwAdmin()) return;
+  if (!nav.querySelector('[data-page="admin-reassign"]')) {
+    const html = `<div class="nav-item" data-page="admin-reassign" onclick="navigate('admin-reassign')"><span class="icon">🔁</span> Reassign Requests <span class="nav-badge" id="admin-reassign-badge">0</span></div>`;
+    const wallet = nav.querySelector('[data-page="admin-wallet"]');
+    if (wallet) wallet.insertAdjacentHTML('beforebegin', html);
+    else nav.insertAdjacentHTML('beforeend', html);
+  }
+};
+const _jwBidOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  _jwBidOrigNavigate(page, options);
+  if (page === 'admin-reassign') renderAdminReassignPage();
+};
+const _jwBidOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwBidOrigUpdateBadges();
+  if (isJwAdmin()) setCountBadge('admin-reassign-badge', countPendingReassignRequests(), '{count} pending reassign requests');
+};
+
+// Topbar/title route support.
+if (typeof pageTitles === 'object') {
+  pageTitles['admin-reassign'] = 'Reassign Requests';
+}
+
+// Realtime refresh for bid/reassign changes.
+const _jwBidOrigSubscribeRealtime = subscribeRealtime;
+subscribeRealtime = function() {
+  _jwBidOrigSubscribeRealtime();
+  setTimeout(() => {
+    if (isJwAdmin()) setCountBadge('admin-reassign-badge', countPendingReassignRequests(), '{count} pending reassign requests');
+  }, 400);
 };
 
 </script>
