@@ -6447,6 +6447,57 @@ function localPlatformUserFromAuth(authUser, role = 'employer') {
   };
 }
 
+function promiseWithTimeout(promise, ms, label = 'Request') {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(label + ' timed out')), ms);
+  });
+  return Promise.race([
+    Promise.resolve(promise).finally(() => clearTimeout(timeoutId)),
+    timeout
+  ]);
+}
+
+function platformUserFromRecord(record, authUser, selectedRole) {
+  const row = record || localPlatformUserFromAuth(authUser, selectedRole);
+  const email = String(row.email || authUser.email || '').toLowerCase();
+  return {
+    id: row.id || authUser.auth_id || email,
+    email,
+    name: row.name || authUser.name || email,
+    role: row.role || selectedRole || authUser.role || 'employer',
+    profile: normalizeProfile(row.profile)
+  };
+}
+
+function cachedPlatformUserForAuth(authUser, selectedRole) {
+  try {
+    const cached = JSON.parse(localStorage.getItem('jw_session') || 'null');
+    if (cached?.email && sameEmail(cached.email, authUser.email)) {
+      return platformUserFromRecord(cached, authUser, cached.role || selectedRole);
+    }
+  } catch (err) {}
+  return platformUserFromRecord(null, authUser, selectedRole);
+}
+
+function saveCurrentSessionUser(user) {
+  currentUser = user;
+  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+}
+
+function refreshAppChromeAfterProfileUpdate(previousRole) {
+  if (!currentUser || document.getElementById('app-shell')?.style.display !== 'block') return;
+  buildSidebar();
+  buildTopbar();
+  updateUserDisplay();
+  updateBadges();
+  if (previousRole && currentUser.role !== previousRole) {
+    navigate(getHomePage(), { replaceHistory: true });
+  } else if (_currentPage) {
+    navigate(_currentPage, { skipHistory: true });
+  }
+}
+
 async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
   try {
     return await secureUpsertPlatformUser({
@@ -6532,40 +6583,38 @@ async function finishSecureAuthSession(session, options = {}) {
     return false;
   }
 
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  const selectedRole = options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole || 'employer';
   let existing = null;
   try {
-    existing = await dbGetUserByEmail(authUser.email);
+    existing = await promiseWithTimeout(dbGetUserByEmail(authUser.email), 1600, 'Profile lookup');
   } catch (err) {
     console.warn('Profile lookup failed during login:', err);
     existing = null;
   }
 
-  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole || 'employer';
-
-  if (!existing) {
-    existing = await createOrRecoverPlatformUser(authUser, selectedRole, intent);
-  } else {
-    // Old-user migration bridge:
-    // Preserve old jw_users data by email, then link it to the new Supabase Auth user.
-    existing = await safeLinkExistingPlatformUser(existing, authUser, selectedRole);
-  }
-
-  currentUser = {
-    id: existing.id,
-    email: existing.email,
-    name: existing.name || authUser.name,
-    role: existing.role || selectedRole,
-    profile: normalizeProfile(existing.profile)
-  };
-
-  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+  saveCurrentSessionUser(existing ? platformUserFromRecord(existing, authUser, selectedRole) : cachedPlatformUserForAuth(authUser, selectedRole));
   localStorage.removeItem('jw_google_intent');
   localStorage.removeItem('jw_google_role');
   cleanAuthReturnUrl();
   document.getElementById('auth-screen').style.display = 'none';
   playSound('login');
   launchApp();
+
+  (async () => {
+    let synced = existing;
+    if (!synced) {
+      synced = await createOrRecoverPlatformUser(authUser, selectedRole, intent);
+    } else {
+      synced = await safeLinkExistingPlatformUser(synced, authUser, selectedRole);
+    }
+    const previousRole = currentUser?.role;
+    saveCurrentSessionUser(platformUserFromRecord(synced, authUser, selectedRole));
+    refreshAppChromeAfterProfileUpdate(previousRole);
+  })().catch(err => {
+    console.warn('Background profile sync failed:', err);
+  });
+
   return true;
 }
 
@@ -7508,27 +7557,42 @@ function handleBackButtonAction(event) {
 
 window.addEventListener('popstate', handleBackButtonAction);
 
+let _dashboardDataRefreshRunning = false;
+function refreshDashboardDataInBackground(options = {}) {
+  if (_dashboardDataRefreshRunning) return;
+  _dashboardDataRefreshRunning = true;
+  refreshTasks().then(() => {
+    updateBadges();
+    const page = _currentPage || getHomePage();
+    if (document.getElementById('page-' + page)?.classList.contains('active')) {
+      navigate(page, { skipHistory: true });
+    }
+  }).catch(err => {
+    console.warn('Dashboard data load failed:', err);
+    tasks = Array.isArray(tasks) ? tasks : [];
+    if (options.notifyOnFailure) {
+      notify('⚠️ Signed in, but some dashboard data could not load. Check RLS policies if this continues.');
+    }
+  }).finally(() => {
+    _dashboardDataRefreshRunning = false;
+  });
+}
+
 function launchApp(options = {}) {
   hideAuthCallbackLoading();
   const landing = document.getElementById('landing-page');
   if (landing) landing.style.display = 'none';
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
-  finishInitialPageBoot(true);
   buildSidebar();
   buildTopbar();
   updateUserDisplay();
+  const home = getHomePage();
+  navigate(home, { skipHistory: true });
+  finishInitialPageBoot(true);
   initBackButtonGuard();
   initSessionGuard();
-  // Load tasks from Supabase then navigate
-  refreshTasks().catch(err => {
-    console.warn('Dashboard data load failed:', err);
-    tasks = Array.isArray(tasks) ? tasks : [];
-    notify('⚠️ Signed in, but some dashboard data could not load. Check RLS policies if this continues.');
-  }).then(() => {
-    const home = getHomePage();
-    navigate(home, { replaceHistory: true });
-  });
+  refreshDashboardDataInBackground({ notifyOnFailure: true });
   if (!options.silentWelcome) notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
   setTimeout(showRealtimeNotificationPromptIfNeeded, 900);
@@ -11856,7 +11920,10 @@ async function startPayHeroStk() {
       body: JSON.stringify({ taskId, phone_number: phone })
     });
     const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || body.message || (body.details?.message) || 'Payment request failed. Check Vercel function logs for /api/daraja/stk.');
+    if (!res.ok) {
+      const message = body.error || body.message || (body.details?.message) || 'Payment request failed. Check Vercel function logs for /api/daraja/stk.';
+      throw new Error(body.hint ? `${message} ${body.hint}` : message);
+    }
     if (status) status.innerHTML = `✅ STK push queued. Ask the employer to check phone ${esc(phone)} and enter M-Pesa PIN.<br><strong>Payment Reference:</strong> ${esc(body.reference || body.checkout_request_id || '—')}`;
     notify('📲 M-Pesa STK push sent');
   } catch (err) {
