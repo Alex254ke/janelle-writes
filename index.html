@@ -6081,6 +6081,20 @@ function cleanAuthReturnUrl() {
   } catch {}
 }
 
+function clearTransientAuthBrowserState() {
+  try {
+    ['jw_google_intent', 'jw_google_role', 'jw_password_recovery_pending', 'jw_password_recovery_email'].forEach(k => localStorage.removeItem(k));
+    Object.keys(localStorage).forEach(k => {
+      const key = String(k).toLowerCase();
+      if (key.includes('code-verifier') || key.includes('oauth-state') || key.includes('pkce')) localStorage.removeItem(k);
+    });
+    Object.keys(sessionStorage || {}).forEach(k => {
+      const key = String(k).toLowerCase();
+      if (key.includes('code-verifier') || key.includes('oauth-state') || key.includes('pkce')) sessionStorage.removeItem(k);
+    });
+  } catch {}
+}
+
 function handleSupabaseAuthErrorReturn() {
   const url = new URL(window.location.href);
   const error = url.searchParams.get('error');
@@ -6089,6 +6103,7 @@ function handleSupabaseAuthErrorReturn() {
 
   if (!error && !errorCode) return false;
 
+  clearTransientAuthBrowserState();
   cleanAuthReturnUrl();
   hideAuthCallbackLoading();
   openAuthScreen('login');
