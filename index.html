@@ -613,6 +613,7 @@ tbody td { padding:14px 16px; font-size:13px; color:var(--charcoal); vertical-al
 .badge-completed { background:#e0f5f3; color:var(--teal-dark); }
 .badge-revision { background:#f3e5f5; color:var(--revision); }
 .badge-late { background:#fce8e6; color:var(--danger); }
+.badge-cancelled { background:#eef2f4; color:#52636b; }
 .badge-paid { background:#e0f5f3; color:var(--success); }
 .badge-unpaid { background:#fce8e6; color:var(--danger); }
 .badge-style { background:var(--teal-pale); color:var(--teal-dark); }
@@ -808,6 +809,44 @@ body.dark-mode .lateness-panel-text, body.dark .lateness-panel-text { color:#eef
 .modal-title { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:700; color:var(--ink); margin-bottom:4px; }
 .modal-sub { font-size:13px; color:var(--muted); margin-bottom:24px; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; flex-wrap:wrap; }
+.notify-permission-card {
+  display:grid;
+  grid-template-columns:54px 1fr;
+  gap:14px;
+  align-items:start;
+  margin:18px 0;
+  padding:16px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--teal-pale),#fff);
+  border:1px solid rgba(42,157,143,0.20);
+}
+.notify-permission-icon {
+  width:54px;
+  height:54px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--ink);
+  color:var(--teal-light);
+  font-size:24px;
+}
+.notify-permission-card strong {
+  display:block;
+  color:var(--ink);
+  font-size:14px;
+  margin-bottom:5px;
+}
+.notify-permission-card span {
+  display:block;
+  color:var(--slate);
+  font-size:13px;
+  line-height:1.55;
+}
+.fine-amount {
+  font-weight:800;
+  color:var(--danger);
+}
 
 /* ── IMAGE SECTIONS ─── */
 .hero-visual-strip {
@@ -963,6 +1002,15 @@ body.dark-mode .lateness-panel-text, body.dark .lateness-panel-text { color:#eef
   color:rgba(244,251,250,0.52);
   font-size:11px;
   line-height:1.55;
+}
+.footer-rights {
+  margin-top:28px;
+  padding:18px 16px 0;
+  border-top:1px solid rgba(255,255,255,0.10);
+  text-align:center;
+  color:rgba(244,251,250,0.82);
+  font-size:12px;
+  font-weight:700;
 }
 
 /* ── EMPLOYER TASK LIST ─── */
@@ -3373,15 +3421,19 @@ body.dark-mode .google-auth-separator::after {
 }
 .sidebar-profile-link {
   margin-left: auto;
-  width: 34px;
+  min-width: 34px;
   height: 34px;
+  padding: 0 10px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   background: rgba(82,196,184,0.12);
   border: 1px solid rgba(82,196,184,0.18);
   color: #8ee4d6;
+  font-size: 12px;
+  font-weight: 800;
   cursor: pointer;
   transition: transform .2s ease, background .2s ease;
   flex-shrink: 0;
@@ -3528,14 +3580,21 @@ body.dark-mode .google-auth-separator::after {
 
 /* Make the quick profile button beside the user photo clearer. */
 .sidebar-profile-link {
-  width: 42px !important;
+  width: auto !important;
+  min-width: 92px !important;
   height: 42px !important;
+  padding: 0 13px !important;
   border-radius: 14px !important;
   background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
   border: 1px solid rgba(255,255,255,0.14) !important;
   color: #ffffff !important;
-  font-size: 18px !important;
+  font-size: 12px !important;
+  gap: 7px !important;
   box-shadow: 0 10px 26px rgba(42,157,143,0.30), 0 0 0 4px rgba(82,196,184,0.08) !important;
+}
+.sidebar-profile-link span:first-child {
+  font-size: 17px;
+  line-height: 1;
 }
 .sidebar-profile-link:hover {
   background: linear-gradient(135deg, #52c4b8, var(--teal-dark)) !important;
@@ -4448,7 +4507,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <a class="footer-contact-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">
             <span class="footer-icon">📸</span> @Janelle_assignments
           </a>
-          <a class="footer-contact-link" href="https://wa.me/254723156622" target="_blank" rel="noopener">
+          <a class="footer-contact-link" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener">
             <span class="footer-icon">💬</span> +254 723 156 622
           </a>
           <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
@@ -4463,6 +4522,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           </a>
         </div>
       </div>
+      <div class="footer-rights">© 2026 Janelle Writes. All rights reserved.</div>
     </footer>
   </div>
 </div>
@@ -4698,7 +4758,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
       <div class="user-name" id="nav-username">User</div>
       <div class="user-role" id="nav-role">Role</div>
     </div>
-    <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile">👤</button>
+    <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile"><span>👤</span><span>Profile</span></button>
   </div>
 
   <nav class="sidebar-nav" id="sidebar-nav">
@@ -4788,6 +4848,95 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <li><span class="check">✓</span><span><strong>File access:</strong> employers can download submitted work, and writers can view/download their own submitted files.</span></li>
         </ul>
       </div>
+    </div>
+  </div>
+
+
+  <!-- FAQ -->
+  <div class="page content" id="page-faq">
+    <div class="guide-hero">
+      <h1>Frequently Asked Questions</h1>
+      <p>Quick answers for common questions about orders, writers, payments, submissions, revisions, disputes, and account support.</p>
+    </div>
+
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h2>Orders & <span>Writers</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span><strong>How do employers post work?</strong> Use Post New Task, add full instructions, deadline, amount, and files, then submit the order.</span></li>
+          <li><span class="check">2</span><span><strong>How do writers get work?</strong> Writers browse Available Orders or receive direct assignments from employers who prefer them.</span></li>
+          <li><span class="check">3</span><span><strong>Can an employer choose a writer?</strong> Yes. Employers can assign to a preferred writer after working with them before.</span></li>
+          <li><span class="check">4</span><span><strong>Where are files found?</strong> Instruction and submission files stay inside the related order view.</span></li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h2>Payments & <span>Support</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">1</span><span><strong>How are payments handled?</strong> Employers pay through the platform payment flow, and writer release is handled after approval.</span></li>
+          <li><span class="check">2</span><span><strong>What if something goes wrong?</strong> Use order messages first. If unresolved, open a dispute from the order.</span></li>
+          <li><span class="check">3</span><span><strong>Can orders be cancelled?</strong> Employers and admins can cancel orders when needed. Cancelled orders appear in the Cancelled tab.</span></li>
+          <li><span class="check">4</span><span><strong>Where do fines appear?</strong> Any fine attached to a cancelled or disputed order appears in the Fines tab.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RULES & PRIVACY -->
+  <div class="page content" id="page-rules">
+    <div class="guide-hero">
+      <h1>Rules, Regulations & Privacy</h1>
+      <p>Platform expectations for fair work, respectful communication, secure accounts, file privacy, payments, cancellations, and dispute handling.</p>
+    </div>
+
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h2>Platform <span>Rules</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">✓</span><span>Use order messages for all important task communication so the record stays clear.</span></li>
+          <li><span class="check">✓</span><span>Employers must provide complete instructions, realistic deadlines, and clear payment details.</span></li>
+          <li><span class="check">✓</span><span>Writers must only accept work they can complete well and on time.</span></li>
+          <li><span class="check">✓</span><span>Submitted work, files, and order details must not be shared outside the platform workflow.</span></li>
+          <li><span class="check">✓</span><span>Disputes should be factual and tied to the order, files, messages, dates, or payment records.</span></li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h2>Privacy & <span>Safety</span></h2>
+        <ul class="guide-list">
+          <li><span class="check">✓</span><span>Account passwords are handled by Supabase Auth and should never be shared with support or other users.</span></li>
+          <li><span class="check">✓</span><span>Private order information should only be visible to the employer, assigned writer, and platform admin.</span></li>
+          <li><span class="check">✓</span><span>Payment details are used only for order collection, payout records, and platform audit history.</span></li>
+          <li><span class="check">✓</span><span>Cancelled orders and fines must include a clear reason so users can understand the decision.</span></li>
+          <li><span class="check">✓</span><span>Users should log out on shared devices and enable notifications only on devices they trust.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCELLED ORDERS -->
+  <div class="page content" id="page-cancelled">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Cancelled <span>Orders</span></div>
+        <p class="text-muted" style="margin-top:4px;">Orders cancelled by an employer or admin will appear here with the reason and date.</p>
+      </div>
+    </div>
+    <div id="cancelled-orders-wrap">
+      <div class="empty-state"><div class="empty-icon">🚫</div><p>No cancelled orders yet.</p></div>
+    </div>
+  </div>
+
+  <!-- FINES -->
+  <div class="page content" id="page-fines">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Fines <span>Ledger</span></div>
+        <p class="text-muted" style="margin-top:4px;">Any order fines will show the order ID, reason, amount, status, and date issued.</p>
+      </div>
+    </div>
+    <div id="fines-wrap">
+      <div class="empty-state"><div class="empty-icon">💸</div><p>No fines recorded.</p></div>
     </div>
   </div>
 
@@ -5469,8 +5618,9 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
         <div class="app-support-meta">Janelle Writes keeps order conversations, files, ratings, invoices, and support records connected to the right account.</div>
       </div>
 
-      <a class="btn btn-primary app-support-whatsapp" href="https://wa.me/254723156622" target="_blank" rel="noopener">💬 WhatsApp Support</a>
+      <a class="btn btn-primary app-support-whatsapp" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener">💬 WhatsApp Support</a>
     </div>
+    <div class="footer-rights">© 2026 Janelle Writes. All rights reserved.</div>
   </footer>
 
 </main>
@@ -5623,9 +5773,72 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
   </div>
 </div>
 
+<!-- Cancel Order Modal -->
+<div class="modal-overlay" id="modal-cancel-order">
+  <div class="modal">
+    <div class="modal-title">Cancel Order</div>
+    <div class="modal-sub" id="cancel-order-sub">Cancel this order and record the reason for both sides.</div>
+    <input type="hidden" id="cancel-order-id">
+    <div class="form-group">
+      <label class="form-label">Cancellation Reason</label>
+      <select class="form-select" id="cancel-order-reason">
+        <option value="Employer requested cancellation">Employer requested cancellation</option>
+        <option value="Writer unavailable">Writer unavailable</option>
+        <option value="Instructions changed">Instructions changed</option>
+        <option value="Deadline cannot be met">Deadline cannot be met</option>
+        <option value="Payment issue">Payment issue</option>
+        <option value="Quality or conduct issue">Quality or conduct issue</option>
+        <option value="Duplicate or mistaken order">Duplicate or mistaken order</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="cancel-order-note" rows="4" placeholder="Explain why this order is being cancelled."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fine Amount (KES, optional)</label>
+      <input class="form-input" id="cancel-order-fine" type="number" min="0" step="1" placeholder="0">
+      <div class="text-muted">Leave as 0 if no fine should be recorded.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-cancel-order')">Keep Order</button>
+      <button class="btn btn-danger" onclick="confirmCancelOrder()">🚫 Cancel Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Device Notification Permission Modal -->
+<div class="modal-overlay" id="modal-notification-permission">
+  <div class="modal">
+    <div class="modal-title">Allow realtime notifications?</div>
+    <div class="modal-sub">Turn on alerts for this device/browser so you do not miss important platform activity.</div>
+    <div class="notify-permission-card">
+      <div class="notify-permission-icon">🔔</div>
+      <div>
+        <strong>Get updated on new orders, chat messages, revisions, cancellations, fines, and payment activity.</strong>
+        <span>You can allow notifications on this device now. You may change this later in your browser settings.</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="dismissRealtimeNotificationPrompt()">Not Now</button>
+      <button class="btn btn-primary" onclick="allowRealtimeNotifications()">Allow Notifications</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Notification -->
 <div class="notification" id="notification"><span id="notif-msg"></span></div>
+
+<!-- Floating WhatsApp Support -->
+<div class="floating-support-widget" aria-label="Janelle Writes WhatsApp support">
+  <a class="support-popover" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-hidden="true">
+    <strong>WhatsApp Support</strong>
+    <small>Open a chat with Janelle Writes support.</small>
+  </a>
+  <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">💬</a>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════
@@ -7195,6 +7408,7 @@ function launchApp() {
   });
   notify('✦ Welcome, ' + currentUser.name + '!');
   subscribeRealtime();
+  setTimeout(showRealtimeNotificationPromptIfNeeded, 900);
   startLateTaskWatcher();
   startReminderWatcher();
 }
@@ -7208,30 +7422,38 @@ function buildSidebar() {
     nav.innerHTML = `
       <div class="nav-section">Employer</div>
       <div class="nav-item" data-page="emp-dashboard" onclick="navigate('emp-dashboard')"><span class="icon">🏠</span> Dashboard</div>
-      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
       <div class="nav-item" data-page="emp-post" onclick="navigate('emp-post')"><span class="icon">✏️</span> Post New Task</div>
       <div class="nav-item" data-page="emp-tasks" onclick="navigate('emp-tasks')"><span class="icon">📋</span> My Orders <span class="nav-badge" id="emp-pending-badge">0</span></div>
+      <div class="nav-item" data-page="cancelled" onclick="navigate('cancelled')"><span class="icon">🚫</span> Cancelled Orders <span class="nav-badge" id="cancelled-badge">0</span></div>
       <div class="nav-item" data-page="disputes" onclick="navigate('disputes')"><span class="icon">⚖️</span> Disputed Orders <span class="nav-badge" id="emp-dispute-badge">0</span></div>
+      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
+      <div class="nav-item" data-page="faq" onclick="navigate('faq')"><span class="icon">❓</span> FAQ</div>
+      <div class="nav-item" data-page="rules" onclick="navigate('rules')"><span class="icon">📜</span> Rules & Privacy</div>
       <div class="nav-item" data-page="messages" onclick="openMessagesInbox()"><span class="icon">💬</span> Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
       <div class="nav-section">Finance</div>
       <div class="nav-item" data-page="emp-invoice" onclick="navigate('emp-invoice')"><span class="icon">🧾</span> Invoice</div>
       <div class="nav-item" data-page="emp-payment" onclick="navigate('emp-payment')"><span class="icon">💳</span> Payment</div>
+      <div class="nav-item" data-page="fines" onclick="navigate('fines')"><span class="icon">💸</span> Fines <span class="nav-badge" id="fines-badge">0</span></div>
     `;
   } else {
     nav.innerHTML = `
       <div class="nav-section">Writer</div>
       <div class="nav-item" data-page="writer-dashboard" onclick="navigate('writer-dashboard')"><span class="icon">🏠</span> Dashboard</div>
-      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
       <div class="nav-item" data-page="writer-available" onclick="navigate('writer-available')"><span class="icon">📥</span> Available Orders <span class="nav-badge" id="avail-badge">0</span></div>
       <div class="nav-item" data-page="writer-tasks" onclick="navigate('writer-tasks')"><span class="icon">📋</span> My Tasks <span class="nav-badge" id="writer-task-badge">0</span></div>
+      <div class="nav-item" data-page="cancelled" onclick="navigate('cancelled')"><span class="icon">🚫</span> Cancelled Orders <span class="nav-badge" id="cancelled-badge">0</span></div>
       <div class="nav-item" data-page="disputes" onclick="navigate('disputes')"><span class="icon">⚖️</span> Disputed Tasks <span class="nav-badge" id="writer-dispute-badge">0</span></div>
       <div class="nav-item" data-page="messages" onclick="openMessagesInbox()"><span class="icon">💬</span> Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
       <div class="nav-item" data-page="writer-revisions" onclick="navigate('writer-revisions')"><span class="icon">🔄</span> Revisions <span class="nav-badge-revision" id="revision-nav-badge">0</span></div>
+      <div class="nav-item" data-page="guide" onclick="navigate('guide')"><span class="icon">📘</span> Platform Guide</div>
+      <div class="nav-item" data-page="faq" onclick="navigate('faq')"><span class="icon">❓</span> FAQ</div>
+      <div class="nav-item" data-page="rules" onclick="navigate('rules')"><span class="icon">📜</span> Rules & Privacy</div>
       <div class="nav-section">Work</div>
       <div class="nav-item" data-page="writer-submit" onclick="navigate('writer-submit')"><span class="icon">📤</span> Submit Work</div>
       <div class="nav-item" data-page="writer-tracker" onclick="navigate('writer-tracker')"><span class="icon">📡</span> Tracker</div>
       <div class="nav-section">Account</div>
       <div class="nav-item" data-page="writer-earnings" onclick="navigate('writer-earnings')"><span class="icon">💰</span> My Earnings</div>
+      <div class="nav-item" data-page="fines" onclick="navigate('fines')"><span class="icon">💸</span> Fines <span class="nav-badge" id="fines-badge">0</span></div>
       <div class="nav-item" data-page="writer-payment" onclick="navigate('writer-payment')"><span class="icon">💳</span> Payment Details</div>
     `;
   }
@@ -7287,6 +7509,7 @@ function currentBadgeCounts() {
   const employerTasks = allTasks.filter(t => taskForEmployer(t, me));
   const writerTasks = allTasks.filter(t => taskForWriter(t, me));
   const publicAvailable = allTasks.filter(isPublicAvailableTask);
+  const visibleTasks = visibleTasksForCurrentUser();
 
   if (currentUser.role === 'employer') {
     return {
@@ -7298,6 +7521,8 @@ function currentBadgeCounts() {
       revisions: employerTasks.filter(t => t.status === 'revision').length,
       late: employerTasks.filter(t => taskIsLate(t)).length,
       disputes: employerTasks.filter(t => hasOpenDispute(t)).length,
+      cancelled: visibleTasks.filter(isCancelledTask).length,
+      fines: visibleTasks.reduce((sum, t) => sum + getTaskFines(t).length, 0),
       unread: totalUnreadMessages()
     };
   }
@@ -7311,6 +7536,8 @@ function currentBadgeCounts() {
     revisions: writerTasks.filter(t => t.status === 'revision').length,
     late: writerTasks.filter(t => taskIsLate(t)).length,
     disputes: writerTasks.filter(t => hasOpenDispute(t)).length,
+    cancelled: visibleTasks.filter(isCancelledTask).length,
+    fines: visibleTasks.reduce((sum, t) => sum + getTaskFines(t).length, 0),
     unread: totalUnreadMessages()
   };
 }
@@ -7337,6 +7564,8 @@ function updateBadges() {
     setCountBadge('writer-dispute-tab-badge', c.disputes, '{count} disputed tasks');
   }
 
+  setCountBadge('cancelled-badge', c.cancelled || 0, '{count} cancelled orders');
+  setCountBadge('fines-badge', c.fines || 0, '{count} fines');
   setUnreadBadge('msg-unread-badge', c.unread);
   setUnreadBadge('topbar-msg-unread-badge', c.unread);
 }
@@ -7612,6 +7841,10 @@ function printInvoiceOnly() {
 // ══════════════════════════════════════════════════════
 const pageTitles = {
   'guide': 'Platform Guide',
+  'faq': 'FAQ',
+  'rules': 'Rules & Privacy',
+  'cancelled': 'Cancelled Orders',
+  'fines': 'Fines',
   'emp-dashboard': 'Dashboard',
   'emp-post': 'Post New Task',
   'emp-tasks': 'My Orders',
@@ -7649,6 +7882,10 @@ function navigate(page, options = {}) {
   // Page-specific init
   switch(page) {
     case 'guide':           break;
+    case 'faq':             break;
+    case 'rules':           break;
+    case 'cancelled':       renderCancelledOrdersPage(); break;
+    case 'fines':           renderFinesPage(); break;
     case 'emp-dashboard':   renderEmpDashboard(); break;
     case 'emp-post':        empInitForm(); break;
     case 'emp-tasks':       renderEmpTasks(); break;
@@ -8025,6 +8262,7 @@ function statusBadge(s) {
     revision: '<span class="badge badge-revision"><span class="dot"></span>Revision</span>',
     late: '<span class="badge badge-late"><span class="dot"></span>Late</span>',
     disputed: '<span class="badge badge-disputed"><span class="dot"></span>Disputed</span>',
+    cancelled: '<span class="badge badge-cancelled"><span class="dot"></span>Cancelled</span>',
   };
   return map[s] || s;
 }
@@ -8130,6 +8368,186 @@ function getTaskRatings(t) {
     try { const parsed = JSON.parse(raw) || {}; if (Object.keys(parsed).length) return parsed; } catch {}
   }
   return getLocalRatings(t?.id);
+}
+
+function visibleTasksForCurrentUser() {
+  if (!currentUser || !Array.isArray(tasks)) return [];
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) return tasks;
+  if (currentUser.role === 'employer') return tasks.filter(t => taskForEmployer(t, currentUser.email));
+  return tasks.filter(t => taskForWriter(t, currentUser.email));
+}
+
+function getTaskCancellation(t) {
+  const ratings = getTaskRatings(t);
+  return ratings.__cancellation || null;
+}
+
+function isCancelledTask(t) {
+  return t?.status === 'cancelled' || !!getTaskCancellation(t);
+}
+
+function getTaskFines(t) {
+  const ratings = getTaskRatings(t);
+  return Array.isArray(ratings.__fines) ? ratings.__fines : [];
+}
+
+function taskFineTotal(t) {
+  return getTaskFines(t).reduce((sum, fine) => sum + Math.max(0, Number(fine.amount || 0)), 0);
+}
+
+function canCancelTask(t) {
+  if (!currentUser || !t || isCancelledTask(t) || t.status === 'completed') return false;
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) return true;
+  return taskForEmployer(t, currentUser.email);
+}
+
+function renderCancellationSummary(t) {
+  const cancel = getTaskCancellation(t);
+  if (!isCancelledTask(t) && !cancel) return '';
+  const reason = cancel?.reason || 'Order cancelled';
+  const note = cancel?.note ? `<div style="margin-top:8px;white-space:pre-wrap;">${esc(cancel.note)}</div>` : '';
+  const fine = taskFineTotal(t);
+  return `<div class="dispute-summary" style="border-color:#cfd7dc;background:#f7fafb;">
+    <div class="dispute-summary-title">Order cancelled</div>
+    <div class="dispute-summary-sub">${esc(reason)}${cancel?.created_at ? ' • ' + fmtDate(cancel.created_at) : ''}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;">Cancelled by ${esc(cancel?.by_name || cancel?.by_email || 'Platform')}</div>
+    ${fine > 0 ? `<div class="fine-amount" style="margin-top:8px;">Fine: KES ${fine.toLocaleString()}</div>` : ''}
+    ${note}
+  </div>`;
+}
+
+function renderCancelledOrdersPage() {
+  const wrap = document.getElementById('cancelled-orders-wrap');
+  if (!wrap) return;
+  const list = visibleTasksForCurrentUser().filter(isCancelledTask);
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🚫</div><p>No cancelled orders yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;min-width:820px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Order</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Subject</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Reason</th>
+          <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Fine</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Date</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Actions</th>
+        </tr></thead>
+        <tbody>
+          ${list.map(t => {
+            const cancel = getTaskCancellation(t) || {};
+            const fine = taskFineTotal(t);
+            return `<tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:12px 14px;font-weight:700;"><button class="order-link" onclick="empViewTask('${t.id}')">${esc(t.id)}</button></td>
+              <td style="padding:12px 14px;font-size:13px;">${esc(t.subject || 'Untitled')}</td>
+              <td style="padding:12px 14px;font-size:13px;">${esc(cancel.reason || 'Cancelled')}</td>
+              <td style="padding:12px 14px;text-align:right;" class="${fine > 0 ? 'fine-amount' : ''}">KES ${fine.toLocaleString()}</td>
+              <td style="padding:12px 14px;font-size:12px;color:var(--muted);">${cancel.created_at ? fmtDate(cancel.created_at) : '—'}</td>
+              <td style="padding:12px 14px;"><button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View</button> ${t.taken_by || t.posted_by ? `<button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>` : ''}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderFinesPage() {
+  const wrap = document.getElementById('fines-wrap');
+  if (!wrap) return;
+  const fines = visibleTasksForCurrentUser().flatMap(t => getTaskFines(t).map(fine => ({ task: t, fine })));
+  if (!fines.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💸</div><p>No fines recorded.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;min-width:780px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Order ID</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Reason</th>
+          <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Issued By</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Status</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Date</th>
+        </tr></thead>
+        <tbody>
+          ${fines.map(({ task, fine }) => `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:12px 14px;font-weight:700;"><button class="order-link" onclick="empViewTask('${task.id}')">${esc(task.id)}</button></td>
+            <td style="padding:12px 14px;font-size:13px;">${esc(fine.reason || 'Fine recorded')}${fine.note ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(fine.note)}</div>` : ''}</td>
+            <td style="padding:12px 14px;text-align:right;" class="fine-amount">KES ${Number(fine.amount || 0).toLocaleString()}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(fine.issued_by_name || fine.issued_by || 'Platform')}</td>
+            <td style="padding:12px 14px;"><span class="badge badge-unpaid">${esc(fine.status || 'open')}</span></td>
+            <td style="padding:12px 14px;font-size:12px;color:var(--muted);">${fine.created_at ? fmtDate(fine.created_at) : '—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function openCancelOrderModal(id) {
+  const t = tasks.find(task => task.id === id);
+  if (!t || !canCancelTask(t)) { notify('⚠️ This order cannot be cancelled from your account.'); return; }
+  document.getElementById('cancel-order-id').value = id;
+  document.getElementById('cancel-order-sub').textContent = `Cancel ${id} and record the reason for both sides.`;
+  document.getElementById('cancel-order-reason').value = currentUser.role === 'employer' ? 'Employer requested cancellation' : 'Admin cancelled order';
+  document.getElementById('cancel-order-note').value = '';
+  document.getElementById('cancel-order-fine').value = '';
+  document.getElementById('modal-cancel-order').classList.add('open');
+}
+
+function confirmCancelOrder() {
+  const id = document.getElementById('cancel-order-id')?.value;
+  const t = tasks.find(task => task.id === id);
+  if (!t || !canCancelTask(t)) { notify('⚠️ This order cannot be cancelled.'); return; }
+  const reason = document.getElementById('cancel-order-reason')?.value || 'Order cancelled';
+  const note = document.getElementById('cancel-order-note')?.value?.trim() || '';
+  const fineAmount = Math.max(0, Number(document.getElementById('cancel-order-fine')?.value || 0));
+  const now = new Date().toISOString();
+  const ratings = { ...getTaskRatings(t) };
+  ratings.__cancellation = {
+    reason,
+    note,
+    by_email: currentUser.email,
+    by_name: currentUser.name,
+    by_role: (typeof isJwAdmin === 'function' && isJwAdmin()) ? 'admin' : currentUser.role,
+    created_at: now
+  };
+  if (fineAmount > 0) {
+    ratings.__fines = [
+      {
+        id: 'FINE-' + Date.now().toString(36).toUpperCase(),
+        task_id: id,
+        reason,
+        note,
+        amount: fineAmount,
+        issued_by: currentUser.email,
+        issued_by_name: currentUser.name,
+        status: 'open',
+        created_at: now
+      },
+      ...getTaskFines(t)
+    ];
+  }
+  const updates = { status: 'cancelled', ratings };
+  dbUpdateTask(id, updates).then(() => {
+    Object.assign(t, updates);
+    saveLocalRatings(id, ratings);
+    closeModal('modal-cancel-order');
+    updateBadges();
+    renderEmpTasks();
+    renderCancelledOrdersPage();
+    renderFinesPage();
+    if (typeof renderAdminControlPage === 'function') renderAdminControlPage();
+    if (currentUser?.role === 'employer') renderEmpDashboard();
+    if (currentUser?.role === 'writer') renderWriterDashboard();
+    if (document.getElementById('modal-view-task')?.classList.contains('open')) empViewTask(id);
+    notify('🚫 Order cancelled: ' + id, 'notification');
+    sendRealtimeNotification('Order cancelled', `${id} was cancelled. ${reason}`);
+  }).catch(err => notify('❌ Cancellation failed: ' + err.message));
 }
 
 function ratingStars(score) {
@@ -8832,7 +9250,8 @@ function renderEmpTasks() {
           ${!hasOpenDispute(t) && t.taken_by ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : ''}
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
           ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
-          ${t.payment==='unpaid' && t.total>0 ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
+          ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
+          ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">✓ Paid</button>` : ''}
         </div>
       </td>
     </tr>
@@ -8866,6 +9285,7 @@ function empViewTask(id) {
     ${renderInstructionFiles(t)}
     ${taskRatingSummary(t)}
     ${renderDisputeSummary(t)}
+    ${renderCancellationSummary(t)}
     ${renderLatenessPanel(t)}
     ${renderReminderPanel(t)}
     ${t.submitted_notes ? `<div style="margin-bottom:12px;"><div class="form-label" style="margin-bottom:6px;">Writer's Notes</div><div style="font-size:13px;color:var(--charcoal);line-height:1.6;background:var(--teal-pale);padding:12px;border-radius:8px;">${t.submitted_notes}</div></div>` : ''}
@@ -8894,7 +9314,10 @@ function empViewTask(id) {
   if (currentUser.role === 'writer' && t.status === 'completed' && t.posted_by) {
     actions.innerHTML += `<button class="btn btn-primary" onclick="closeModal('modal-view-task');openRatingModal('${t.id}','employer')">⭐ Rate Employer</button>`;
   }
-  if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0) {
+  if (canCancelTask(t)) {
+    actions.innerHTML += `<button class="btn btn-danger" onclick="closeModal('modal-view-task');openCancelOrderModal('${t.id}')">🚫 Cancel Order</button>`;
+  }
+  if (currentUser.role === 'employer' && t.payment === 'unpaid' && t.total > 0 && !isCancelledTask(t)) {
     actions.innerHTML += `<button class="btn btn-success" onclick="empMarkPaid('${t.id}');closeModal('modal-view-task')">✓ Mark Paid</button>`;
   }
   modal.classList.add('open');
@@ -8941,7 +9364,7 @@ function renderEmpInvoice() {
 //  EMPLOYER: PAYMENT
 // ══════════════════════════════════════════════════════
 function empPopulatePaySelect() {
-  const mine = myTaskList().filter(t => t.payment === 'unpaid');
+  const mine = myTaskList().filter(t => t.payment === 'unpaid' && !isCancelledTask(t));
   const sel = document.getElementById('emp-pay-select');
   sel.innerHTML = '<option value="">— Select Order —</option>' + mine.map(t => `<option value="${t.id}">${t.id} — ${t.subject} (KES ${t.total.toLocaleString()})</option>`).join('');
 }
@@ -10274,10 +10697,64 @@ function sendTaskMessage() {
   });
 }
 function taskParticipant(t) {
-  return currentUser && (sameEmail(t.posted_by, currentUser.email) || sameEmail(t.taken_by, currentUser.email));
+  return currentUser && ((typeof isJwAdmin === 'function' && isJwAdmin()) || sameEmail(t.posted_by, currentUser.email) || sameEmail(t.taken_by, currentUser.email));
 }
 function latestMessage(messages) {
   return messages && messages.length ? messages[messages.length - 1] : null;
+}
+
+function realtimeNotificationKey() {
+  return 'jw_notify_prompt_' + String(currentUser?.email || 'guest').toLowerCase();
+}
+
+function realtimeNotificationIsAllowed(value) {
+  return value === 'allowed' || value === 'granted';
+}
+
+function showRealtimeNotificationPromptIfNeeded() {
+  if (!currentUser || !('Notification' in window)) return;
+  const key = realtimeNotificationKey();
+  const saved = localStorage.getItem(key);
+  if (realtimeNotificationIsAllowed(saved)) return;
+  if (Notification.permission === 'granted') { localStorage.setItem(key, 'allowed'); return; }
+  if (Notification.permission === 'denied') { localStorage.setItem(key, 'blocked'); return; }
+  if (saved === 'dismissed') return;
+  document.getElementById('modal-notification-permission')?.classList.add('open');
+}
+
+async function allowRealtimeNotifications() {
+  if (!('Notification' in window)) {
+    closeModal('modal-notification-permission');
+    notify('⚠️ This browser does not support notifications.');
+    return;
+  }
+  try {
+    localStorage.setItem(realtimeNotificationKey(), 'allowed');
+    const permission = await Notification.requestPermission();
+    closeModal('modal-notification-permission');
+    if (permission === 'granted') {
+      notify('🔔 Realtime notifications enabled on this device.');
+      sendRealtimeNotification('Janelle Writes notifications are on', 'You will get updates for orders, messages, and important activity while this site is open.');
+    } else if (permission === 'denied') {
+      localStorage.setItem(realtimeNotificationKey(), 'blocked');
+      notify('Notifications are blocked in this browser. You can enable them later from browser settings.');
+    } else {
+      notify('Notification preference saved for this browser.');
+    }
+  } catch (err) {
+    closeModal('modal-notification-permission');
+    notify('⚠️ Notification permission could not be requested.');
+  }
+}
+
+function dismissRealtimeNotificationPrompt() {
+  localStorage.setItem(realtimeNotificationKey(), 'dismissed');
+  closeModal('modal-notification-permission');
+}
+
+function sendRealtimeNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { new Notification(title, { body: body || '', tag: 'jw-' + Date.now() }); } catch {}
 }
 
 // ══════════════════════════════════════════════════════
@@ -10296,20 +10773,35 @@ function subscribeRealtime() {
         upsertLocalTask(newRow);
         if (currentUser?.role === 'writer' && !sameEmail(newRow.posted_by, currentUser.email) && newRow.status === 'pending') {
           notify('🔔 New work posted: ' + newRow.id, 'order');
+          sendRealtimeNotification('New work posted', `${newRow.id}: ${newRow.subject || 'A new order is available.'}`);
         }
         if (currentUser?.role === 'writer' && sameEmail(newRow.taken_by, currentUser.email)) {
           notify('📌 New task assigned to you: ' + newRow.id, 'order');
+          sendRealtimeNotification('New task assigned', `${newRow.id} has been assigned to you.`);
         }
       } else if (eventType === 'UPDATE') {
         const prevMessages = getTaskMessages(previous || {});
+        const prevFines = getTaskFines(previous || {});
+        const wasCancelled = isCancelledTask(previous || {});
         upsertLocalTask(newRow);
         const nextMessages = getTaskMessages(newRow || {});
+        const nextFines = getTaskFines(newRow || {});
         if (currentUser?.role === 'employer' && sameEmail(newRow.posted_by, currentUser.email) && previous?.status !== 'completed' && newRow.status === 'completed') {
           notify('📤 Writer submitted work for ' + newRow.id, 'submit');
+          sendRealtimeNotification('Work submitted', `The writer submitted work for ${newRow.id}.`);
         }
         const last = latestMessage(nextMessages);
         if (last && nextMessages.length > prevMessages.length && !sameEmail(last.sender_email, currentUser?.email) && taskParticipant(newRow)) {
           notify('💬 New message on ' + newRow.id, 'message');
+          sendRealtimeNotification('New message', `New chat message on ${newRow.id}.`);
+        }
+        if (!wasCancelled && isCancelledTask(newRow) && taskParticipant(newRow)) {
+          notify('🚫 Order cancelled: ' + newRow.id, 'notification');
+          sendRealtimeNotification('Order cancelled', `${newRow.id} was cancelled.`);
+        }
+        if (nextFines.length > prevFines.length && taskParticipant(newRow)) {
+          notify('💸 Fine recorded on ' + newRow.id, 'notification');
+          sendRealtimeNotification('Fine recorded', `A fine was added on ${newRow.id}.`);
         }
       } else if (eventType === 'DELETE') {
         tasks = tasks.filter(t => t.id !== (oldRow?.id || newRow?.id));
@@ -10337,6 +10829,8 @@ function subscribeRealtime() {
       if (pid === 'page-emp-tasks') renderEmpTasks();
       if (pid === 'page-emp-invoice') renderEmpInvoice();
       if (pid === 'page-emp-payment') { empPopulatePaySelect(); renderEmpPaySummary(); renderEmpWriterPayDetails(); }
+      if (pid === 'page-cancelled') renderCancelledOrdersPage();
+      if (pid === 'page-fines') renderFinesPage();
       if (pid === 'page-admin-commission') renderCommissionDashboard();
       if (pid === 'page-messages') renderMessagesPage();
       if (newRow?.id && _activeTaskModalId === newRow.id && document.getElementById('modal-view-task')?.classList.contains('open')) empViewTask(newRow.id);
@@ -10368,6 +10862,8 @@ function refreshLiveRatingViews(updatedTaskId) {
   if (pid === 'page-emp-dashboard') renderEmpDashboard();
   if (pid === 'page-disputes') renderDisputesPage();
   if (pid === 'page-messages') renderMessagesPage();
+  if (pid === 'page-cancelled') renderCancelledOrdersPage();
+  if (pid === 'page-fines') renderFinesPage();
 
   const taskModal = document.getElementById('modal-view-task');
   if (updatedTaskId && _activeTaskModalId === updatedTaskId && taskModal?.classList.contains('open')) {
@@ -10683,6 +11179,7 @@ async function recordCommissionIfPaid(task) {
 empMarkPaid = function(id) {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
+  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be marked paid.'); return; }
   const c = taskCommission(t);
   const updates = {
     payment: 'paid',
@@ -10707,6 +11204,7 @@ empRecordPayment = function() {
   if (!id) { notify('⚠️ Please select an order'); return; }
   const t = tasks.find(t => t.id === id);
   if (!t) return;
+  if (isCancelledTask(t)) { notify('⚠️ Cancelled orders cannot be marked paid.'); return; }
   const c = taskCommission(t);
   const updates = {
     payment: 'paid',
@@ -11144,8 +11642,9 @@ function renderAdminControlPage() {
               <td style="padding:12px 14px;">
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                   <button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>
-                  <button class="btn btn-success btn-sm" onclick="adminOverrideTask('${t.id}','payment','paid')">Mark Paid</button>
-                  <button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${t.id}','status','completed')">Complete</button>
+                  ${!isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="adminOverrideTask('${t.id}','payment','paid')">Mark Paid</button>` : ''}
+                  ${!isCancelledTask(t) ? `<button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${t.id}','status','completed')">Complete</button>` : ''}
+                  ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
                 </div>
               </td>
             </tr>`).join('')}
@@ -11161,6 +11660,10 @@ function adminOverrideTask(id, field, value) {
   if (!allowed.includes(field)) { notify('❌ This override is not allowed.'); return; }
   const t = getTaskById(id);
   if (!t) return;
+  if (isCancelledTask(t) && (field === 'payment' || value === 'completed')) {
+    notify('⚠️ Cancelled orders cannot be marked paid or completed.');
+    return;
+  }
   const updates = { [field]: value, admin_override_at: new Date().toISOString(), admin_override_by: currentUser.email };
   dbUpdateTask(id, updates).then(() => {
     Object.assign(t, updates);
@@ -11173,7 +11676,7 @@ function adminOverrideTask(id, field, value) {
 function populatePayHeroOrderSelect() {
   const sel = document.getElementById('payhero-order-select');
   if (!sel || !currentUser || currentUser.role !== 'employer') return;
-  const list = myTaskList().filter(t => t.payment !== 'paid' && Number(t.total || 0) > 0);
+  const list = myTaskList().filter(t => t.payment !== 'paid' && Number(t.total || 0) > 0 && !isCancelledTask(t));
   sel.innerHTML = '<option value="">— Select unpaid order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(t.id)} — ${esc(t.subject)} (KES ${Number(t.total||0).toLocaleString()})</option>`).join('');
   payheroUpdatePreview();
 }
