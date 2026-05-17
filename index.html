@@ -4324,6 +4324,35 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
   #page-wallet .card { padding:16px; }
 }
 
+
+/* ── ADMIN DASHBOARD CLICKABLE SUMMARY CARDS ─────────────────── */
+.admin-control-card.clickable {
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.admin-control-card.clickable:hover {
+  transform: translateY(-3px);
+  border-color: rgba(42,157,143,.45);
+  box-shadow: 0 18px 44px rgba(15,25,35,.12);
+  background: linear-gradient(135deg, rgba(82,196,184,.08), rgba(255,255,255,.96));
+}
+.admin-control-card.clickable:active {
+  transform: translateY(-1px);
+}
+.admin-control-card .admin-card-hint {
+  display:block;
+  margin-top:8px;
+  font-size:10px;
+  color:var(--teal-dark);
+  opacity:.78;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  font-weight:800;
+}
+body.dark-mode .admin-control-card.clickable:hover {
+  background: linear-gradient(135deg, rgba(82,196,184,.12), #14202b);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -5039,6 +5068,21 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     </div>
   </div>
 
+
+
+  <!-- ADMIN: FILTERED ORDERS -->
+  <div class="page content" id="page-admin-filtered-orders">
+    <div class="section-header">
+      <div>
+        <div class="section-title" id="admin-filtered-title">Admin <span>Orders</span></div>
+        <p class="text-muted" id="admin-filtered-subtitle" style="margin-top:4px;">Filtered admin order view.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="navigate('admin-control')">← Back to Admin Control</button>
+    </div>
+    <div id="admin-filtered-orders-wrap">
+      <div class="empty-state"><p>Orders will appear here.</p></div>
+    </div>
+  </div>
 
   <!-- ADMIN: STUDENT ORDERS -->
   <div class="page content" id="page-admin-student-orders">
@@ -8470,6 +8514,7 @@ const pageTitles = {
   'admin-control': 'Admin Control Center',
   'admin-student-orders': 'Student Orders',
   'admin-student-messages': 'Student Messages',
+  'admin-filtered-orders': 'Admin Orders',
 };
 
 function navigate(page, options = {}) {
@@ -8514,6 +8559,7 @@ function navigate(page, options = {}) {
     case 'admin-control':    if (typeof renderAdminControlPage === 'function') renderAdminControlPage(); break;
     case 'admin-student-orders': if (typeof renderAdminStudentOrdersPage === 'function') renderAdminStudentOrdersPage(); break;
     case 'admin-student-messages': if (typeof renderAdminStudentMessagesPage === 'function') renderAdminStudentMessagesPage(); break;
+    case 'admin-filtered-orders': if (typeof renderAdminFilteredOrdersPage === 'function') renderAdminFilteredOrdersPage(); break;
   }
 }
 
@@ -13811,6 +13857,543 @@ if (currentUser && isJwAdminEmail(currentUser.email)) {
     document.documentElement.classList.remove('jw-booting');
   }
 })();
+
+
+
+// ══════════════════════════════════════════════════════
+//  LIVE ADMIN BADGES + STUDENT/ADMIN NOTIFICATION PATCH
+// ══════════════════════════════════════════════════════
+let _jwWalletBadgeLastCount = null;
+let _jwWalletBadgeLoading = false;
+let _jwExtraRealtimeSub = null;
+let _jwWalletRealtimeSub = null;
+const _jwSeenSubmittedTasks = new Set();
+const _jwSeenAdminStudentOrders = new Set();
+
+function jwCountStudentOrdersForAdmin() {
+  try {
+    if (typeof adminStudentOrders === 'function') return adminStudentOrders().length;
+  } catch {}
+  return (Array.isArray(tasks) ? tasks : []).filter(t => {
+    try { return isStudentOrder(t) || isStudentTask(t); }
+    catch { return !!(t?.student_order || t?.order_type === 'international_student'); }
+  }).length;
+}
+
+function jwStudentOrdersForAdminSafe() {
+  try {
+    if (typeof adminStudentOrders === 'function') return adminStudentOrders();
+  } catch {}
+  return (Array.isArray(tasks) ? tasks : []).filter(t => {
+    try { return isStudentOrder(t) || isStudentTask(t); }
+    catch { return !!(t?.student_order || t?.order_type === 'international_student'); }
+  });
+}
+
+function jwCountStudentMessageUnreadForAdmin() {
+  if (!currentUser || !isJwAdmin()) return 0;
+  return jwStudentOrdersForAdminSafe().reduce((sum, t) => {
+    try { return sum + unreadMessagesForTask(t); }
+    catch { return sum; }
+  }, 0);
+}
+
+function jwSetAdminSidebarBadges() {
+  if (!currentUser || !isJwAdmin()) return;
+  setCountBadge('admin-student-orders-badge', jwCountStudentOrdersForAdmin(), '{count} student orders');
+  setUnreadBadge('admin-student-messages-badge', jwCountStudentMessageUnreadForAdmin());
+  setUnreadBadge('msg-unread-badge', totalUnreadMessages());
+  setUnreadBadge('topbar-msg-unread-badge', totalUnreadMessages());
+}
+
+async function jwRefreshAdminWalletBadge(options = {}) {
+  if (!currentUser || !isJwAdmin() || _jwWalletBadgeLoading) return;
+  _jwWalletBadgeLoading = true;
+  try {
+    const rows = await dbGetPendingWalletTransactions();
+    const count = Array.isArray(rows) ? rows.length : 0;
+    setCountBadge('admin-wallet-badge', count, '{count} pending wallet requests');
+    if (options.notifyNew && _jwWalletBadgeLastCount !== null && count > _jwWalletBadgeLastCount) {
+      notify('', 'notification', {
+        title: 'New wallet request',
+        body: `${count} wallet request${count === 1 ? '' : 's'} pending review.`,
+        onClick: () => navigate('admin-wallet')
+      });
+      sendRealtimeNotification('New wallet request', `${count} wallet request${count === 1 ? '' : 's'} pending review.`, {
+        tag: 'jw-wallet-request',
+        renotify: true
+      });
+    }
+    _jwWalletBadgeLastCount = count;
+  } catch (err) {
+    console.warn('Admin wallet badge refresh failed:', err);
+  } finally {
+    _jwWalletBadgeLoading = false;
+  }
+}
+
+const _jwLiveBadgeOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  if (isJwAdmin()) {
+    const nav = document.getElementById('sidebar-nav');
+    if (!nav) return _jwLiveBadgeOrigBuildSidebar();
+    nav.innerHTML = `
+      <div class="nav-section">Admin</div>
+      <div class="nav-item" data-page="admin-control" onclick="navigate('admin-control')"><span class="icon">🛡️</span> Admin Control</div>
+      <div class="nav-item" data-page="admin-student-orders" onclick="navigate('admin-student-orders')"><span class="icon">🎓</span> Student Orders <span class="nav-badge" id="admin-student-orders-badge">0</span></div>
+      <div class="nav-item" data-page="admin-student-messages" onclick="navigate('admin-student-messages')"><span class="icon">💬</span> Student Messages <span class="message-unread-badge" id="admin-student-messages-badge">0</span></div>
+      <div class="nav-item" data-page="admin-wallet" onclick="navigate('admin-wallet')"><span class="icon">🏦</span> Wallet Requests <span class="nav-badge" id="admin-wallet-badge">0</span></div>
+      <div class="nav-item" data-page="admin-commission" onclick="navigate('admin-commission')"><span class="icon">💰</span> Commission Ledger</div>
+      <div class="nav-section">General</div>
+      <div class="nav-item" data-page="messages" onclick="openMessagesInbox()"><span class="icon">📨</span> All Messages <span class="message-unread-badge" id="msg-unread-badge">0</span></div>
+      <div class="nav-item" data-page="profile" onclick="navigate('profile')"><span class="icon">👤</span> Admin Profile</div>
+    `;
+    jwSetAdminSidebarBadges();
+    jwRefreshAdminWalletBadge();
+    return;
+  }
+  _jwLiveBadgeOrigBuildSidebar();
+};
+
+const _jwLiveBadgeOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwLiveBadgeOrigUpdateBadges();
+  if (isJwAdmin()) {
+    jwSetAdminSidebarBadges();
+    jwRefreshAdminWalletBadge();
+  }
+};
+
+const _jwLiveBadgeOrigRenderAdminWalletRequests = renderAdminWalletRequests;
+renderAdminWalletRequests = async function(targetId = 'admin-wallet-requests') {
+  await _jwLiveBadgeOrigRenderAdminWalletRequests(targetId);
+  if (isJwAdmin()) jwRefreshAdminWalletBadge();
+};
+
+function jwRoleNeedsBrowserNotifications() {
+  return !!currentUser && (currentUser.role === 'student' || isJwAdmin());
+}
+
+function jwPromptNotificationsForStudentOrAdmin() {
+  if (!jwRoleNeedsBrowserNotifications() || !('Notification' in window)) return;
+  if (Notification.permission === 'granted' || Notification.permission === 'denied') return;
+
+  // If the user dismissed the old prompt before this feature, show it once again for student/admin accounts.
+  const resetKey = 'jw_role_notification_prompt_reset_' + String(currentUser.email || '').toLowerCase();
+  if (!localStorage.getItem(resetKey)) {
+    localStorage.setItem(resetKey, '1');
+    if (localStorage.getItem(realtimeNotificationKey()) === 'dismissed') {
+      localStorage.removeItem(realtimeNotificationKey());
+    }
+  }
+
+  setTimeout(() => showRealtimeNotificationPromptIfNeeded(), 350);
+}
+
+function jwNotifyStudentTaskSubmitted(task) {
+  if (!currentUser || currentUser.role !== 'student' || !taskForEmployer(task, currentUser.email)) return;
+  if (task.status !== 'completed') return;
+  const key = task.id + ':' + (task.submitted_at || task.updated_at || task.status || '');
+  if (_jwSeenSubmittedTasks.has(key)) return;
+  _jwSeenSubmittedTasks.add(key);
+
+  notify('', 'submit', {
+    title: 'Your assignment has been submitted',
+    body: `${task.id}: ${task.subject || 'Assignment'} is ready for your review.`,
+    onClick: () => {
+      try { navigate('emp-tasks'); } catch {}
+    }
+  });
+  sendRealtimeNotification('Assignment submitted', `${task.id}: ${task.subject || 'Assignment'} is ready for your review.`, {
+    tag: 'jw-student-submitted-' + task.id,
+    taskId: task.id,
+    renotify: true
+  });
+}
+
+function jwNotifyAdminStudentOrderUpdate(task, type = 'update') {
+  if (!isJwAdmin()) return;
+  const isStudent = (() => { try { return isStudentOrder(task) || isStudentTask(task); } catch { return !!(task?.student_order || task?.order_type === 'international_student'); } })();
+  if (!isStudent) return;
+
+  if (type === 'insert') {
+    const key = 'insert:' + task.id;
+    if (_jwSeenAdminStudentOrders.has(key)) return;
+    _jwSeenAdminStudentOrders.add(key);
+    notify('', 'order', {
+      title: 'New student order posted',
+      body: `${task.id}: ${task.subject || 'Student assignment'} has been posted.`,
+      onClick: () => navigate('admin-student-orders')
+    });
+    sendRealtimeNotification('New student order posted', `${task.id}: ${task.subject || 'Student assignment'} has been posted.`, {
+      tag: 'jw-admin-student-order-' + task.id,
+      renotify: true
+    });
+  }
+
+  if (type === 'submitted' && task.status === 'completed') {
+    const key = 'submitted:' + task.id;
+    if (_jwSeenAdminStudentOrders.has(key)) return;
+    _jwSeenAdminStudentOrders.add(key);
+    notify('', 'submit', {
+      title: 'Student order submitted',
+      body: `${task.id}: writer submitted the student assignment.`,
+      onClick: () => navigate('admin-student-orders')
+    });
+    sendRealtimeNotification('Student order submitted', `${task.id}: writer submitted the student assignment.`, {
+      tag: 'jw-admin-student-submitted-' + task.id,
+      renotify: true
+    });
+  }
+}
+
+function jwSubscribeStudentAdminRealtime() {
+  if (_jwExtraRealtimeSub) return;
+  _jwExtraRealtimeSub = _sb.channel('jw_student_admin_activity')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_tasks' }, payload => {
+      const { eventType, new: newRow } = payload;
+      if (!currentUser || !newRow) return;
+
+      if (eventType === 'INSERT') {
+        if (isJwAdmin()) jwNotifyAdminStudentOrderUpdate(newRow, 'insert');
+      }
+
+      if (eventType === 'UPDATE') {
+        if (currentUser.role === 'student') jwNotifyStudentTaskSubmitted(newRow);
+        if (isJwAdmin()) jwNotifyAdminStudentOrderUpdate(newRow, 'submitted');
+      }
+
+      setTimeout(() => {
+        updateBadges();
+        if (document.getElementById('page-admin-student-orders')?.classList.contains('active')) renderAdminStudentOrdersPage();
+        if (document.getElementById('page-admin-student-messages')?.classList.contains('active')) renderAdminStudentMessagesPage();
+      }, 200);
+    })
+    .subscribe();
+}
+
+function jwSubscribeWalletRealtime() {
+  if (_jwWalletRealtimeSub || !isJwAdmin()) return;
+  _jwWalletRealtimeSub = _sb.channel('jw_wallet_transactions_activity')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_wallet_transactions' }, payload => {
+      jwRefreshAdminWalletBadge({ notifyNew: payload.eventType === 'INSERT' });
+      if (document.getElementById('page-admin-wallet')?.classList.contains('active')) {
+        try { renderAdminWalletPage(); } catch {}
+      }
+    })
+    .subscribe();
+}
+
+const _jwNotifyOrigLaunchApp = launchApp;
+launchApp = function(options = {}) {
+  _jwNotifyOrigLaunchApp(options);
+
+  // Login sound and notification permission prompt for student/admin accounts.
+  if (jwRoleNeedsBrowserNotifications()) {
+    setTimeout(() => {
+      playSound('login');
+      jwPromptNotificationsForStudentOrAdmin();
+    }, 600);
+  }
+
+  if (isJwAdmin()) {
+    jwSetAdminSidebarBadges();
+    jwRefreshAdminWalletBadge();
+    jwSubscribeWalletRealtime();
+  }
+
+  if (currentUser?.role === 'student' || isJwAdmin()) {
+    jwSubscribeStudentAdminRealtime();
+  }
+};
+
+const _jwNotifyOrigSendTaskMessage = sendTaskMessage;
+sendTaskMessage = function() {
+  const role = currentUser?.role;
+  _jwNotifyOrigSendTaskMessage();
+  if (role === 'student' || isJwAdmin()) {
+    setTimeout(() => playSound('message'), 80);
+  }
+};
+
+if (typeof adminSendStudentOrderMessage === 'function') {
+  const _jwNotifyOrigAdminSendStudentOrderMessage = adminSendStudentOrderMessage;
+  adminSendStudentOrderMessage = function() {
+    _jwNotifyOrigAdminSendStudentOrderMessage();
+    setTimeout(() => playSound('message'), 80);
+  };
+}
+
+const _jwNotifyOrigRenderAdminStudentMessagesPage = renderAdminStudentMessagesPage;
+renderAdminStudentMessagesPage = function() {
+  _jwNotifyOrigRenderAdminStudentMessagesPage();
+  jwSetAdminSidebarBadges();
+};
+
+const _jwNotifyOrigRenderAdminStudentOrdersPage = renderAdminStudentOrdersPage;
+renderAdminStudentOrdersPage = function() {
+  _jwNotifyOrigRenderAdminStudentOrdersPage();
+  jwSetAdminSidebarBadges();
+};
+
+setInterval(() => {
+  if (isJwAdmin()) {
+    jwSetAdminSidebarBadges();
+    jwRefreshAdminWalletBadge();
+  }
+}, 30000);
+
+
+
+// ══════════════════════════════════════════════════════
+//  ADMIN SUMMARY CARDS → CLICKABLE SHORTCUTS
+// ══════════════════════════════════════════════════════
+let _adminOrderFilterMode = 'all';
+
+function adminAllOrdersSafe() {
+  return Array.isArray(tasks) ? tasks : [];
+}
+
+function adminKnownUsersSafe() {
+  const users = [];
+  const seen = new Set();
+  adminAllOrdersSafe().forEach(t => {
+    [[t.posted_by, t.posted_by_name, isStudentOrder(t) ? 'Student' : 'Employer'], [t.taken_by, t.taken_by_name, 'Writer']].forEach(([email, name, role]) => {
+      const key = String(email || '').toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        users.push({ email, name: name || email, role });
+      }
+    });
+  });
+  return users;
+}
+
+function adminPaymentsToConfirmSafe() {
+  return adminAllOrdersSafe().filter(t => {
+    const pay = String(t.payment || '').toLowerCase();
+    return pay === 'pending_review' || pay === 'pending' || t.payment_review === true;
+  });
+}
+
+function adminOrdersByFilter(mode = _adminOrderFilterMode) {
+  const all = adminAllOrdersSafe();
+  if (mode === 'students') return jwStudentOrdersForAdminSafe ? jwStudentOrdersForAdminSafe() : all.filter(t => isStudentOrder(t));
+  if (mode === 'payments') return adminPaymentsToConfirmSafe();
+  if (mode === 'paid') return all.filter(t => t.payment === 'paid');
+  if (mode === 'completed') return all.filter(t => t.status === 'completed');
+  if (mode === 'disputes') return all.filter(t => hasOpenDispute(t));
+  if (mode === 'cancelled') return all.filter(t => isCancelledTask(t));
+  return all;
+}
+
+function adminFilterMeta(mode = _adminOrderFilterMode) {
+  const map = {
+    all: {
+      title: 'All <span>Orders</span>',
+      sub: 'Every platform order visible to the admin.'
+    },
+    students: {
+      title: 'Student <span>Orders</span>',
+      sub: 'International student assignments and their admin workflow.'
+    },
+    payments: {
+      title: 'Payments <span>To Confirm</span>',
+      sub: 'Orders waiting for admin payment review or confirmation.'
+    },
+    paid: {
+      title: 'Confirmed <span>Paid</span>',
+      sub: 'Orders already marked as paid.'
+    },
+    completed: {
+      title: 'Completed <span>Orders</span>',
+      sub: 'Orders submitted/completed by writers.'
+    },
+    disputes: {
+      title: 'Open <span>Disputes</span>',
+      sub: 'Orders with unresolved disputes.'
+    },
+    cancelled: {
+      title: 'Cancelled <span>Orders</span>',
+      sub: 'Orders that have been cancelled.'
+    }
+  };
+  return map[mode] || map.all;
+}
+
+function openAdminFilteredOrders(mode = 'all') {
+  _adminOrderFilterMode = mode;
+  navigate('admin-filtered-orders');
+}
+
+function adminRenderOrderRows(list) {
+  if (!list.length) {
+    return `<div class="empty-state" style="padding:42px;"><div class="empty-icon">📭</div><p>No records found for this filter.</p></div>`;
+  }
+
+  return `<div class="admin-table-wrap">
+    <table style="width:100%;border-collapse:collapse;min-width:1080px;">
+      <thead><tr style="background:var(--ink);">
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Order</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Posted By</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Writer</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Subject</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Type</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Status</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Payment</th>
+        <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th>
+        <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Actions</th>
+      </tr></thead>
+      <tbody>
+        ${list.map(t => {
+          const student = isStudentOrder(t);
+          const amount = student && typeof adminStudentOrderAmount === 'function'
+            ? adminStudentOrderAmount(t)
+            : 'KES ' + Number(t.total || 0).toLocaleString();
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:12px 14px;font-weight:800;"><button class="order-link" onclick="empViewTask('${esc(t.id)}')">${esc(t.id)}</button></td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(t.posted_by_name || t.posted_by || '—')}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(t.taken_by_name || t.taken_by || 'Unassigned')}</td>
+            <td style="padding:12px 14px;">${esc(t.subject || 'Untitled')}</td>
+            <td style="padding:12px 14px;"><span class="badge ${student ? 'badge-style' : 'b-pending'}">${student ? 'Student' : 'Standard'}</span></td>
+            <td style="padding:12px 14px;">${statusBadgeForTask(t)}</td>
+            <td style="padding:12px 14px;">${payBadge(t.payment)}</td>
+            <td style="padding:12px 14px;text-align:right;font-weight:800;color:var(--teal-dark);">${esc(amount)}</td>
+            <td style="padding:12px 14px;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="${student ? `adminOpenStudentOrderMessages('${esc(t.id)}')` : `openMessagesForTask('${esc(t.id)}')`}">Messages</button>
+                <button class="btn btn-success btn-sm" onclick="adminOverrideTask('${esc(t.id)}','payment','paid')">Mark Paid</button>
+                <button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${esc(t.id)}','status','completed')">Complete</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderAdminFilteredOrdersPage() {
+  const title = document.getElementById('admin-filtered-title');
+  const sub = document.getElementById('admin-filtered-subtitle');
+  const wrap = document.getElementById('admin-filtered-orders-wrap');
+  if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>Admin access required.</p></div>`;
+    return;
+  }
+
+  const meta = adminFilterMeta(_adminOrderFilterMode);
+  if (title) title.innerHTML = meta.title;
+  if (sub) sub.textContent = meta.sub;
+
+  const list = adminOrdersByFilter(_adminOrderFilterMode);
+  wrap.innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="btn ${_adminOrderFilterMode === 'all' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('all')">All</button>
+      <button class="btn ${_adminOrderFilterMode === 'students' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('students')">Students</button>
+      <button class="btn ${_adminOrderFilterMode === 'payments' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('payments')">Payments</button>
+      <button class="btn ${_adminOrderFilterMode === 'paid' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('paid')">Paid</button>
+      <button class="btn ${_adminOrderFilterMode === 'completed' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('completed')">Completed</button>
+      <button class="btn ${_adminOrderFilterMode === 'disputes' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('disputes')">Disputes</button>
+      <button class="btn ${_adminOrderFilterMode === 'cancelled' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="openAdminFilteredOrders('cancelled')">Cancelled</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">
+        ${meta.title} <span style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;">${list.length} record${list.length === 1 ? '' : 's'}</span>
+      </div>
+      ${adminRenderOrderRows(list)}
+    </div>
+  `;
+}
+
+function renderAdminUsersPageInline() {
+  const users = adminKnownUsersSafe();
+  _adminOrderFilterMode = 'all';
+  navigate('admin-filtered-orders');
+  setTimeout(() => {
+    const title = document.getElementById('admin-filtered-title');
+    const sub = document.getElementById('admin-filtered-subtitle');
+    const wrap = document.getElementById('admin-filtered-orders-wrap');
+    if (title) title.innerHTML = 'Known <span>Users</span>';
+    if (sub) sub.textContent = 'Users discovered from posted and assigned orders.';
+    if (!wrap) return;
+    wrap.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">
+        Known Users <span style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;">${users.length} user${users.length === 1 ? '' : 's'}</span>
+      </div>
+      <div class="admin-table-wrap">
+        <table style="width:100%;border-collapse:collapse;min-width:720px;">
+          <thead><tr style="background:var(--ink);">
+            <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Name</th>
+            <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Email</th>
+            <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Role</th>
+            <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Action</th>
+          </tr></thead>
+          <tbody>
+            ${users.map(u => `<tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:12px 14px;font-weight:700;">${esc(u.name || 'User')}</td>
+              <td style="padding:12px 14px;">${esc(u.email)}</td>
+              <td style="padding:12px 14px;"><span class="badge badge-style">${esc(u.role || 'User')}</span></td>
+              <td style="padding:12px 14px;"><button class="btn btn-outline btn-sm" onclick="navigate('messages')">Open Messages</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }, 80);
+}
+
+const _jwClickableAdminOrigRenderAdminControlPage = renderAdminControlPage;
+renderAdminControlPage = function() {
+  const el = document.getElementById('admin-control-wrap');
+  if (!el) return;
+  if (!isJwAdmin()) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This page is restricted to the platform owner.</p></div>`;
+    return;
+  }
+
+  const all = adminAllOrdersSafe();
+  const users = adminKnownUsersSafe();
+  const payments = adminPaymentsToConfirmSafe();
+  const paid = all.filter(t => t.payment === 'paid').length;
+  const disputed = all.filter(t => hasOpenDispute(t)).length;
+  const completed = all.filter(t => t.status === 'completed').length;
+  const cancelled = all.filter(t => isCancelledTask(t)).length;
+  const gross = all.reduce((s,t)=>s+Number(t.total||0),0);
+
+  el.innerHTML = `
+    <div class="admin-control-grid">
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('all')" role="button" tabindex="0">
+        <strong>${all.length}</strong><span>Total Orders</span><em class="admin-card-hint">Open all orders →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="renderAdminUsersPageInline()" role="button" tabindex="0">
+        <strong>${users.length}</strong><span>Known Users</span><em class="admin-card-hint">Open users →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('payments')" role="button" tabindex="0">
+        <strong>${payments.length}</strong><span>Payments To Confirm</span><em class="admin-card-hint">Review payments →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('paid')" role="button" tabindex="0">
+        <strong>${paid}</strong><span>Confirmed Paid</span><em class="admin-card-hint">Open paid orders →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('completed')" role="button" tabindex="0">
+        <strong>${completed}</strong><span>Completed Orders</span><em class="admin-card-hint">Open completed →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('disputes')" role="button" tabindex="0">
+        <strong>${disputed}</strong><span>Open Disputes</span><em class="admin-card-hint">Open disputes →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('cancelled')" role="button" tabindex="0">
+        <strong>${cancelled}</strong><span>Cancelled Orders</span><em class="admin-card-hint">Open cancelled →</em>
+      </div>
+      <div class="admin-control-card clickable" onclick="openAdminFilteredOrders('all')" role="button" tabindex="0">
+        <strong>KES ${gross.toLocaleString()}</strong><span>Gross Volume</span><em class="admin-card-hint">Open order volume →</em>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Recent Orders</div>
+      ${adminRenderOrderRows(all.slice(0, 12))}
+    </div>`;
+};
 
 </script>
 <!--End of Tawk.to Script-->
