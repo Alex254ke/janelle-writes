@@ -6358,19 +6358,115 @@ async function secureUpsertPlatformUser(payload) {
   const token = sessionData?.session?.access_token;
   if (!token) throw new Error('Your secure session was not found. Please sign in again.');
 
-  const res = await fetch(SECURE_PROFILE_API, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify(payload || {})
-  });
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeout = setTimeout(() => {
+    try { controller?.abort(); } catch {}
+  }, 12000);
+
+  let res;
+  try {
+    res = await fetch(SECURE_PROFILE_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(payload || {}),
+      signal: controller?.signal
+    });
+  } catch (err) {
+    if (err?.name === 'AbortError') throw new Error('Profile service timed out. Please try again.');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   let body = {};
   try { body = await res.json(); } catch {}
   if (!res.ok) throw new Error(body.error || ('Could not save secure user profile. Status: ' + res.status));
-  return body.user;
+
+  const user = body?.user || body?.data || body?.profile || (Array.isArray(body) ? body[0] : body);
+  if (!user || !user.email) {
+    throw new Error('Profile service returned an unexpected response.');
+  }
+  return user;
+}
+
+function localPlatformUserFromAuth(authUser, role = 'employer') {
+  const profile = {
+    name: authUser.name || authUser.email,
+    photo: authUser.photo || '',
+    title: role === 'writer' ? 'Academic Writer' : 'Employer',
+    auth_provider: authUser.provider || 'email',
+    updated_at: new Date().toISOString()
+  };
+  return {
+    id: authUser.auth_id || authUser.email,
+    email: authUser.email,
+    name: authUser.name || authUser.email,
+    role: role || authUser.role || 'employer',
+    profile
+  };
+}
+
+async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
+  try {
+    return await secureUpsertPlatformUser({
+      email: authUser.email,
+      name: authUser.name,
+      role: selectedRole,
+      auth_id: authUser.auth_id,
+      profile: {
+        name: authUser.name,
+        photo: authUser.photo || '',
+        title: selectedRole === 'writer' ? 'Academic Writer' : 'Employer',
+        bio: '',
+        skills: '',
+        auth_provider: authUser.provider,
+        updated_at: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    console.warn('Profile service unavailable during auth:', err);
+    if (intent === 'login') {
+      notify('⚠️ Signed in, but profile sync is temporarily unavailable. Some dashboard data may be limited.');
+      return localPlatformUserFromAuth(authUser, selectedRole);
+    }
+    throw err;
+  }
+}
+
+async function safeLinkExistingPlatformUser(existing, authUser, selectedRole) {
+  try {
+    const oldProfile = normalizeProfile(existing.profile);
+    const linkedExisting = await secureUpsertPlatformUser({
+      email: authUser.email,
+      name: existing.name || authUser.name,
+      role: existing.role || selectedRole,
+      auth_id: authUser.auth_id,
+      profile: {
+        ...oldProfile,
+        name: oldProfile.name || existing.name || authUser.name,
+        photo: oldProfile.photo || authUser.photo || '',
+        auth_provider: authUser.provider,
+        migrated_to_supabase_auth: true,
+        migrated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    });
+    if (linkedExisting) {
+      return {
+        ...existing,
+        ...linkedExisting,
+        role: existing.role || linkedExisting.role,
+        name: existing.name || linkedExisting.name,
+        profile: linkedExisting.profile || existing.profile
+      };
+    }
+  } catch (err) {
+    console.warn('Old-user auth linking warning:', err);
+  }
+  return existing;
 }
 
 function authProfileFromSession(session, fallbackRole = 'employer') {
@@ -6399,65 +6495,22 @@ async function finishSecureAuthSession(session, options = {}) {
   }
 
   let existing = null;
-  try { existing = await dbGetUserByEmail(authUser.email); } catch (err) { existing = null; }
+  try {
+    existing = await dbGetUserByEmail(authUser.email);
+  } catch (err) {
+    console.warn('Profile lookup failed during login:', err);
+    existing = null;
+  }
 
   const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
   const selectedRole = options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole || 'employer';
 
   if (!existing) {
-    if (intent !== 'signup' && !authUser.role) {
-      notify('⚠️ No Janelle Writes profile exists for this email. Please create an account first.');
-      try { await _sb.auth.signOut(); } catch {}
-      return false;
-    }
-
-    existing = await secureUpsertPlatformUser({
-      email: authUser.email,
-      name: authUser.name,
-      role: selectedRole,
-      auth_id: authUser.auth_id,
-      profile: {
-        name: authUser.name,
-        photo: authUser.photo || '',
-        title: selectedRole === 'writer' ? 'Academic Writer' : 'Employer',
-        bio: '',
-        skills: '',
-        auth_provider: authUser.provider,
-        updated_at: new Date().toISOString()
-      }
-    });
+    existing = await createOrRecoverPlatformUser(authUser, selectedRole, intent);
   } else {
     // Old-user migration bridge:
     // Preserve old jw_users data by email, then link it to the new Supabase Auth user.
-    try {
-      const oldProfile = normalizeProfile(existing.profile);
-      const linkedExisting = await secureUpsertPlatformUser({
-        email: authUser.email,
-        name: existing.name || authUser.name,
-        role: existing.role || selectedRole,
-        auth_id: authUser.auth_id,
-        profile: {
-          ...oldProfile,
-          name: oldProfile.name || existing.name || authUser.name,
-          photo: oldProfile.photo || authUser.photo || '',
-          auth_provider: authUser.provider,
-          migrated_to_supabase_auth: true,
-          migrated_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      });
-      if (linkedExisting) {
-        existing = {
-          ...existing,
-          ...linkedExisting,
-          role: existing.role || linkedExisting.role,
-          name: existing.name || linkedExisting.name,
-          profile: linkedExisting.profile || existing.profile
-        };
-      }
-    } catch (err) {
-      console.warn('Old-user auth linking warning:', err);
-    }
+    existing = await safeLinkExistingPlatformUser(existing, authUser, selectedRole);
   }
 
   currentUser = {
@@ -7429,7 +7482,11 @@ function launchApp() {
   initBackButtonGuard();
   initSessionGuard();
   // Load tasks from Supabase then navigate
-  refreshTasks().then(() => {
+  refreshTasks().catch(err => {
+    console.warn('Dashboard data load failed:', err);
+    tasks = Array.isArray(tasks) ? tasks : [];
+    notify('⚠️ Signed in, but some dashboard data could not load. Check RLS policies if this continues.');
+  }).then(() => {
     const home = getHomePage();
     navigate(home, { replaceHistory: true });
   });
