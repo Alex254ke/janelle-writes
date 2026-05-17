@@ -4233,6 +4233,69 @@ body.dark-mode .comm-ledger-table tbody tr:hover {
   font-weight:800;
 }
 .admin-table-wrap { overflow-x:auto; }
+.wallet-action-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin-bottom:20px;
+}
+.till-number-display {
+  display:inline-flex;
+  flex-direction:column;
+  gap:4px;
+  margin:12px 0 16px;
+  padding:14px 20px;
+  border-radius:14px;
+  background:var(--white);
+  border:1px solid rgba(42,157,143,.28);
+  box-shadow:0 12px 28px rgba(15,25,35,.08);
+}
+.till-number-display span {
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:1.2px;
+  font-weight:900;
+}
+.till-number-display strong {
+  font-size:34px;
+  line-height:1;
+  color:var(--teal-dark);
+  font-weight:900;
+  letter-spacing:1px;
+}
+.admin-ops-panel {
+  display:grid;
+  grid-template-columns:1.1fr 1.9fr;
+  gap:18px;
+  align-items:stretch;
+  margin:0 0 20px;
+  padding:20px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--ink),#183140);
+  color:#fff;
+  box-shadow:0 18px 40px rgba(15,25,35,.12);
+}
+.admin-ops-panel h3 {
+  margin:0 0 6px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;
+}
+.admin-ops-panel p {
+  margin:0;
+  color:rgba(255,255,255,.72);
+  font-size:13px;
+  line-height:1.55;
+}
+.admin-ops-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.admin-ops-grid .btn {
+  justify-content:center;
+  min-height:46px;
+}
 body.dark-mode .payhero-card,
 body.dark-mode .admin-control-card {
   background:#14202b;
@@ -4241,6 +4304,16 @@ body.dark-mode .admin-control-card {
 body.dark-mode .admin-control-card strong { color:#8ee4d6; }
 @media (max-width: 900px) {
   .admin-control-grid { grid-template-columns:1fr; }
+  .wallet-action-grid,
+  .admin-ops-panel,
+  .admin-ops-grid { grid-template-columns:1fr; }
+  .till-number-display {
+    width:100%;
+    align-items:center;
+    text-align:center;
+  }
+  .till-number-display strong { font-size:32px; }
+  #page-wallet .card { padding:16px; }
 }
 
 </style>
@@ -4907,9 +4980,10 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
         <h2>Platform <span>Rules</span></h2>
         <ul class="guide-list">
           <li><span class="check">✓</span><span>Use order messages for all important task communication so the record stays clear.</span></li>
+          <li><span class="check">✓</span><span>Do not share phone numbers, emails, or off-platform contact details in messages, profiles, or file names.</span></li>
           <li><span class="check">✓</span><span>Employers must provide complete instructions, realistic deadlines, and clear payment details.</span></li>
           <li><span class="check">✓</span><span>Writers must only accept work they can complete well and on time.</span></li>
-          <li><span class="check">✓</span><span>Submitted work, files, and order details must not be shared outside the platform workflow.</span></li>
+          <li><span class="check">✓</span><span>Submitted work, files, and order details must not be shared outside the platform workflow. Uploads are limited to safe document and image formats.</span></li>
           <li><span class="check">✓</span><span>Disputes should be factual and tied to the order, files, messages, dates, or payment records.</span></li>
         </ul>
       </div>
@@ -4976,6 +5050,20 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     </div>
     <div id="admin-control-wrap">
       <div class="empty-state"><p>Admin data will appear here.</p></div>
+    </div>
+  </div>
+
+  <!-- ADMIN: WALLET REQUESTS -->
+  <div class="page content" id="page-admin-wallet">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Wallet <span>Requests</span> <span class="admin-badge">ADMIN</span></div>
+        <p class="text-muted" style="margin-top:4px;">Review top-ups, withdrawals, and transfer requests before any wallet balance is trusted.</p>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Pending Wallet Requests</div>
+      <div id="admin-wallet-page-requests"><div class="empty-state"><p>Loading wallet requests...</p></div></div>
     </div>
   </div>
 
@@ -5107,7 +5195,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
             <div class="upload-text">Attach instruction files for writers to read before accepting</div>
             <div class="upload-sub">DOCX, PDF, PPT, XLSX, images, or text files</div>
           </div>
-          <input type="file" id="instruction-file-input" multiple style="display:none" onchange="handleInstructionFiles(this.files)">
+          <input type="file" id="instruction-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.rtf,.jpg,.jpeg,.png,.webp" multiple style="display:none" onchange="handleInstructionFiles(this.files)">
           <div class="file-list" id="instruction-file-list"></div>
         </div>
       </div>
@@ -5208,8 +5296,9 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
     <div class="card payhero-card" style="margin-bottom:20px;">
       <div class="payhero-card-title">💳 Pay to Janelle Writes Till</div>
       <div class="payhero-note">
-        Pay the order amount to Till Number <strong>8627286</strong>. After M-Pesa sends the transaction code, submit it here for admin confirmation.
+        Pay the order amount to the Janelle Writes Till below. After M-Pesa sends the transaction code, submit it here for admin confirmation.
       </div>
+      <div class="till-number-display"><span>Till Number</span><strong>8627286</strong></div>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Select Order</label>
@@ -5235,8 +5324,8 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
       <div>
         <!-- Writer-specific payment details -->
         <div class="card mb-4">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:6px;">Writer Payment Details</div>
-          <p class="text-muted mb-4" style="margin-bottom:14px;">Each writer's registered M-Pesa / Airtel Money details for the orders below.</p>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:6px;">Writer Payout Privacy</div>
+          <p class="text-muted mb-4" style="margin-bottom:14px;">Writer payout details are private and handled by the platform admin after order approval.</p>
           <div id="emp-writer-pay-details">
             <div class="empty-state"><p>No orders with assigned writers yet.</p></div>
           </div>
@@ -5247,7 +5336,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:10px;">Manual Payment Details</div>
           <p class="text-muted" style="margin-bottom:14px;">Use this manual payment method for launch.</p>
           <div style="font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--teal-pale);border:1px solid var(--teal-light);border-radius:8px;padding:12px;margin-bottom:14px;">
-            <strong>Till Number:</strong> 8627286<br>
+            <div class="till-number-display" style="margin:0 0 12px;"><span>Till Number</span><strong>8627286</strong></div>
             Submit the M-Pesa code after payment. The admin will verify it before the order becomes paid.
           </div>
           <div class="form-group mb-4"><label class="form-label">Select Order</label><select class="form-select" id="emp-pay-select"><option value="">— Select Order —</option></select></div>
@@ -5450,7 +5539,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
             <div class="upload-text">Click to upload or drag & drop</div>
             <div class="upload-sub">PDF, DOCX, TXT, images supported</div>
           </div>
-          <input type="file" id="sw-file-input" multiple style="display:none" onchange="handleFiles(this.files)">
+          <input type="file" id="sw-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.rtf,.jpg,.jpeg,.png,.webp" multiple style="display:none" onchange="handleFiles(this.files)">
           <div class="file-list" id="sw-file-list"></div>
         </div>
         <div class="form-group form-full" id="sw-link-group" style="display:none;">
@@ -5585,7 +5674,7 @@ body.dark-mode .admin-control-card strong { color:#8ee4d6; }
           <div class="profile-upload-row">
             <div class="profile-mini-avatar" id="profile-mini-avatar">J</div>
             <div>
-              <input type="file" id="profile-photo-input" accept="image/*" style="display:none;" onchange="handleProfilePhoto(event)">
+              <input type="file" id="profile-photo-input" accept=".jpg,.jpeg,.png,.webp" style="display:none;" onchange="handleProfilePhoto(event)">
               <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('profile-photo-input').click()">📷 Upload Image</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="removeProfilePhoto()">Remove</button>
               <div class="profile-field-note">Use a clear photo or brand image. Large images are compressed before saving.</div>
@@ -6059,6 +6148,55 @@ function dedupeTasks(list = tasks) {
 
 async function dbUpdateTask(id, updates) {
   const { error } = await _sb.from('jw_tasks').update(updates).eq('id', id);
+  if (error) throw error;
+}
+
+async function dbGetWalletTransactionsForUser(email = currentUser?.email) {
+  if (!email) return [];
+  const { data, error } = await _sb
+    .from('jw_wallet_transactions')
+    .select('*')
+    .eq('user_email', String(email).toLowerCase())
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbGetPendingWalletTransactions() {
+  const { data, error } = await _sb
+    .from('jw_wallet_transactions')
+    .select('*')
+    .eq('status', 'pending_review')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+async function dbGetWalletTransactionById(id) {
+  const { data, error } = await _sb
+    .from('jw_wallet_transactions')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function dbInsertWalletTransaction(tx) {
+  const { data, error } = await _sb
+    .from('jw_wallet_transactions')
+    .insert([tx])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function dbUpdateWalletTransaction(id, updates) {
+  const { error } = await _sb
+    .from('jw_wallet_transactions')
+    .update(updates)
+    .eq('id', id);
   if (error) throw error;
 }
 
@@ -7066,6 +7204,14 @@ async function renderEmpWriterPayDetails() {
   const mine = myTaskList().filter(t => t.taken_by);
   const wrap = document.getElementById('emp-writer-pay-details');
   if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <p>Writer payment numbers are private. The admin will release writer payouts after payment and order approval.</p>
+      </div>`;
+    return;
+  }
   if (!mine.length) {
     wrap.innerHTML = '<div class="empty-state"><p>No orders with assigned writers yet.</p></div>';
     return;
@@ -8068,6 +8214,7 @@ const pageTitles = {
   'profile': 'My Profile',
   'messages': 'Messages',
   'admin-commission': 'Commission Dashboard',
+  'admin-wallet': 'Wallet Requests',
   'admin-control': 'Admin Control Center',
 };
 
@@ -8108,6 +8255,7 @@ function navigate(page, options = {}) {
     case 'writer-payment':  renderWriterPaymentPage(); break;
     case 'writer-earnings': renderWriterEarningsPage(); break;
     case 'admin-commission': renderCommissionDashboard(); break;
+    case 'admin-wallet':     renderAdminWalletPage(); break;
   }
 }
 
@@ -8483,6 +8631,59 @@ function esc(v) {
 }
 function escJS(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, ''); }
 
+const JW_ALLOWED_UPLOAD_EXTS = ['pdf','doc','docx','ppt','pptx','xls','xlsx','txt','rtf','jpg','jpeg','png','webp'];
+const JW_BLOCKED_UPLOAD_EXTS = ['exe','js','html','htm','php','bat','cmd','scr','msi','vbs','jar','zip','rar','7z','docm','xlsm','pptm'];
+const JW_CONTACT_PATTERNS = [
+  /\b(?:\+?254|0)(?:7|1)\d{8}\b/g,
+  /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+  /\b(?:whats\s*app|whatsapp|telegram|call me|text me|sms me|mpesa me|m-pesa me)\b/gi
+];
+
+function fileExtension(name = '') {
+  const parts = String(name || '').toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
+function uploadFileSafetyError(file) {
+  const ext = fileExtension(file?.name);
+  if (containsPrivateContactInfo(file?.name || '')) {
+    return `${file?.name || 'This file'} cannot be uploaded because the file name appears to contain contact details.`;
+  }
+  if (!ext || JW_BLOCKED_UPLOAD_EXTS.includes(ext) || !JW_ALLOWED_UPLOAD_EXTS.includes(ext)) {
+    return `${file?.name || 'This file'} is not an allowed upload type. Use PDF, Word, PowerPoint, Excel, TXT/RTF, JPG, PNG, or WebP files.`;
+  }
+  return '';
+}
+
+function filterAllowedUploadFiles(files) {
+  const accepted = [];
+  const blocked = [];
+  Array.from(files || []).forEach(file => {
+    const error = uploadFileSafetyError(file);
+    if (error) blocked.push(error);
+    else accepted.push(file);
+  });
+  if (blocked.length) notify('Upload blocked: ' + blocked[0]);
+  return accepted;
+}
+
+function containsPrivateContactInfo(text = '') {
+  const source = String(text || '');
+  return JW_CONTACT_PATTERNS.some(pattern => {
+    pattern.lastIndex = 0;
+    return pattern.test(source);
+  });
+}
+
+function sanitizePublicContactText(text = '') {
+  let output = String(text || '');
+  JW_CONTACT_PATTERNS.forEach(pattern => {
+    pattern.lastIndex = 0;
+    output = output.replace(pattern, '[contact hidden]');
+  });
+  return output;
+}
+
 
 function safeParseJSON(value, fallback = []) {
   if (Array.isArray(value)) return value;
@@ -8695,19 +8896,22 @@ function renderFinesPage() {
 
 const JW_TILL_NUMBER = '8627286';
 
-function getWalletProfile(user = currentUser) {
-  const profile = normalizeProfile(user?.profile);
-  const wallet = normalizeProfile(profile.wallet);
-  wallet.transactions = Array.isArray(wallet.transactions) ? wallet.transactions : [];
-  return wallet;
+function normalizeWalletTx(tx = {}) {
+  return {
+    ...tx,
+    user_email: String(tx.user_email || '').toLowerCase(),
+    type: tx.type || 'topup',
+    status: tx.status || 'pending_review',
+    amount: Number(tx.amount || 0)
+  };
 }
 
 function walletTxAmount(tx) {
   return Math.max(0, Number(tx?.amount || 0));
 }
 
-function walletBalance(wallet, holdPendingDebits = true) {
-  const txs = Array.isArray(wallet?.transactions) ? wallet.transactions : [];
+function walletBalance(transactions = [], holdPendingDebits = true) {
+  const txs = Array.isArray(transactions) ? transactions.map(normalizeWalletTx) : [];
   return txs.reduce((sum, tx) => {
     const amount = walletTxAmount(tx);
     const approved = tx.status === 'approved';
@@ -8738,29 +8942,31 @@ function walletTxId() {
   return 'WAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
-async function saveCurrentWallet(wallet) {
-  if (!currentUser?.email) return;
-  const profile = { ...normalizeProfile(currentUser.profile), wallet: { ...wallet, updated_at: new Date().toISOString() } };
-  currentUser.profile = profile;
-  localStorage.setItem('jw_session', JSON.stringify(currentUser));
-  await dbUpdateUser(currentUser.email, { profile });
+function walletReference(tx) {
+  return tx.code || tx.to_email || tx.destination || tx.note || tx.tx_ref || tx.id || '—';
 }
 
-function renderWalletPage() {
+async function renderWalletPage() {
   const wrap = document.getElementById('wallet-wrap');
   if (!wrap || !currentUser) return;
-  const wallet = getWalletProfile();
-  const available = Math.max(0, walletBalance(wallet, true));
-  const pendingTopups = wallet.transactions.filter(tx => tx.type === 'topup' && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
-  const pendingDebits = wallet.transactions.filter(tx => ['withdrawal', 'transfer_out'].includes(tx.type) && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
-  const rows = wallet.transactions.slice().reverse();
+  wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💳</div><p>Loading wallet...</p></div>`;
+  let rows = [];
+  try {
+    rows = (await dbGetWalletTransactionsForUser()).map(normalizeWalletTx);
+  } catch (err) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Wallet table is not ready yet. Run the jw_wallet_transactions SQL setup, then refresh.</p><p class="text-muted">${esc(err.message)}</p></div>`;
+    return;
+  }
+  const available = Math.max(0, walletBalance(rows, true));
+  const pendingTopups = rows.filter(tx => tx.type === 'topup' && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
+  const pendingDebits = rows.filter(tx => ['withdrawal', 'transfer_out'].includes(tx.type) && tx.status === 'pending_review').reduce((s, tx) => s + walletTxAmount(tx), 0);
   wrap.innerHTML = `
     <div class="admin-control-grid" style="margin-bottom:20px;">
       <div class="admin-control-card"><strong>KES ${available.toLocaleString()}</strong><span>Available Balance</span></div>
       <div class="admin-control-card"><strong>KES ${pendingTopups.toLocaleString()}</strong><span>Pending Top Ups</span></div>
       <div class="admin-control-card"><strong>KES ${pendingDebits.toLocaleString()}</strong><span>Pending Withdrawals / Transfers</span></div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:20px;" class="payment-grid">
+    <div class="wallet-action-grid">
       <div class="card">
         <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Top Up</div>
         <p class="text-muted" style="margin-bottom:14px;">Pay Till <strong>${JW_TILL_NUMBER}</strong>, then submit your M-Pesa code.</p>
@@ -8796,7 +9002,7 @@ function renderWalletPage() {
           ${rows.map(tx => `<tr style="border-bottom:1px solid var(--border);">
             <td style="padding:12px 14px;font-weight:700;">${esc(walletTypeLabel(tx.type))}</td>
             <td style="padding:12px 14px;text-align:right;font-weight:700;">KES ${walletTxAmount(tx).toLocaleString()}</td>
-            <td style="padding:12px 14px;font-size:12px;">${esc(tx.code || tx.to_email || tx.destination || tx.note || tx.id)}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(walletReference(tx))}</td>
             <td style="padding:12px 14px;">${walletStatusBadge(tx.status)}</td>
             <td style="padding:12px 14px;font-size:12px;color:var(--muted);">${tx.created_at ? fmtDate(tx.created_at) : '—'}</td>
           </tr>`).join('')}
@@ -8809,32 +9015,55 @@ async function walletSubmitTopup() {
   const code = String(document.getElementById('wallet-topup-code')?.value || '').trim().toUpperCase();
   if (!amount || amount < 1) { notify('⚠️ Enter a valid top-up amount'); return; }
   if (!code || code.length < 6) { notify('⚠️ Enter the M-Pesa transaction code'); return; }
-  const wallet = getWalletProfile();
-  wallet.transactions.push({ id: walletTxId(), type: 'topup', amount, code, till: JW_TILL_NUMBER, status: 'pending_review', created_at: new Date().toISOString() });
-  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Top-up submitted for admin review.'); }).catch(err => notify('❌ Wallet top-up could not be saved: ' + err.message));
+  await dbInsertWalletTransaction({
+    tx_ref: walletTxId(),
+    user_email: currentUser.email.toLowerCase(),
+    type: 'topup',
+    amount,
+    code,
+    till: JW_TILL_NUMBER,
+    status: 'pending_review',
+    created_at: new Date().toISOString()
+  }).then(() => { renderWalletPage(); notify('✅ Top-up submitted for admin review.'); }).catch(err => notify('❌ Wallet top-up could not be saved: ' + err.message));
 }
 
 async function walletRequestWithdrawal() {
   const amount = Math.round(Number(document.getElementById('wallet-withdraw-amount')?.value || 0));
   const destination = String(document.getElementById('wallet-withdraw-destination')?.value || '').trim();
-  const wallet = getWalletProfile();
   if (!amount || amount < 1) { notify('⚠️ Enter a valid withdrawal amount'); return; }
-  if (walletBalance(wallet, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
   if (!destination) { notify('⚠️ Enter your payout number or name'); return; }
-  wallet.transactions.push({ id: walletTxId(), type: 'withdrawal', amount, destination, status: 'pending_review', created_at: new Date().toISOString() });
-  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Withdrawal request submitted.'); }).catch(err => notify('❌ Withdrawal request could not be saved: ' + err.message));
+  const rows = await dbGetWalletTransactionsForUser().catch(err => { notify('❌ Wallet balance could not load: ' + err.message); return null; });
+  if (!rows) return;
+  if (walletBalance(rows, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
+  await dbInsertWalletTransaction({
+    tx_ref: walletTxId(),
+    user_email: currentUser.email.toLowerCase(),
+    type: 'withdrawal',
+    amount,
+    destination,
+    status: 'pending_review',
+    created_at: new Date().toISOString()
+  }).then(() => { renderWalletPage(); notify('✅ Withdrawal request submitted.'); }).catch(err => notify('❌ Withdrawal request could not be saved: ' + err.message));
 }
 
 async function walletRequestTransfer() {
   const toEmail = String(document.getElementById('wallet-transfer-email')?.value || '').trim().toLowerCase();
   const amount = Math.round(Number(document.getElementById('wallet-transfer-amount')?.value || 0));
-  const wallet = getWalletProfile();
   if (!toEmail || !toEmail.includes('@')) { notify('⚠️ Enter the recipient email'); return; }
   if (sameEmail(toEmail, currentUser.email)) { notify('⚠️ You cannot transfer to your own account.'); return; }
   if (!amount || amount < 1) { notify('⚠️ Enter a valid transfer amount'); return; }
-  if (walletBalance(wallet, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
-  wallet.transactions.push({ id: walletTxId(), type: 'transfer_out', amount, to_email: toEmail, status: 'pending_review', created_at: new Date().toISOString() });
-  await saveCurrentWallet(wallet).then(() => { renderWalletPage(); notify('✅ Transfer request submitted for admin review.'); }).catch(err => notify('❌ Transfer request could not be saved: ' + err.message));
+  const rows = await dbGetWalletTransactionsForUser().catch(err => { notify('❌ Wallet balance could not load: ' + err.message); return null; });
+  if (!rows) return;
+  if (walletBalance(rows, true) < amount) { notify('⚠️ Your available wallet balance is not enough.'); return; }
+  await dbInsertWalletTransaction({
+    tx_ref: walletTxId(),
+    user_email: currentUser.email.toLowerCase(),
+    type: 'transfer_out',
+    amount,
+    to_email: toEmail,
+    status: 'pending_review',
+    created_at: new Date().toISOString()
+  }).then(() => { renderWalletPage(); notify('✅ Transfer request submitted for admin review.'); }).catch(err => notify('❌ Transfer request could not be saved: ' + err.message));
 }
 
 function openCancelOrderModal(id) {
@@ -9418,7 +9647,7 @@ function empClearForm() {
 
 function handleInstructionFiles(files) {
   const before = _instructionFiles.length;
-  Array.from(files || []).forEach(f => {
+  filterAllowedUploadFiles(files).forEach(f => {
     if (!_instructionFiles.find(u => u.name === f.name && u.size === f.size)) _instructionFiles.push(f);
   });
   renderInstructionFileList();
@@ -9458,6 +9687,8 @@ async function uploadInstructionFileToStorage(file, taskId) {
 async function storedInstructionFiles(taskId) {
   if (!_instructionFiles.length) return [];
   const maxEach = 25 * 1024 * 1024;
+  const unsafe = _instructionFiles.find(f => uploadFileSafetyError(f));
+  if (unsafe) throw new Error(uploadFileSafetyError(unsafe));
   const tooLarge = _instructionFiles.find(f => f.size > maxEach);
   if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 25MB each.`);
   const saved = [];
@@ -10266,7 +10497,7 @@ function showSelectedSubmitTask() {
 
 function handleFiles(files) {
   const before = _uploadedFiles.length;
-  Array.from(files).forEach(f => { if (!_uploadedFiles.find(u => u.name === f.name)) _uploadedFiles.push(f); });
+  filterAllowedUploadFiles(files).forEach(f => { if (!_uploadedFiles.find(u => u.name === f.name && u.size === f.size)) _uploadedFiles.push(f); });
   renderFileList();
   if (_uploadedFiles.length > before) playSound('upload');
 }
@@ -10287,7 +10518,7 @@ function removeFile(i) { _uploadedFiles.splice(i,1); renderFileList(); }
 
 function fileIcon(name) {
   const ext = (name.split('.').pop()||'').toLowerCase();
-  const map = {pdf:'📄',doc:'📝',docx:'📝',txt:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',mp3:'🎵',mp4:'🎬',zip:'📦',xlsx:'📊',pptx:'📊',csv:'📊'};
+  const map = {pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📊',xlsx:'📊',txt:'📃',rtf:'📃',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',webp:'🖼️'};
   return map[ext] || '📎';
 }
 
@@ -10352,6 +10583,8 @@ async function uploadSubmittedFileToStorage(file, taskId) {
 async function storedSubmittedFiles(taskId) {
   if (!_uploadedFiles.length) return [];
   const maxEach = 25 * 1024 * 1024;
+  const unsafe = _uploadedFiles.find(f => uploadFileSafetyError(f));
+  if (unsafe) throw new Error(uploadFileSafetyError(unsafe));
   const tooLarge = _uploadedFiles.find(f => f.size > maxEach);
   if (tooLarge) throw new Error(`${tooLarge.name} is too large. Please upload files under 25MB each, or submit a link.`);
 
@@ -10694,7 +10927,7 @@ function updateProfilePreview() {
 function handleProfilePhoto(event) {
   const file = event.target.files?.[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { notify('⚠️ Please upload an image file.'); return; }
+  if (!['jpg','jpeg','png','webp'].includes(fileExtension(file.name)) || !file.type.startsWith('image/')) { notify('⚠️ Please upload a JPG, PNG, or WebP image.'); return; }
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
@@ -10745,10 +10978,15 @@ function profileValue(value, fallback = 'Not provided') {
   return v ? esc(v) : `<span style="color:var(--muted);font-weight:600;">${fallback}</span>`;
 }
 
+function publicProfileValue(value, fallback = 'Not provided') {
+  const v = sanitizePublicContactText(String(value || '').trim());
+  return v ? esc(v) : `<span style="color:var(--muted);font-weight:600;">${fallback}</span>`;
+}
+
 function profileChipList(value) {
   const chips = splitList(value).slice(0, 10);
   if (!chips.length) return '<span class="text-muted">Not provided</span>';
-  return `<div class="profile-chip-list" style="margin-top:0;">${chips.map(c => `<span class="profile-chip">${escHTML(c)}</span>`).join('')}</div>`;
+  return `<div class="profile-chip-list" style="margin-top:0;">${chips.map(c => `<span class="profile-chip">${escHTML(sanitizePublicContactText(c))}</span>`).join('')}</div>`;
 }
 
 function partnerAvatarHTML(profile, name, email) {
@@ -10760,11 +10998,11 @@ function partnerAvatarHTML(profile, name, email) {
 
 function renderPartnerProfileCard(profile, user, fallbackName = '') {
   profile = normalizeProfile(profile);
-  const name = profile.name || user?.name || fallbackName || user?.email || 'Writer';
+  const name = sanitizePublicContactText(profile.name || user?.name || fallbackName || user?.email || 'Writer');
   const email = user?.email || '';
-  const title = profile.title || 'Academic Writer';
+  const title = sanitizePublicContactText(profile.title || 'Academic Writer');
   const rating = publicRatingPanelForUser(email, 'writer', { limit: 3 });
-  const portfolio = profile.portfolio ? `<a href="${esc(profile.portfolio)}" target="_blank" rel="noopener" style="color:var(--teal);word-break:break-all;">${esc(profile.portfolio)}</a>` : '<span style="color:var(--muted);font-weight:600;">Not provided</span>';
+  const portfolio = isJwAdmin() && profile.portfolio ? `<a href="${esc(profile.portfolio)}" target="_blank" rel="noopener" style="color:var(--teal);word-break:break-all;">${esc(profile.portfolio)}</a>` : '<span style="color:var(--muted);font-weight:600;">Kept private</span>';
 
   return `
     <div class="partner-profile-card">
@@ -10774,14 +11012,14 @@ function renderPartnerProfileCard(profile, user, fallbackName = '') {
         <div class="partner-profile-name">${esc(name)}</div>
         <div class="partner-profile-title">${esc(title)}</div>
         ${rating}
-        <div class="partner-profile-bio">${profileValue(profile.bio, 'This writer has not added a bio yet.')}</div>
+        <div class="partner-profile-bio">${publicProfileValue(profile.bio, 'This writer has not added a bio yet.')}</div>
 
         <div class="partner-profile-meta">
-          <div class="partner-profile-meta-item"><span>Location</span><strong>${profileValue(profile.location)}</strong></div>
-          <div class="partner-profile-meta-item"><span>Timezone</span><strong>${profileValue(profile.timezone)}</strong></div>
-          <div class="partner-profile-meta-item"><span>Languages</span><strong>${profileValue(profile.languages)}</strong></div>
-          <div class="partner-profile-meta-item"><span>Availability</span><strong>${profileValue(profile.availability)}</strong></div>
-          <div class="partner-profile-meta-item"><span>Rate / Page</span><strong>${profileValue(profile.rate)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Location</span><strong>${publicProfileValue(profile.location)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Timezone</span><strong>${publicProfileValue(profile.timezone)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Languages</span><strong>${publicProfileValue(profile.languages)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Availability</span><strong>${publicProfileValue(profile.availability)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Rate / Page</span><strong>${publicProfileValue(profile.rate)}</strong></div>
           <div class="partner-profile-meta-item"><span>Portfolio</span><strong>${portfolio}</strong></div>
         </div>
 
@@ -10791,8 +11029,8 @@ function renderPartnerProfileCard(profile, user, fallbackName = '') {
         </div>
 
         <div class="partner-profile-meta" style="margin-top:14px;">
-          <div class="partner-profile-meta-item"><span>Education / Qualification</span><strong>${profileValue(profile.education)}</strong></div>
-          <div class="partner-profile-meta-item"><span>Experience Summary</span><strong>${profileValue(profile.experience)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Education / Qualification</span><strong>${publicProfileValue(profile.education)}</strong></div>
+          <div class="partner-profile-meta-item"><span>Experience Summary</span><strong>${publicProfileValue(profile.experience)}</strong></div>
         </div>
       </div>
     </div>
@@ -11054,6 +11292,10 @@ function sendTaskMessage() {
   const body = input.value.trim();
   if (!t || !canCurrentUserSeeTask(t)) { notify('⚠️ Select an assigned order first'); return; }
   if (!body) { notify('⚠️ Type a message first'); return; }
+  if (!isJwAdmin() && containsPrivateContactInfo(body)) {
+    notify('⚠️ For safety, keep communication inside Janelle Writes. Phone numbers, emails, and off-platform contact details are not allowed in order messages.');
+    return;
+  }
   const messages = getTaskMessages(t);
   const msg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(16).slice(2),
@@ -11906,6 +12148,7 @@ buildSidebar = function() {
   nav.innerHTML += `
     <div class="nav-section">Admin</div>
     <div class="nav-item" data-page="admin-control" onclick="navigate('admin-control')"><span class="icon">🛡️</span> Admin Control</div>
+    <div class="nav-item" data-page="admin-wallet" onclick="navigate('admin-wallet')"><span class="icon">🏦</span> Wallet Requests</div>
     <div class="nav-item" data-page="admin-commission" onclick="navigate('admin-commission')"><span class="icon">💰</span> Commission Ledger</div>
   `;
 };
@@ -11993,16 +12236,32 @@ function renderAdminControlPage() {
     });
   });
   const paid = all.filter(t => t.payment === 'paid').length;
+  const pendingPayments = all.filter(t => t.payment === 'pending_review').length;
   const disputed = all.filter(t => hasOpenDispute(t)).length;
+  const cancelled = all.filter(t => isCancelledTask(t)).length;
   const completed = all.filter(t => t.status === 'completed').length;
 
   el.innerHTML = `
+    <div class="admin-ops-panel">
+      <div>
+        <h3>Platform Operations</h3>
+        <p>Review payments, wallet requests, disputes, cancellations, and commission records from one admin-focused workspace.</p>
+      </div>
+      <div class="admin-ops-grid">
+        <button class="btn btn-primary" onclick="navigate('admin-wallet')">Wallet Requests</button>
+        <button class="btn btn-outline" onclick="navigate('admin-commission')">Commission Ledger</button>
+        <button class="btn btn-outline" onclick="navigate('disputes')">Disputes</button>
+        <button class="btn btn-outline" onclick="openMessagesInbox()">Messages</button>
+      </div>
+    </div>
     <div class="admin-control-grid">
       <div class="admin-control-card"><strong>${all.length}</strong><span>Total Orders</span></div>
       <div class="admin-control-card"><strong>${users.length}</strong><span>Known Users</span></div>
-      <div class="admin-control-card"><strong>${paid}</strong><span>Paid Orders</span></div>
+      <div class="admin-control-card"><strong>${pendingPayments}</strong><span>Payments To Confirm</span></div>
+      <div class="admin-control-card"><strong>${paid}</strong><span>Confirmed Paid</span></div>
       <div class="admin-control-card"><strong>${completed}</strong><span>Completed Orders</span></div>
       <div class="admin-control-card"><strong>${disputed}</strong><span>Open Disputes</span></div>
+      <div class="admin-control-card"><strong>${cancelled}</strong><span>Cancelled Orders</span></div>
       <div class="admin-control-card"><strong>KES ${all.reduce((s,t)=>s+Number(t.total||0),0).toLocaleString()}</strong><span>Gross Volume</span></div>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
@@ -12046,17 +12305,26 @@ function renderAdminControlPage() {
   renderAdminWalletRequests();
 }
 
-async function renderAdminWalletRequests() {
-  const wrap = document.getElementById('admin-wallet-requests');
+function renderAdminWalletPage() {
+  const wrap = document.getElementById('admin-wallet-page-requests');
+  if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This area is restricted to the platform admin.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="empty-state"><p>Loading wallet requests...</p></div>`;
+  renderAdminWalletRequests('admin-wallet-page-requests');
+}
+
+async function renderAdminWalletRequests(targetId = 'admin-wallet-requests') {
+  const wrap = document.getElementById(targetId);
   if (!wrap || !isJwAdmin()) return;
   try {
-    const allUsers = await dbGetUsers();
-    const requests = allUsers.flatMap(user => {
-      const wallet = getWalletProfile(user);
-      return wallet.transactions
-        .filter(tx => tx.status === 'pending_review')
-        .map(tx => ({ user, tx }));
-    });
+    const [requests, allUsers] = await Promise.all([
+      dbGetPendingWalletTransactions(),
+      dbGetUsers().catch(() => [])
+    ]);
+    const userMap = new Map((allUsers || []).map(user => [String(user.email || '').toLowerCase(), user]));
     if (!requests.length) {
       wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💳</div><p>No pending wallet requests.</p></div>`;
       return;
@@ -12071,18 +12339,22 @@ async function renderAdminWalletRequests() {
           <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Actions</th>
         </tr></thead>
         <tbody>
-          ${requests.map(({ user, tx }) => `<tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:12px 14px;font-size:12px;"><strong>${esc(user.name || user.email)}</strong><div style="color:var(--muted);">${esc(user.email)}</div></td>
+          ${requests.map(rawTx => {
+            const tx = normalizeWalletTx(rawTx);
+            const user = userMap.get(tx.user_email) || { email: tx.user_email, name: tx.user_email };
+            return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:12px 14px;font-size:12px;"><strong>${esc(user.name || tx.user_email)}</strong><div style="color:var(--muted);">${esc(tx.user_email)}</div></td>
             <td style="padding:12px 14px;font-weight:700;">${esc(walletTypeLabel(tx.type))}</td>
             <td style="padding:12px 14px;text-align:right;font-weight:700;">KES ${walletTxAmount(tx).toLocaleString()}</td>
-            <td style="padding:12px 14px;font-size:12px;">${esc(tx.code || tx.to_email || tx.destination || tx.id)}</td>
+            <td style="padding:12px 14px;font-size:12px;">${esc(walletReference(tx))}</td>
             <td style="padding:12px 14px;">
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="btn btn-success btn-sm" onclick="adminResolveWalletTx('${escJS(user.email)}','${escJS(tx.id)}','approved')">Approve</button>
-                <button class="btn btn-outline btn-sm" onclick="adminResolveWalletTx('${escJS(user.email)}','${escJS(tx.id)}','rejected')">Reject</button>
+                <button class="btn btn-success btn-sm" onclick="adminResolveWalletTx('${escJS(tx.user_email)}','${escJS(tx.id)}','approved')">Approve</button>
+                <button class="btn btn-outline btn-sm" onclick="adminResolveWalletTx('${escJS(tx.user_email)}','${escJS(tx.id)}','rejected')">Reject</button>
               </div>
             </td>
-          </tr>`).join('')}
+          </tr>`;
+          }).join('')}
         </tbody>
       </table>
     </div>`;
@@ -12093,15 +12365,14 @@ async function renderAdminWalletRequests() {
 
 async function adminResolveWalletTx(email, txId, status) {
   if (!isJwAdmin()) { notify('❌ Admin access required'); return; }
-  const user = await dbGetUserByEmail(email);
-  if (!user) { notify('❌ User not found'); return; }
-  const profile = normalizeProfile(user.profile);
-  const wallet = getWalletProfile(user);
-  const tx = wallet.transactions.find(item => item.id === txId);
-  if (!tx) { notify('❌ Wallet request not found'); return; }
+  const rawTx = await dbGetWalletTransactionById(txId);
+  if (!rawTx) { notify('❌ Wallet request not found'); return; }
+  const tx = normalizeWalletTx(rawTx);
   if (tx.status !== 'pending_review') { notify('⚠️ This request has already been reviewed.'); return; }
+  const userEmail = String(tx.user_email || email || '').toLowerCase();
+  const userRows = await dbGetWalletTransactionsForUser(userEmail);
 
-  if (status === 'approved' && tx.type === 'withdrawal' && walletBalance(wallet, false) < walletTxAmount(tx)) {
+  if (status === 'approved' && tx.type === 'withdrawal' && walletBalance(userRows, false) < walletTxAmount(tx)) {
     notify('⚠️ User balance is not enough for this withdrawal.');
     return;
   }
@@ -12109,33 +12380,27 @@ async function adminResolveWalletTx(email, txId, status) {
   if (status === 'approved' && tx.type === 'transfer_out') {
     const recipient = await dbGetUserByEmail(tx.to_email);
     if (!recipient) { notify('❌ Recipient account was not found.'); return; }
-    if (walletBalance(wallet, false) < walletTxAmount(tx)) { notify('⚠️ Sender balance is not enough for this transfer.'); return; }
-    const recipientProfile = normalizeProfile(recipient.profile);
-    const recipientWallet = getWalletProfile(recipient);
-    recipientWallet.transactions.push({
-      id: walletTxId(),
+    if (walletBalance(userRows, false) < walletTxAmount(tx)) { notify('⚠️ Sender balance is not enough for this transfer.'); return; }
+    await dbInsertWalletTransaction({
+      tx_ref: walletTxId(),
+      user_email: String(recipient.email || tx.to_email).toLowerCase(),
       type: 'transfer_in',
       amount: walletTxAmount(tx),
-      from_email: email,
+      from_email: userEmail,
       source_tx: tx.id,
       status: 'approved',
       created_at: new Date().toISOString(),
       reviewed_by: currentUser.email
     });
-    recipientProfile.wallet = { ...recipientWallet, updated_at: new Date().toISOString() };
-    await dbUpdateUser(recipient.email, { profile: recipientProfile });
   }
 
-  tx.status = status;
-  tx.reviewed_by = currentUser.email;
-  tx.reviewed_at = new Date().toISOString();
-  profile.wallet = { ...wallet, updated_at: new Date().toISOString() };
-  await dbUpdateUser(user.email, { profile });
-  if (sameEmail(user.email, currentUser.email)) {
-    currentUser.profile = profile;
-    localStorage.setItem('jw_session', JSON.stringify(currentUser));
-  }
-  await renderAdminWalletRequests();
+  await dbUpdateWalletTransaction(tx.id, {
+    status,
+    reviewed_by: currentUser.email,
+    reviewed_at: new Date().toISOString()
+  });
+  await renderAdminWalletRequests('admin-wallet-requests');
+  await renderAdminWalletRequests('admin-wallet-page-requests');
   if (document.getElementById('page-wallet')?.classList.contains('active')) renderWalletPage();
   notify(status === 'approved' ? '✅ Wallet request approved.' : 'Wallet request rejected.');
 }
@@ -12243,6 +12508,7 @@ navigate = function(page, options = {}) {
   _jwPayHeroOrigNavigate(page, options);
   if (page === 'emp-payment') populatePayHeroOrderSelect();
   if (page === 'admin-control') renderAdminControlPage();
+  if (page === 'admin-wallet') renderAdminWalletPage();
 };
 
 // Make all auth methods show a proper please-wait screen without leaving a blank page on failed login.
