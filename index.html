@@ -9047,6 +9047,8 @@ function printInvoiceOnly() {
     ${invoiceClone.outerHTML}
     <div class="print-footer">Generated ${today} · Janelle Writes — Professional Writing Platform</div>
   </div>
+<!-- Vercel Web Analytics -->
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </body>
 </html>
   `);
@@ -10364,7 +10366,9 @@ async function previewSubmittedFile(taskId, index) {
     if (!w) { notify('⚠️ Please allow pop-ups to preview the file'); return; }
 
     if (type.startsWith('image/') || ['png','jpg','jpeg','gif','webp'].includes(ext)) {
-      w.document.write(`<title>${name}</title><body style="margin:0;background:#0f1923;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${url}" style="max-width:96vw;max-height:96vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);"></body>`);
+      w.document.write(`<title>${name}</title><body style="margin:0;background:#0f1923;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${url}" style="max-width:96vw;max-height:96vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);"><!-- Vercel Web Analytics -->
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</body>`);
     } else if (type === 'application/pdf' || ext === 'pdf') {
       w.document.write(`<title>${name}</title><iframe src="${url}" style="border:0;width:100vw;height:100vh;"></iframe>`);
     } else if (isOfficeFile(f) && String(url).startsWith('http')) {
@@ -10374,7 +10378,9 @@ async function previewSubmittedFile(taskId, index) {
       const text = await fetch(url).then(r => r.text()).catch(() => 'Preview unavailable. Please download the file.');
       w.document.write(`<title>${name}</title><pre style="white-space:pre-wrap;font:14px/1.55 system-ui;padding:24px;color:#0f1923;">${esc(text)}</pre>`);
     } else {
-      w.document.write(`<title>${name}</title><body style="font-family:system-ui;padding:32px;background:#f8faf9;color:#0f1923;"><h2 style="margin-top:0;">Preview not available for ${name}</h2><p>This file type is best opened after downloading.</p><button onclick="window.opener.downloadSubmittedFile('${esc(taskId)}',${index})" style="padding:12px 18px;border:0;border-radius:9px;background:#2a9d8f;color:white;font-weight:700;cursor:pointer;">Download file</button></body>`);
+      w.document.write(`<title>${name}</title><body style="font-family:system-ui;padding:32px;background:#f8faf9;color:#0f1923;"><h2 style="margin-top:0;">Preview not available for ${name}</h2><p>This file type is best opened after downloading.</p><button onclick="window.opener.downloadSubmittedFile('${esc(taskId)}',${index})" style="padding:12px 18px;border:0;border-radius:9px;background:#2a9d8f;color:white;font-weight:700;cursor:pointer;">Download file</button><!-- Vercel Web Analytics -->
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</body>`);
     }
     w.document.close();
   } catch (err) {
@@ -16987,5 +16993,7 @@ updateBadges = function() {
 };
 
 </script>
+<!-- Vercel Web Analytics -->
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </body>
 </html>
