@@ -4814,6 +4814,53 @@ body.dark-mode .writer-bid-message-box {
   border-color:rgba(142,228,214,.16);
 }
 
+
+/* ── DISPUTE TIME EXTENSION + ADMIN OVERRIDE ─────────────────── */
+.dispute-extension-panel {
+  border:1.5px solid rgba(217,181,107,.32);
+  background:linear-gradient(135deg, rgba(217,181,107,.14), rgba(255,255,255,.95));
+  border-radius:14px;
+  padding:13px 14px;
+  margin:12px 0;
+  font-size:13px;
+  line-height:1.6;
+}
+.dispute-extension-title {
+  font-weight:900;
+  color:#9a6b0b;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  font-size:11px;
+  margin-bottom:4px;
+}
+.dispute-resolution-note {
+  border-left:4px solid var(--teal);
+  background:rgba(42,157,143,.08);
+  padding:12px 14px;
+  border-radius:10px;
+  margin:12px 0;
+  font-size:13px;
+  line-height:1.6;
+}
+.admin-override-strip {
+  border:1px solid rgba(42,157,143,.24);
+  background:rgba(42,157,143,.08);
+  border-radius:14px;
+  padding:10px 12px;
+  margin:10px 0;
+  font-size:12px;
+  color:var(--teal-dark);
+}
+body.dark-mode .dispute-extension-panel {
+  background:rgba(217,181,107,.10);
+  border-color:rgba(217,181,107,.26);
+}
+body.dark-mode .dispute-resolution-note,
+body.dark-mode .admin-override-strip {
+  background:rgba(82,196,184,.09);
+  border-color:rgba(142,228,214,.22);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -6496,6 +6543,7 @@ body.dark-mode .writer-bid-message-box {
         <option value="Order update needed">Order update needed</option>
         <option value="Quality concern">Quality concern</option>
         <option value="Deadline concern">Deadline concern</option>
+        <option value="Request time extension">Request time extension</option>
         <option value="Payment concern">Payment concern</option>
         <option value="Scope changed">Scope changed</option>
         <option value="Communication issue">Communication issue</option>
@@ -6509,6 +6557,7 @@ body.dark-mode .writer-bid-message-box {
         <option value="Need a status update">Need a status update</option>
         <option value="Need revision or correction">Need revision or correction</option>
         <option value="Need deadline extension">Need deadline extension</option>
+        <option value="Extend deadline">Extend deadline</option>
         <option value="Need payment clarification">Need payment clarification</option>
         <option value="Request cancellation">Request cancellation</option>
         <option value="Other resolution">Other resolution</option>
@@ -6524,6 +6573,39 @@ body.dark-mode .writer-bid-message-box {
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-dispute')">Cancel</button>
       <button class="btn btn-warn" onclick="confirmDispute()">⚖️ Open Dispute</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Resolve Dispute / Extend Deadline Modal -->
+<div class="modal-overlay" id="modal-resolve-dispute">
+  <div class="modal">
+    <div class="modal-title" id="resolve-dispute-title">Resolve Dispute</div>
+    <div class="modal-sub" id="resolve-dispute-sub">Choose how this dispute should be resolved.</div>
+    <input type="hidden" id="resolve-dispute-task-id">
+    <div class="form-group">
+      <label class="form-label">Resolution Type</label>
+      <select class="form-select" id="resolve-dispute-type" onchange="toggleResolveDisputeDeadline()">
+        <option value="standard">Mark resolved after review</option>
+        <option value="extend_deadline">Extend deadline and resolve</option>
+        <option value="admin_override">Admin override / close dispute</option>
+      </select>
+    </div>
+    <div class="form-group" id="resolve-deadline-group" style="display:none;">
+      <label class="form-label">New Deadline</label>
+      <input class="form-input" type="date" id="resolve-new-deadline">
+      <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px;">
+        Use this when the writer selected a time-extension reason, or when both sides agree that more time is needed.
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Resolution Note</label>
+      <textarea class="form-textarea" id="resolve-dispute-note" rows="5" placeholder="Explain how the dispute was resolved, what was agreed, and any deadline/payment changes."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-resolve-dispute')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmResolveDispute()">✓ Confirm Resolution</button>
     </div>
   </div>
 </div>
@@ -16606,6 +16688,303 @@ launchApp = function(options = {}) {
 if (typeof pageTitles === 'object') {
   pageTitles['writer-bids'] = 'My Bids';
 }
+
+
+
+// ══════════════════════════════════════════════════════
+//  DISPUTE EXTENSION RESOLUTION + ADMIN OVERRIDE PATCH
+// ══════════════════════════════════════════════════════
+let _activeResolveDisputeId = null;
+
+function isTimeExtensionDispute(d) {
+  const hay = `${d?.reason || ''} ${d?.requested_outcome || ''}`.toLowerCase();
+  return hay.includes('time extension') || hay.includes('deadline extension') || hay.includes('extend deadline');
+}
+
+function canResolveCurrentDispute(t, d) {
+  if (!currentUser || !t || !d) return false;
+  if (isJwAdmin()) return true;
+  if ((currentUser.role === 'employer' || currentUser.role === 'student') && taskForEmployer(t, currentUser.email)) return true;
+  if (sameEmail(d.opened_by_email, currentUser.email)) return true;
+  return false;
+}
+
+function canEmployerExtendForDispute(t, d) {
+  if (!currentUser || !t || !d) return false;
+  if (isJwAdmin()) return true;
+  return (currentUser.role === 'employer' || currentUser.role === 'student')
+    && taskForEmployer(t, currentUser.email)
+    && isTimeExtensionDispute(d);
+}
+
+function visibleDisputeTasks() {
+  let visible = [];
+  if (isJwAdmin()) {
+    visible = tasks;
+  } else if (currentUser?.role === 'employer' || currentUser?.role === 'student') {
+    visible = tasks.filter(t => taskForEmployer(t, currentUser.email));
+  } else {
+    visible = tasks.filter(t => taskForWriter(t, currentUser.email));
+  }
+  return visible.filter(t => getTaskDisputes(t).length || t.status === 'disputed');
+}
+
+function disputeCountForCurrentUser() {
+  if (!currentUser) return 0;
+  return visibleDisputeTasks().filter(t => hasOpenDispute(t)).length;
+}
+
+function toggleResolveDisputeDeadline() {
+  const type = document.getElementById('resolve-dispute-type')?.value || 'standard';
+  const group = document.getElementById('resolve-deadline-group');
+  if (group) group.style.display = type === 'extend_deadline' ? '' : 'none';
+}
+
+function openResolveDisputeModal(id, mode = 'standard') {
+  const t = getTaskById(id);
+  const d = latestOpenDispute(t);
+  if (!t || !d) return notify('⚠️ No open dispute found.');
+  if (!canResolveCurrentDispute(t, d)) return notify('❌ You cannot resolve this dispute.');
+
+  _activeResolveDisputeId = id;
+  const modal = document.getElementById('modal-resolve-dispute');
+  document.getElementById('resolve-dispute-task-id').value = id;
+  document.getElementById('resolve-dispute-title').textContent = 'Resolve Dispute — ' + id;
+  document.getElementById('resolve-dispute-sub').textContent = `${t.subject || 'Order'} · ${d.reason || 'Dispute'}`;
+  document.getElementById('resolve-dispute-note').value = isTimeExtensionDispute(d)
+    ? 'Deadline extended after reviewing the writer’s time-extension request.'
+    : 'Resolved after review and communication.';
+
+  const type = document.getElementById('resolve-dispute-type');
+  if (type) {
+    if (mode === 'extend_deadline' || isTimeExtensionDispute(d)) type.value = 'extend_deadline';
+    else if (mode === 'admin_override' && isJwAdmin()) type.value = 'admin_override';
+    else type.value = 'standard';
+  }
+
+  const deadlineInput = document.getElementById('resolve-new-deadline');
+  if (deadlineInput) {
+    const current = t.deadline ? new Date(t.deadline) : new Date();
+    const suggested = new Date(current.getTime());
+    suggested.setDate(suggested.getDate() + 2);
+    deadlineInput.value = suggested.toISOString().slice(0, 10);
+  }
+
+  toggleResolveDisputeDeadline();
+  if (modal) modal.classList.add('open');
+}
+
+function resolveDispute(id) {
+  openResolveDisputeModal(id, 'standard');
+}
+
+function extendDeadlineAndResolve(id) {
+  openResolveDisputeModal(id, 'extend_deadline');
+}
+
+function adminOverrideDispute(id) {
+  openResolveDisputeModal(id, 'admin_override');
+}
+
+function disputeResolutionNextStatus(t, d) {
+  const prev = d?.previous_status && d.previous_status !== 'disputed' ? d.previous_status : '';
+  if (prev && prev !== 'cancelled') return prev;
+  if (t?.taken_by) return 'progress';
+  return 'pending';
+}
+
+async function confirmResolveDispute() {
+  const id = document.getElementById('resolve-dispute-task-id')?.value || _activeResolveDisputeId;
+  const t = getTaskById(id);
+  const d = latestOpenDispute(t);
+  if (!t || !d) return notify('⚠️ No open dispute found.');
+  if (!canResolveCurrentDispute(t, d)) return notify('❌ You cannot resolve this dispute.');
+
+  const type = document.getElementById('resolve-dispute-type')?.value || 'standard';
+  const note = (document.getElementById('resolve-dispute-note')?.value || '').trim();
+  const newDeadline = document.getElementById('resolve-new-deadline')?.value || '';
+
+  if (type === 'extend_deadline' && !canEmployerExtendForDispute(t, d)) {
+    return notify('❌ Deadline extension resolution is only available to the employer/student owner or admin.');
+  }
+
+  if (type === 'extend_deadline' && !newDeadline) {
+    return notify('⚠️ Please select the new deadline.');
+  }
+
+  const resolvedAt = new Date().toISOString();
+  const disputes = getTaskDisputes(t).map(item => item.id === d.id ? {
+    ...item,
+    status: 'resolved',
+    resolution_type: type,
+    resolution_note: note || (type === 'extend_deadline' ? 'Deadline extended and dispute resolved.' : 'Resolved.'),
+    extended_deadline_to: type === 'extend_deadline' ? newDeadline : item.extended_deadline_to,
+    resolved_by_name: currentUser.name,
+    resolved_by_email: currentUser.email,
+    resolved_by_role: isJwAdmin() ? 'admin' : currentUser.role,
+    resolved_at: resolvedAt,
+    admin_override: type === 'admin_override' || isJwAdmin()
+  } : item);
+
+  const updates = {
+    status: disputeResolutionNextStatus(t, d),
+    disputes
+  };
+
+  if (type === 'extend_deadline') {
+    updates.deadline = newDeadline;
+  }
+
+  try {
+    setLoading(true);
+    await dbUpdateTask(id, updates);
+    Object.assign(t, updates);
+    saveLocalDisputes(id, disputes);
+    closeModal('modal-resolve-dispute');
+    setLoading(false);
+    updateBadges();
+    renderDisputesPage();
+    if (document.getElementById('page-emp-tasks')?.classList.contains('active')) renderEmpTasks();
+    if (document.getElementById('page-writer-tasks')?.classList.contains('active')) renderWriterTasks();
+    notify(type === 'extend_deadline' ? '✓ Deadline extended and dispute resolved.' : '✓ Dispute resolved for ' + id);
+  } catch (err) {
+    setLoading(false);
+    console.warn('Dispute resolution sync failed:', err);
+    Object.assign(t, updates);
+    saveLocalDisputes(id, disputes);
+    closeModal('modal-resolve-dispute');
+    updateBadges();
+    renderDisputesPage();
+    notify('✓ Dispute resolved locally. Check Supabase disputes/deadline columns if sync failed.');
+  }
+}
+
+function renderDisputesPage() {
+  const wrap = document.getElementById('disputes-list');
+  if (!wrap) return;
+
+  let list = visibleDisputeTasks();
+  if (_disputeFilter === 'open') list = list.filter(t => hasOpenDispute(t));
+  if (_disputeFilter === 'resolved') list = list.filter(t => getTaskDisputes(t).some(d => (d.status || '').toLowerCase() === 'resolved') && !hasOpenDispute(t));
+
+  // Newest dispute activity first.
+  list = list.sort((a,b) => {
+    const da = latestDispute(a) || {};
+    const db = latestDispute(b) || {};
+    return new Date(db.created_at || db.resolved_at || 0) - new Date(da.created_at || da.resolved_at || 0);
+  });
+
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚖️</div><p>No ${_disputeFilter === 'all' ? '' : _disputeFilter} disputes found.</p></div>`;
+    updateBadges();
+    return;
+  }
+
+  wrap.innerHTML = list.map(t => {
+    const d = latestDispute(t) || {};
+    const open = ((d.status || 'open').toLowerCase() === 'open') || t.status === 'disputed';
+    const extension = isTimeExtensionDispute(d);
+    const canExtend = open && canEmployerExtendForDispute(t, d);
+    const canResolve = open && canResolveCurrentDispute(t, d);
+    const roleLabel = isJwAdmin() ? 'Admin view' : (currentUser?.role === 'writer' ? 'Writer view' : 'Employer/Student view');
+
+    return `
+      <div class="dispute-card ${open ? '' : 'resolved'}">
+        <div class="dispute-card-head">
+          <div>
+            <div class="dispute-card-title"><button class="order-link" onclick="empViewTask('${t.id}')">${esc(t.id)}</button> — ${esc(t.subject)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(t.style || '—')} · ${t.pages || '—'} pages · Due ${fmtDate(t.deadline)} · ${esc(roleLabel)}</div>
+          </div>
+          <div>${disputeStatusBadge(d)}</div>
+        </div>
+
+        <div class="dispute-meta-grid">
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Opened by</div><div class="dispute-meta-value">${esc(d.opened_by_name || d.opened_by_role || '—')}</div></div>
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Role</div><div class="dispute-meta-value">${esc(d.opened_by_role || '—')}</div></div>
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Reason</div><div class="dispute-meta-value">${esc(d.reason || 'Dispute')}</div></div>
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Requested outcome</div><div class="dispute-meta-value">${esc(d.requested_outcome || '—')}</div></div>
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Date opened</div><div class="dispute-meta-value">${fmtDate(d.created_at)}</div></div>
+          <div class="dispute-meta-item"><div class="dispute-meta-label">Current deadline</div><div class="dispute-meta-value">${fmtDate(t.deadline)}</div></div>
+        </div>
+
+        ${extension ? `<div class="dispute-extension-panel">
+          <div class="dispute-extension-title">Time extension request</div>
+          The writer requested more time. The employer/student can resolve this by extending the deadline for this exact task.
+        </div>` : ''}
+
+        <div class="dispute-note"><strong>Writer/party explanation:</strong><br>${esc(d.note || 'No explanation added.')}</div>
+
+        ${d.resolution_note ? `<div class="dispute-resolution-note"><strong>Resolution:</strong><br>${esc(d.resolution_note)}${d.extended_deadline_to ? `<br><strong>New deadline:</strong> ${fmtDate(d.extended_deadline_to)}` : ''}</div>` : ''}
+
+        ${isJwAdmin() ? `<div class="admin-override-strip">Admin can review and override this dispute, extend deadlines, mark it resolved, or inspect the linked task and messages.</div>` : ''}
+
+        <div class="dispute-actions">
+          <button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(t.id)}')">View Order</button>
+          <button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${escJS(t.id)}')">Message</button>
+          ${canExtend ? `<button class="btn btn-success btn-sm" onclick="extendDeadlineAndResolve('${escJS(t.id)}')">⏰ Extend Deadline & Resolve</button>` : ''}
+          ${canResolve ? `<button class="btn btn-success btn-sm" onclick="resolveDispute('${escJS(t.id)}')">✓ Resolve</button>` : ''}
+          ${open && sameEmail(d.opened_by_email, currentUser?.email) ? `<button class="btn btn-outline btn-sm" onclick="withdrawDispute('${escJS(t.id)}')">Withdraw</button>` : ''}
+          ${open && isJwAdmin() ? `<button class="btn btn-warn btn-sm" onclick="adminOverrideDispute('${escJS(t.id)}')">Admin Override</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateBadges();
+}
+
+// Make task modal show the dispute more clearly to employer/student/admin.
+const _jwDisputePatchOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwDisputePatchOrigEmpViewTask(id);
+  const t = getTaskById(id);
+  const d = latestOpenDispute(t);
+  const body = document.getElementById('vtm-body');
+  const actions = document.getElementById('vtm-actions');
+  if (!t || !d || !body) return;
+
+  if (!body.querySelector('[data-open-dispute-visible]')) {
+    const panel = document.createElement('div');
+    panel.dataset.openDisputeVisible = '1';
+    panel.innerHTML = `
+      <div class="dispute-extension-panel">
+        <div class="dispute-extension-title">Open dispute visible to ${isJwAdmin() ? 'admin' : (currentUser?.role || 'user')}</div>
+        <strong>${esc(d.reason || 'Dispute')}</strong> · ${disputeStatusBadge(d)}
+        <div style="margin-top:6px;"><strong>Requested outcome:</strong> ${esc(d.requested_outcome || '—')}</div>
+        <div style="margin-top:6px;white-space:pre-wrap;"><strong>Explanation:</strong><br>${esc(d.note || 'No explanation added.')}</div>
+      </div>
+    `;
+    body.appendChild(panel);
+  }
+
+  if (actions && canEmployerExtendForDispute(t, d) && !actions.querySelector('[data-extend-resolve-btn]')) {
+    actions.innerHTML += `<button class="btn btn-success" data-extend-resolve-btn="1" onclick="closeModal('modal-view-task');extendDeadlineAndResolve('${escJS(t.id)}')">⏰ Extend Deadline & Resolve</button>`;
+  }
+  if (actions && isJwAdmin() && !actions.querySelector('[data-admin-dispute-override-btn]')) {
+    actions.innerHTML += `<button class="btn btn-warn" data-admin-dispute-override-btn="1" onclick="closeModal('modal-view-task');adminOverrideDispute('${escJS(t.id)}')">Admin Override</button>`;
+  }
+};
+
+// Admin sidebar: explicit platform disputes tab.
+const _jwDisputePatchOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  _jwDisputePatchOrigBuildSidebar();
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav || !isJwAdmin()) return;
+  if (!nav.querySelector('[data-page="disputes"]')) {
+    const item = `<div class="nav-item" data-page="disputes" onclick="navigate('disputes')"><span class="icon">⚖️</span> All Disputes <span class="nav-badge" id="admin-dispute-badge">0</span></div>`;
+    const allOrders = nav.querySelector('[data-page="admin-all-orders"]') || nav.querySelector('[data-page="admin-student-orders"]');
+    if (allOrders) allOrders.insertAdjacentHTML('afterend', item);
+    else nav.insertAdjacentHTML('beforeend', item);
+  }
+  setCountBadge('admin-dispute-badge', visibleDisputeTasks().filter(t => hasOpenDispute(t)).length, '{count} open platform disputes');
+};
+
+const _jwDisputePatchOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwDisputePatchOrigUpdateBadges();
+  if (isJwAdmin()) setCountBadge('admin-dispute-badge', visibleDisputeTasks().filter(t => hasOpenDispute(t)).length, '{count} open platform disputes');
+};
 
 </script>
 </body>
