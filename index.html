@@ -4861,6 +4861,34 @@ body.dark-mode .admin-override-strip {
   border-color:rgba(142,228,214,.22);
 }
 
+
+/* ── RELIABLE EMPLOYER → WRITER PROFILE VIEW PATCH ─────────────────── */
+.writer-profile-action-btn {
+  background: linear-gradient(135deg, rgba(42,157,143,.10), rgba(255,255,255,.96)) !important;
+  border-color: rgba(42,157,143,.34) !important;
+  color: var(--teal-dark) !important;
+  font-weight: 900 !important;
+}
+.writer-profile-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(42,157,143,.14);
+}
+.writer-profile-safe-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(42,157,143,.08);
+  border: 1px solid rgba(42,157,143,.18);
+  color: var(--teal-dark);
+  font-size: 12px;
+  line-height: 1.55;
+}
+body.dark-mode .writer-profile-action-btn {
+  background: rgba(82,196,184,.08) !important;
+  border-color: rgba(142,228,214,.22) !important;
+  color: #8ee4d6 !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -16992,6 +17020,171 @@ updateBadges = function() {
 <script type="module">
   import { injectSpeedInsights } from 'https://cdn.jsdelivr.net/npm/@vercel/speed-insights@2.0.0/+esm';
   injectSpeedInsights();
+
+
+// ══════════════════════════════════════════════════════
+//  EMPLOYER/STUDENT/ADMIN → WRITER PROFILE RELIABILITY PATCH
+// ══════════════════════════════════════════════════════
+function canCurrentUserOpenWriterProfileForTask(t) {
+  if (!currentUser || !t?.taken_by) return false;
+  if (isJwAdmin && isJwAdmin()) return true;
+  if ((currentUser.role === 'employer' || currentUser.role === 'student') && taskForEmployer(t, currentUser.email)) return true;
+  if (currentUser.role === 'writer' && sameEmail(t.taken_by, currentUser.email)) return true;
+  return false;
+}
+
+function safePublicWriterProfileFromRow(row, fallbackName = '') {
+  if (!row) return null;
+  const profile = normalizeProfile(row.profile || {});
+  return {
+    email: row.email || '',
+    name: row.name || profile.name || fallbackName || row.email || 'Writer',
+    profile: normalizeProfile({
+      name: profile.name || row.name || fallbackName || '',
+      title: profile.title || 'Academic Writer',
+      bio: profile.bio || '',
+      photo: profile.photo || '',
+      location: profile.location || '',
+      timezone: profile.timezone || '',
+      languages: profile.languages || '',
+      availability: profile.availability || '',
+      rate: profile.rate || '',
+      skills: profile.skills || '',
+      education: profile.education || '',
+      experience: profile.experience || '',
+      // Keep direct contact/payment fields private.
+      portfolio: (isJwAdmin && isJwAdmin()) ? (profile.portfolio || '') : ''
+    })
+  };
+}
+
+async function getPublicWriterProfileSafe(email, fallbackName = '') {
+  if (!email) return null;
+
+  // Preferred secure path: returns only safe public writer profile fields.
+  try {
+    if (_sb?.rpc) {
+      const { data, error } = await _sb.rpc('jw_get_public_writer_profile', { p_email: email });
+      if (!error && data) {
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row) return safePublicWriterProfileFromRow(row, fallbackName);
+      }
+      if (error && !String(error.message || '').toLowerCase().includes('function')) {
+        console.warn('Public writer profile RPC failed:', error.message);
+      }
+    }
+  } catch (err) {
+    console.warn('Public writer profile RPC unavailable:', err?.message || err);
+  }
+
+  // Fallback for admin/self or permissive RLS. This may be blocked for normal employers, which is okay.
+  try {
+    const dbUser = await dbGetUserByEmail(email);
+    if (dbUser) return safePublicWriterProfileFromRow(dbUser, fallbackName);
+  } catch (err) {
+    console.warn('Direct writer profile lookup blocked or unavailable:', err?.message || err);
+  }
+
+  // Last fallback: local cache only.
+  const local = getLocalProfile(email);
+  if (local && Object.keys(local).length) {
+    return safePublicWriterProfileFromRow({ email, name: fallbackName || email, profile: local }, fallbackName);
+  }
+
+  return { email, name: fallbackName || email || 'Writer', profile: {} };
+}
+
+openWriterProfileModal = async function(email, fallbackName = '') {
+  if (!email) {
+    notify('⚠️ No writer profile is available yet.');
+    return;
+  }
+
+  const title = document.getElementById('partner-profile-modal-title');
+  const body = document.getElementById('partner-profile-body');
+  const modal = document.getElementById('modal-partner-profile');
+
+  if (!title || !body || !modal) {
+    notify('⚠️ Profile modal is missing on this page.');
+    return;
+  }
+
+  title.textContent = 'Writer Profile';
+  body.innerHTML = '<div class="empty-state"><p>Loading writer profile…</p></div>';
+  modal.classList.add('open');
+
+  const result = await getPublicWriterProfileSafe(email, fallbackName);
+  const user = { email: result?.email || email, name: result?.name || fallbackName || email };
+  const profile = normalizeProfile(result?.profile || {});
+
+  if (!profile || !Object.keys(profile).length) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👤</div>
+        <p>This writer has not completed their public profile yet.</p>
+        <div class="writer-profile-safe-note">
+          The profile button is working, but this writer has not added public profile details yet.
+          Contact details and payment details remain hidden for safety.
+        </div>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = renderPartnerProfileCard(profile, user, fallbackName);
+};
+
+function ensureEmployerWriterProfileButtons() {
+  if (!currentUser) return;
+
+  // Employer/student order table rows.
+  const empTable = document.getElementById('emp-tasks-table');
+  if (empTable && (currentUser.role === 'employer' || currentUser.role === 'student' || (isJwAdmin && isJwAdmin()))) {
+    empTable.querySelectorAll('tr').forEach(row => {
+      const id = row.querySelector('.order-link')?.textContent?.trim();
+      const t = getTaskById(id);
+      if (!t || !canCurrentUserOpenWriterProfileForTask(t)) return;
+      const actions = row.querySelector('td:last-child > div');
+      if (!actions || actions.querySelector('[data-safe-writer-profile-btn]')) return;
+      actions.insertAdjacentHTML(
+        'afterbegin',
+        `<button class="btn btn-outline btn-sm writer-profile-action-btn" data-safe-writer-profile-btn="1" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">👤 Writer Profile</button>`
+      );
+    });
+  }
+
+  // Open task modal.
+  const taskModal = document.getElementById('modal-view-task');
+  if (taskModal?.classList.contains('open')) {
+    const id = _activeTaskModalId;
+    const t = getTaskById(id);
+    const actions = document.getElementById('vtm-actions');
+    if (t && actions && canCurrentUserOpenWriterProfileForTask(t) && !actions.querySelector('[data-safe-writer-profile-btn]')) {
+      actions.insertAdjacentHTML(
+        'afterbegin',
+        `<button class="btn btn-outline writer-profile-action-btn" data-safe-writer-profile-btn="1" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">👤 Writer Profile</button>`
+      );
+    }
+  }
+}
+
+const _jwProfileButtonOrigRenderEmpTasks = renderEmpTasks;
+renderEmpTasks = function() {
+  _jwProfileButtonOrigRenderEmpTasks();
+  ensureEmployerWriterProfileButtons();
+};
+
+const _jwProfileButtonOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwProfileButtonOrigEmpViewTask(id);
+  ensureEmployerWriterProfileButtons();
+};
+
+const _jwProfileButtonOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwProfileButtonOrigUpdateBadges();
+  ensureEmployerWriterProfileButtons();
+};
+
 </script>
 </body>
 </html>
