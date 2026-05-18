@@ -4462,6 +4462,107 @@ body.dark-mode .bid-writer-name {
   color: #f4fbfa;
 }
 
+
+
+/* ── POLISHED WHATSAPP SUPPORT + PROFILE AVATAR FIX ─────────────────── */
+.floating-support-widget.jw-whatsapp-widget {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.jw-whatsapp-widget .support-trigger {
+  width: auto;
+  min-width: 176px;
+  height: 64px;
+  padding: 10px 16px 10px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+  background: linear-gradient(135deg, #22c55e 0%, #128c4a 100%);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 18px 44px rgba(18, 140, 74, .34), 0 0 0 8px rgba(37, 211, 102, .10);
+  border: 1px solid rgba(255,255,255,.55);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.jw-whatsapp-widget .support-trigger:hover,
+.jw-whatsapp-widget .support-trigger:focus {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 58px rgba(18, 140, 74, .44), 0 0 0 10px rgba(37, 211, 102, .12);
+  outline: none;
+}
+.support-trigger-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex: 0 0 auto;
+}
+.support-trigger-copy {
+  display: grid;
+  line-height: 1.1;
+  text-align: left;
+}
+.support-trigger-copy strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+.support-trigger-copy small {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.78);
+}
+.jw-whatsapp-widget .support-popover {
+  right: 188px;
+  bottom: 8px;
+  min-width: 236px;
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+.user-avatar,
+.profile-mini-avatar,
+.profile-avatar-large,
+.partner-profile-avatar,
+.partner-profile-mini-avatar {
+  overflow: hidden;
+}
+.user-avatar img,
+.profile-mini-avatar img,
+.profile-avatar-large img,
+.partner-profile-avatar img,
+.partner-profile-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: inherit;
+}
+.user-avatar[data-img-error="1"],
+.profile-mini-avatar[data-img-error="1"],
+.profile-avatar-large[data-img-error="1"] {
+  background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+  color: #fff;
+}
+@media (max-width: 720px) {
+  .floating-support-widget.jw-whatsapp-widget { right: 14px; bottom: 14px; }
+  .jw-whatsapp-widget .support-trigger { min-width: 58px; width: 58px; height: 58px; padding: 8px; justify-content: center; }
+  .support-trigger-copy { display: none; }
+  .support-trigger-icon { width: 42px; height: 42px; }
+  .jw-whatsapp-widget .support-popover { right: 70px; max-width: 210px; }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -6207,12 +6308,15 @@ body.dark-mode .bid-writer-name {
 <div class="notification" id="notification"><span id="notif-msg"></span></div>
 
 <!-- Floating WhatsApp Support -->
-<div class="floating-support-widget" aria-label="Janelle Writes WhatsApp support">
+<div class="floating-support-widget jw-whatsapp-widget" aria-label="Janelle Writes WhatsApp support">
   <a class="support-popover" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-hidden="true">
     <strong>WhatsApp Support</strong>
     <small>Open a chat with Janelle Writes support.</small>
   </a>
-  <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">💬</a>
+  <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">
+    <span class="support-trigger-icon">💬</span>
+    <span class="support-trigger-copy"><strong>Live Support</strong><small>WhatsApp</small></span>
+  </a>
 </div>
 
 <script>
@@ -12270,19 +12374,7 @@ if (!window.__jwPasswordToggleObserver) {
 }
 </script>
 
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69f9b059d1b9df1c3bc81156/1jnrlhnue';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-
-
+<script>
 // ══════════════════════════════════════════════════════
 //  COMMISSION / MONETIZATION ENGINE
 // ══════════════════════════════════════════════════════
@@ -15097,21 +15189,129 @@ updateBadges = function() {
 };
 
 </script>
-<!--End of Tawk.to Script-->
 
 <script>
-  // Tawk.to safety check for Janelle Writes
-  window.JW_TAWK_PROPERTY_ID = "69f9b059d1b9df1c3bc81156";
-  window.JW_TAWK_WIDGET_ID = "1jnrlhnue";
-  window.addEventListener('load', function () {
-    setTimeout(function () {
-      if (typeof window.Tawk_API === 'undefined') {
-        console.warn('Tawk.to did not initialize. Check the Tawk Property ID / Widget ID and CSP settings.');
-      }
-    }, 2500);
-  });
+
+// ══════════════════════════════════════════════════════
+//  REMOVE TAWK + POLISHED WHATSAPP + PROFILE PHOTO FIX
+// ══════════════════════════════════════════════════════
+(function cleanupTawkAndFixSupport(){
+  try {
+    // Make sure no Tawk iframe/script remains if a browser cached an older version.
+    document.querySelectorAll('iframe[src*="tawk.to"], iframe[src*="tawk"], script[src*="embed.tawk.to"]').forEach(el => el.remove());
+    delete window.Tawk_API;
+    delete window.Tawk_LoadStart;
+  } catch (err) {
+    console.warn('Tawk cleanup warning:', err);
+  }
+})();
+
+function jwInitialsForAvatar(name = currentUser?.name, email = currentUser?.email) {
+  try { return initialsFromName(name, email).slice(0, 2) || 'JW'; }
+  catch { return String(name || email || 'JW').trim().slice(0, 2).toUpperCase() || 'JW'; }
+}
+
+function jwCleanPhotoSrc(src) {
+  const v = String(src || '').trim();
+  if (!v) return '';
+  if (/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(v)) return v;
+  if (/^https:\/\//i.test(v)) return v;
+  if (/^blob:/i.test(v)) return v;
+  return '';
+}
+
+function jwAvatarImgHTML(src, initials, alt = 'Profile image') {
+  const clean = jwCleanPhotoSrc(src);
+  if (!clean) return esc(initials || 'JW');
+  return `<img src="${clean}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="this.parentElement.dataset.imgError='1';this.parentElement.textContent=this.parentElement.dataset.initials||'${escJS(initials || 'JW')}'">`;
+}
+
+function jwSetAvatarElement(el, photo, name, email) {
+  if (!el) return;
+  const initials = jwInitialsForAvatar(name, email);
+  el.dataset.initials = initials;
+  el.dataset.imgError = '0';
+  el.innerHTML = jwAvatarImgHTML(photo, initials, 'Profile image');
+}
+
+// Override the existing avatar helper so broken/truncated photos do not show alt text like "Profile image".
+setAvatarBox = function(id, profile, name) {
+  jwSetAvatarElement(document.getElementById(id), profile?.photo, name || profile?.name || currentUser?.name, currentUser?.email);
+};
+
+// Keep the full image visible while compressing it small enough to save reliably in profile JSON/localStorage.
+handleProfilePhoto = function(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!['jpg','jpeg','png','webp'].includes(fileExtension(file.name)) || !file.type.startsWith('image/')) {
+    notify('⚠️ Please upload a JPG, PNG, or WebP image.');
+    return;
+  }
+  if (file.size > 6 * 1024 * 1024) {
+    notify('⚠️ Please use an image below 6MB.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 260;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      // contain instead of crop, so logos/profile photos are not cut off.
+      const scale = Math.min(size / img.width, size / img.height);
+      const drawW = Math.max(1, Math.round(img.width * scale));
+      const drawH = Math.max(1, Math.round(img.height * scale));
+      const dx = Math.round((size - drawW) / 2);
+      const dy = Math.round((size - drawH) / 2);
+      ctx.drawImage(img, dx, dy, drawW, drawH);
+
+      _profilePhotoData = canvas.toDataURL('image/jpeg', 0.72);
+      updateProfilePreview();
+      notify('✓ Profile image ready. Click Save Profile to keep it.');
+    };
+    img.onerror = () => notify('❌ Could not read that image. Try a different JPG or PNG.');
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+const _jwPhotoFixUpdateProfilePreview = updateProfilePreview;
+updateProfilePreview = function() {
+  _jwPhotoFixUpdateProfilePreview();
+  const profile = collectProfileForm ? collectProfileForm() : getCurrentProfileSync();
+  jwSetAvatarElement(document.getElementById('profile-mini-avatar'), profile.photo, profile.name || currentUser?.name, currentUser?.email);
+  jwSetAvatarElement(document.getElementById('profile-avatar-large'), profile.photo, profile.name || currentUser?.name, currentUser?.email);
+};
+
+const _jwPhotoFixUpdateUserDisplay = updateUserDisplay;
+updateUserDisplay = function() {
+  _jwPhotoFixUpdateUserDisplay();
+  const profile = getCurrentProfileSync();
+  jwSetAvatarElement(document.getElementById('nav-avatar'), profile.photo, currentUser?.name, currentUser?.email);
+};
+
+const _jwPhotoFixSupportUpdate = updateFloatingSupportForRole;
+updateFloatingSupportForRole = function() {
+  _jwPhotoFixSupportUpdate();
+  const isStudent = currentUser?.role === 'student';
+  const strong = document.querySelector('.support-trigger-copy strong');
+  const small = document.querySelector('.support-trigger-copy small');
+  if (strong) strong.textContent = isStudent ? 'Student Support' : 'Live Support';
+  if (small) small.textContent = 'WhatsApp';
+};
+
+setTimeout(() => {
+  try { updateFloatingSupportForRole(); } catch {}
+  try { updateUserDisplay(); } catch {}
+}, 300);
+
 </script>
-
-
 </body>
 </html>
