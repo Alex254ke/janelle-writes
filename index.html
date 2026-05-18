@@ -4663,6 +4663,157 @@ body.dark-mode .writer-bid-live-box {
   border-color:rgba(142,228,214,.22);
 }
 
+
+/* ── EMPLOYER/STUDENT BID REQUESTS TAB + LOUD BID NOTIFICATION ─────────────────── */
+.bid-requests-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: 18px;
+}
+.bid-task-list {
+  display: grid;
+  gap: 10px;
+}
+.bid-task-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  background: var(--white);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.bid-task-card:hover,
+.bid-task-card.active {
+  transform: translateY(-2px);
+  border-color: rgba(42,157,143,.42);
+  box-shadow: 0 14px 32px rgba(15,25,35,.08);
+}
+.bid-task-card.active {
+  background: linear-gradient(135deg, rgba(82,196,184,.12), rgba(255,255,255,.96));
+}
+.bid-task-id {
+  font-weight: 900;
+  color: var(--teal-dark);
+  font-size: 12px;
+  letter-spacing: .4px;
+}
+.bid-task-subject {
+  font-weight: 900;
+  color: var(--ink);
+  margin-top: 4px;
+  line-height: 1.25;
+}
+.bid-task-meta {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+  line-height: 1.45;
+}
+.bid-request-detail-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--white);
+  padding: 18px;
+  box-shadow: 0 18px 42px rgba(15,25,35,.05);
+}
+.bid-request-detail-head {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.bid-request-detail-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.bid-alert-highlight {
+  animation: bidAlertPulse 1.3s ease 2;
+}
+@keyframes bidAlertPulse {
+  0% { box-shadow: 0 0 0 rgba(217,181,107,0); }
+  45% { box-shadow: 0 0 0 6px rgba(217,181,107,.18); }
+  100% { box-shadow: 0 0 0 rgba(217,181,107,0); }
+}
+body.dark-mode .bid-task-card,
+body.dark-mode .bid-request-detail-card {
+  background: #14202b;
+  border-color: rgba(142,228,214,.16);
+}
+body.dark-mode .bid-task-card.active {
+  background: linear-gradient(135deg, rgba(82,196,184,.12), #14202b);
+}
+@media (max-width: 900px) {
+  .bid-requests-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ── WRITER MY BIDS + SAFE ASSIGNMENT PATCH ─────────────────── */
+.writer-bids-grid {
+  display:grid;
+  gap:14px;
+}
+.writer-bid-card {
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--white);
+  padding:18px;
+  box-shadow:0 14px 34px rgba(15,25,35,.05);
+}
+.writer-bid-card-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.writer-bid-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;
+  font-weight:800;
+  color:var(--ink);
+}
+.writer-bid-meta {
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.55;
+  margin-top:4px;
+}
+.writer-bid-message-box {
+  margin-top:12px;
+  padding:13px 14px;
+  border-radius:14px;
+  background:var(--cream);
+  border:1px solid rgba(42,157,143,.16);
+  font-size:13px;
+  line-height:1.65;
+  white-space:pre-wrap;
+}
+.writer-bid-next {
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(42,157,143,.08);
+  border:1px solid rgba(42,157,143,.18);
+  color:var(--teal-dark);
+  font-size:12px;
+  line-height:1.55;
+}
+body.dark-mode .writer-bid-card {
+  background:#14202b;
+  border-color:rgba(142,228,214,.16);
+}
+body.dark-mode .writer-bid-message-box {
+  background:#0f1923;
+  border-color:rgba(142,228,214,.16);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -5721,6 +5872,20 @@ body.dark-mode .writer-bid-live-box {
   </div>
 
 
+
+  <!-- EMPLOYER/STUDENT: BID REQUESTS -->
+  <div class="page content" id="page-bid-requests">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Writer <span>Bid Requests</span></div>
+        <p class="text-muted" style="margin-top:4px;">Review writer requests, read bid messages, compare ratings, and assign the best writer to your order.</p>
+      </div>
+    </div>
+    <div id="bid-requests-wrap">
+      <div class="empty-state"><div class="empty-icon">📝</div><p>Bid requests will appear here.</p></div>
+    </div>
+  </div>
+
   <!-- EMPLOYER: INVOICE -->
   <div class="page content" id="page-emp-invoice">
     <div class="section-header">
@@ -5948,6 +6113,20 @@ body.dark-mode .writer-bid-live-box {
     </div>
     <div id="writer-earnings-wrap">
       <div class="empty-state"><p>Your completed paid work and net payouts will appear here.</p></div>
+    </div>
+  </div>
+
+
+  <!-- WRITER: MY BIDS -->
+  <div class="page content" id="page-writer-bids">
+    <div class="section-header">
+      <div>
+        <div class="section-title">My <span>Bids</span></div>
+        <p class="text-muted" style="margin-top:4px;">Track all tasks you have requested, including pending, selected, and declined bids.</p>
+      </div>
+    </div>
+    <div id="writer-bids-wrap">
+      <div class="empty-state"><div class="empty-icon">📝</div><p>Your bid requests will appear here.</p></div>
     </div>
   </div>
 
@@ -15868,6 +16047,565 @@ updateBadges = function() {
   attachOwnerBidCountsToTaskRows();
   attachAdminStudentBidCounts();
 };
+
+
+
+// ══════════════════════════════════════════════════════
+//  EMPLOYER/STUDENT BID REQUESTS TAB + BID NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+let _bidRequestsActiveTaskId = null;
+let _jwBidNotifySub = null;
+const _jwBidCountCache = new Map();
+
+function ownerVisibleBidTasks() {
+  if (!currentUser) return [];
+  if (isJwAdmin()) {
+    return (Array.isArray(tasks) ? tasks : []).filter(t => bidCountForTask(t) > 0);
+  }
+  if (!(currentUser.role === 'employer' || currentUser.role === 'student')) return [];
+  return (Array.isArray(tasks) ? tasks : [])
+    .filter(t => taskForEmployer(t, currentUser.email))
+    .filter(t => bidCountForTask(t) > 0 || (!t.taken_by && t.status === 'pending'));
+}
+
+function ownerBidRequestsCount() {
+  return ownerVisibleBidTasks().reduce((sum, t) => sum + bidCountForTask(t), 0);
+}
+
+function openBidRequestsForTask(taskId = null) {
+  _bidRequestsActiveTaskId = taskId || _bidRequestsActiveTaskId;
+  navigate('bid-requests');
+}
+
+function renderBidRequestsPage() {
+  const wrap = document.getElementById('bid-requests-wrap');
+  if (!wrap) return;
+
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This page is only for employers, students, and admin.</p></div>`;
+    return;
+  }
+
+  const list = ownerVisibleBidTasks().sort((a,b) => {
+    const bidDiff = bidCountForTask(b) - bidCountForTask(a);
+    if (bidDiff) return bidDiff;
+    return new Date(b.created_at || b.order_date || 0) - new Date(a.created_at || a.order_date || 0);
+  });
+
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📝</div><p>No writer bid requests yet.</p><p class="text-muted">When writers request your available orders, their bids will appear here automatically.</p></div>`;
+    return;
+  }
+
+  const selected = list.find(t => t.id === _bidRequestsActiveTaskId) || list[0];
+  _bidRequestsActiveTaskId = selected.id;
+  const bidCount = bidCountForTask(selected);
+
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:18px;">
+      <div class="admin-control-card"><strong>${list.length}</strong><span>Orders With Bid Activity</span></div>
+      <div class="admin-control-card"><strong>${ownerBidRequestsCount()}</strong><span>Total Writer Requests</span></div>
+      <div class="admin-control-card"><strong>${list.filter(t => !t.taken_by && bidCountForTask(t) > 0).length}</strong><span>Ready To Assign</span></div>
+    </div>
+
+    <div class="bid-requests-layout">
+      <div class="bid-task-list">
+        ${list.map(t => {
+          const count = bidCountForTask(t);
+          const pending = pendingBidCountForTask(t);
+          const active = t.id === selected.id ? 'active' : '';
+          return `<div class="bid-task-card ${active}" onclick="selectBidRequestTask('${escJS(t.id)}')">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+              <div>
+                <div class="bid-task-id">${esc(t.id)}</div>
+                <div class="bid-task-subject">${esc(t.subject || 'Untitled')}</div>
+              </div>
+              ${bidCountInlineHtml(t)}
+            </div>
+            <div class="bid-task-meta">
+              ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.style || 'Style')} · ${statusBadgeForTask(t)}
+              <br>${pending} pending request${pending === 1 ? '' : 's'} · ${t.taken_by ? 'Assigned' : 'Unassigned'}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="bid-request-detail-card" id="selected-bid-detail">
+        <div class="bid-request-detail-head">
+          <div>
+            <div class="bid-request-detail-title">${esc(selected.id)} — ${esc(selected.subject || 'Order')}</div>
+            <div class="text-muted" style="font-size:13px;line-height:1.55;margin-top:4px;">
+              ${Number(selected.pages || 0)} page${Number(selected.pages || 0) === 1 ? '' : 's'} · ${esc(selected.level || '')} · ${esc(selected.style || '')} · Due ${fmtDate(selected.deadline)}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${bidCountBadgeHtml(selected)}
+            <button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(selected.id)}')">Open Full Task</button>
+          </div>
+        </div>
+        ${renderEmployerBidPanel(selected)}
+        ${bidCount === 0 ? `<div class="empty-state" style="padding:26px;"><div class="empty-icon">⌛</div><p>No writer has submitted a bid for this task yet.</p></div>` : ''}
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    document.getElementById('selected-bid-detail')?.classList.add('bid-alert-highlight');
+  }, 40);
+}
+
+function selectBidRequestTask(taskId) {
+  _bidRequestsActiveTaskId = taskId;
+  renderBidRequestsPage();
+}
+
+function addBidRequestsSidebarTab() {
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav || !currentUser) return;
+  if (!(currentUser.role === 'employer' || currentUser.role === 'student')) return;
+  if (nav.querySelector('[data-page="bid-requests"]')) return;
+
+  const label = currentUser.role === 'student' ? 'Writer Bids' : 'Bid Requests';
+  const item = `<div class="nav-item" data-page="bid-requests" onclick="navigate('bid-requests')"><span class="icon">📝</span> ${label} <span class="nav-badge" id="bid-requests-badge">0</span></div>`;
+
+  const myOrders = nav.querySelector('[data-page="emp-tasks"]');
+  if (myOrders) myOrders.insertAdjacentHTML('afterend', item);
+  else nav.insertAdjacentHTML('beforeend', item);
+}
+
+function updateBidRequestsBadge() {
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student')) return;
+  setCountBadge('bid-requests-badge', ownerBidRequestsCount(), '{count} writer bid requests');
+}
+
+function attachBidButtonsEveryOwnerRow() {
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return;
+  const tbody = document.getElementById('emp-tasks-table');
+  if (!tbody) return;
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    const id = row.querySelector('.order-link')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+
+    const actions = row.querySelector('td:last-child > div');
+    if (!actions) return;
+
+    const count = bidCountForTask(t);
+    let btn = actions.querySelector('[data-view-bids-btn]');
+
+    if (!btn) {
+      actions.insertAdjacentHTML(
+        'afterbegin',
+        `<button class="btn btn-primary btn-sm bid-owner-table-btn" data-view-bids-btn="1" onclick="openBidRequestsForTask('${escJS(t.id)}')">Bids (${count})</button>`
+      );
+      btn = actions.querySelector('[data-view-bids-btn]');
+    }
+
+    if (btn) {
+      btn.textContent = `Bids (${count})`;
+      btn.setAttribute('onclick', `openBidRequestsForTask('${escJS(t.id)}')`);
+      if (count > 0) btn.classList.add('bid-alert-highlight');
+      else btn.classList.remove('bid-alert-highlight');
+    }
+  });
+}
+
+function attachBidButtonToTaskModal(taskId) {
+  const t = getTaskById(taskId);
+  if (!t) return;
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return;
+  if (!isJwAdmin() && !taskForEmployer(t, currentUser.email)) return;
+
+  const actions = document.getElementById('vtm-actions');
+  if (!actions || actions.querySelector('[data-modal-view-bids]')) return;
+
+  const count = bidCountForTask(t);
+  actions.innerHTML += `<button class="btn btn-primary" data-modal-view-bids="1" onclick="closeModal('modal-view-task');openBidRequestsForTask('${escJS(t.id)}')">📝 View Bids (${count})</button>`;
+}
+
+function playBidSound() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    _audioCtx = _audioCtx || new Ctx();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+
+    const now = _audioCtx.currentTime;
+    const notes = [
+      { freq: 523, start: 0.00, dur: 0.18 },
+      { freq: 659, start: 0.18, dur: 0.20 },
+      { freq: 784, start: 0.39, dur: 0.22 },
+      { freq: 1046, start: 0.64, dur: 0.32 },
+      { freq: 784, start: 1.02, dur: 0.25 }
+    ];
+
+    notes.forEach(note => {
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(note.freq, now + note.start);
+      gain.gain.setValueAtTime(0.0001, now + note.start);
+      gain.gain.linearRampToValueAtTime(0.16, now + note.start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + note.dur);
+      osc.connect(gain);
+      gain.connect(_audioCtx.destination);
+      osc.start(now + note.start);
+      osc.stop(now + note.start + note.dur + 0.04);
+    });
+  } catch (err) {
+    console.warn('Bid sound failed:', err);
+  }
+}
+
+function sendBidBrowserNotification(task, bid, delta = 1) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const notice = new Notification('New writer bid received', {
+      body: `${bid?.writer_name || bid?.writer_email || 'A writer'} requested ${task.id}: ${task.subject || 'your order'}.`,
+      tag: 'jw-bid-' + task.id,
+      renotify: true
+    });
+    notice.onclick = () => {
+      try { window.focus(); } catch {}
+      openBidRequestsForTask(task.id);
+      try { notice.close(); } catch {}
+    };
+  } catch {}
+}
+
+function notifyBidReceived(task, newBid, delta = 1) {
+  if (!task || !currentUser) return;
+
+  const title = delta === 1 ? 'New writer bid received' : `${delta} new writer bids received`;
+  const writerName = newBid?.writer_name || newBid?.writer_email || 'A writer';
+  const body = `${writerName} requested ${task.id}: ${task.subject || 'your order'}.`;
+
+  playBidSound();
+  notify('', null, {
+    title,
+    body,
+    onClick: () => openBidRequestsForTask(task.id)
+  });
+  sendBidBrowserNotification(task, newBid, delta);
+
+  // Keep the on-screen bid tab and task list fresh.
+  updateBidRequestsBadge();
+  if (document.getElementById('page-bid-requests')?.classList.contains('active')) {
+    _bidRequestsActiveTaskId = task.id;
+    renderBidRequestsPage();
+  }
+  if (document.getElementById('page-emp-tasks')?.classList.contains('active')) {
+    attachBidButtonsEveryOwnerRow();
+  }
+}
+
+function taskBidOwnerCanReceiveNotification(t) {
+  if (!currentUser || !t) return false;
+  if (isJwAdmin()) return true;
+  return (currentUser.role === 'employer' || currentUser.role === 'student') && taskForEmployer(t, currentUser.email);
+}
+
+function initBidCountCache() {
+  _jwBidCountCache.clear();
+  (Array.isArray(tasks) ? tasks : []).forEach(t => _jwBidCountCache.set(t.id, bidCountForTask(t)));
+}
+
+function subscribeBidNotifications() {
+  if (_jwBidNotifySub) return;
+  initBidCountCache();
+
+  _jwBidNotifySub = _sb.channel('jw_bid_notifications')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jw_tasks' }, payload => {
+      const row = payload.new;
+      if (!row?.id) return;
+
+      const previousCount = _jwBidCountCache.has(row.id)
+        ? Number(_jwBidCountCache.get(row.id) || 0)
+        : bidCountForTask(getTaskById(row.id) || {});
+
+      const nextCount = bidCountForTask(row);
+      _jwBidCountCache.set(row.id, nextCount);
+
+      if (nextCount > previousCount && taskBidOwnerCanReceiveNotification(row)) {
+        const bids = getTaskBids(row);
+        const latest = bids.slice().sort((a,b) => new Date(b.at || 0) - new Date(a.at || 0))[0];
+        notifyBidReceived(row, latest, nextCount - previousCount);
+      }
+
+      updateBidRequestsBadge();
+    })
+    .subscribe();
+}
+
+const _jwBidTabOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  _jwBidTabOrigBuildSidebar();
+  addBidRequestsSidebarTab();
+  updateBidRequestsBadge();
+};
+
+const _jwBidTabOrigRenderEmpTasks = renderEmpTasks;
+renderEmpTasks = function() {
+  _jwBidTabOrigRenderEmpTasks();
+  attachBidButtonsEveryOwnerRow();
+};
+
+const _jwBidTabOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwBidTabOrigEmpViewTask(id);
+  attachBidButtonToTaskModal(id);
+};
+
+const _jwBidTabOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  _jwBidTabOrigNavigate(page, options);
+  if (page === 'bid-requests') renderBidRequestsPage();
+};
+
+const _jwBidTabOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwBidTabOrigUpdateBadges();
+  addBidRequestsSidebarTab();
+  updateBidRequestsBadge();
+  attachBidButtonsEveryOwnerRow();
+};
+
+const _jwBidTabOrigLaunchApp = launchApp;
+launchApp = function(options = {}) {
+  _jwBidTabOrigLaunchApp(options);
+  addBidRequestsSidebarTab();
+  updateBidRequestsBadge();
+  subscribeBidNotifications();
+  setTimeout(() => {
+    addBidRequestsSidebarTab();
+    updateBidRequestsBadge();
+  }, 600);
+};
+
+if (typeof pageTitles === 'object') {
+  pageTitles['bid-requests'] = 'Bid Requests';
+}
+
+
+
+// ══════════════════════════════════════════════════════
+//  WRITER MY BIDS + SAFE BID ASSIGNMENT FIX
+// ══════════════════════════════════════════════════════
+function writerBidsList() {
+  if (!currentUser || currentUser.role !== 'writer') return [];
+  return (Array.isArray(tasks) ? tasks : [])
+    .map(t => ({ task: t, bid: writerBidForTask(t, currentUser.email) }))
+    .filter(x => !!x.bid)
+    .sort((a,b) => new Date(b.bid.at || b.task.created_at || 0) - new Date(a.bid.at || a.task.created_at || 0));
+}
+
+function writerBidCounts() {
+  const list = writerBidsList();
+  return {
+    total: list.length,
+    pending: list.filter(x => String(x.bid.status || 'pending') === 'pending').length,
+    selected: list.filter(x => String(x.bid.status || '') === 'selected').length,
+    declined: list.filter(x => String(x.bid.status || '') === 'declined').length
+  };
+}
+
+function writerBidNextStep(task, bid) {
+  const status = String(bid?.status || 'pending').toLowerCase();
+  if (status === 'selected' || sameEmail(task.taken_by, currentUser.email)) {
+    return 'Good news — this bid was selected. The task should now appear in My Tasks, where you can work on it and submit it.';
+  }
+  if (status === 'declined') {
+    return 'This bid was not selected. You can continue bidding on other available tasks.';
+  }
+  if (task.taken_by && !sameEmail(task.taken_by, currentUser.email)) {
+    return 'This task has already been assigned to another writer, so your bid is no longer active.';
+  }
+  return 'Your bid is pending. The employer/student/admin can still review it and assign the task.';
+}
+
+function renderWriterBidsPage() {
+  const wrap = document.getElementById('writer-bids-wrap');
+  if (!wrap) return;
+
+  if (currentUser?.role !== 'writer') {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This page is only for writer accounts.</p></div>`;
+    return;
+  }
+
+  const list = writerBidsList();
+  const counts = writerBidCounts();
+
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📝</div><p>You have not submitted any bids yet.</p><p class="text-muted">Open Available Orders, read the instructions, then bid/request tasks you want.</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:18px;">
+      <div class="admin-control-card"><strong>${counts.total}</strong><span>Total Bids</span></div>
+      <div class="admin-control-card"><strong>${counts.pending}</strong><span>Pending</span></div>
+      <div class="admin-control-card"><strong>${counts.selected}</strong><span>Selected</span></div>
+      <div class="admin-control-card"><strong>${counts.declined}</strong><span>Declined</span></div>
+    </div>
+    <div class="writer-bids-grid">
+      ${list.map(({ task:t, bid:b }) => {
+        const isSelected = String(b.status || '').toLowerCase() === 'selected' || sameEmail(t.taken_by, currentUser.email);
+        const stillOpen = !t.taken_by && t.status === 'pending';
+        return `<div class="writer-bid-card">
+          <div class="writer-bid-card-top">
+            <div>
+              <div class="writer-bid-title">${esc(t.id)} — ${esc(t.subject || 'Untitled')}</div>
+              <div class="writer-bid-meta">
+                Employer/Student: ${esc(t.posted_by_name || t.posted_by || '—')} · ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.style || '')} · Due ${fmtDate(t.deadline)}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              ${bidStatusHtml(isSelected ? 'selected' : (b.status || 'pending'))}
+              ${bidCountInlineHtml(t)}
+            </div>
+          </div>
+          <div class="writer-bid-meta">Bid submitted: ${b.at ? fmtDate(b.at) : 'Recently'} · Task status: ${statusBadgeForTask(t)}</div>
+          <div class="writer-bid-message-box">${esc(b.message || 'No bid message saved.')}</div>
+          <div class="writer-bid-next">${esc(writerBidNextStep(t, b))}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(t.id)}')">View Task</button>
+            ${isSelected ? `<button class="btn btn-primary btn-sm" onclick="openWriterSubmitForTask('${escJS(t.id)}')">Submit Work</button>` : ''}
+            ${stillOpen ? `<button class="btn btn-outline btn-sm" onclick="openTakeOrderModal('${escJS(t.id)}')">View My Request</button>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function addWriterMyBidsTab() {
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav || currentUser?.role !== 'writer') return;
+  if (nav.querySelector('[data-page="writer-bids"]')) return;
+
+  const item = `<div class="nav-item" data-page="writer-bids" onclick="navigate('writer-bids')"><span class="icon">📝</span> My Bids <span class="nav-badge" id="writer-bids-badge">0</span></div>`;
+  const available = nav.querySelector('[data-page="writer-available"]');
+  if (available) available.insertAdjacentHTML('afterend', item);
+  else nav.insertAdjacentHTML('beforeend', item);
+}
+
+function updateWriterBidBadge() {
+  if (currentUser?.role !== 'writer') return;
+  const counts = writerBidCounts();
+  setCountBadge('writer-bids-badge', counts.pending, '{count} pending bids');
+}
+
+async function assignTaskToBidder(taskId, writerEmail) {
+  const t = getTaskById(taskId);
+  if (!t) return;
+
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) {
+    return notify('❌ Only the order owner or admin can assign this task.');
+  }
+
+  if (!isJwAdmin() && !taskForEmployer(t, currentUser.email)) {
+    return notify('❌ You can only assign your own orders.');
+  }
+
+  if (t.taken_by) return notify('⚠️ This task is already assigned.');
+
+  const bid = getTaskBids(t).find(b => sameEmail(b.writer_email, writerEmail));
+  if (!bid) return notify('⚠️ Writer request not found.');
+
+  setLoading(true);
+  try {
+    // Preferred safe route. Run the SQL helper included with this patch.
+    if (_sb?.rpc) {
+      const { data, error } = await _sb.rpc('jw_assign_task_to_bidder', {
+        p_task_id: taskId,
+        p_writer_email: writerEmail
+      });
+
+      if (!error && data) {
+        Object.assign(t, data);
+        setLoading(false);
+        notify('✓ Task assigned to ' + (data.taken_by_name || writerEmail));
+        empViewTask(t.id);
+        renderEmpTasks?.();
+        renderBidRequestsPage?.();
+        updateBadges();
+        return;
+      }
+
+      if (error && !String(error.message || '').toLowerCase().includes('function')) {
+        throw error;
+      }
+    }
+
+    // Fallback still uses a valid status, but the SQL constraint should be updated before launch.
+    const bids = getTaskBids(t).map(b => {
+      if (sameEmail(b.writer_email, writerEmail)) {
+        return { ...b, status: 'selected', selected_at: new Date().toISOString(), selected_by: currentUser.email };
+      }
+      return { ...b, status: b.status === 'pending' ? 'declined' : b.status };
+    });
+
+    const ratings = saveTaskWorkflowMeta(t, {
+      __bids: bids,
+      __assignment_method: 'employer_selected_bid',
+      __assigned_from_bid_at: new Date().toISOString()
+    });
+
+    const updates = {
+      taken_by: bid.writer_email,
+      taken_by_name: bid.writer_name || bid.writer_email,
+      status: isPastDeadline(t) ? 'late' : 'progress',
+      ratings
+    };
+
+    await dbUpdateTask(t.id, updates);
+    Object.assign(t, updates);
+    setLoading(false);
+    notify('✓ Task assigned to ' + (bid.writer_name || bid.writer_email));
+    empViewTask(t.id);
+    renderEmpTasks?.();
+    renderBidRequestsPage?.();
+    updateBadges();
+  } catch (err) {
+    setLoading(false);
+    notify('❌ Assignment failed: ' + err.message);
+  }
+}
+
+const _jwMyBidsOrigBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  _jwMyBidsOrigBuildSidebar();
+  addWriterMyBidsTab();
+  updateWriterBidBadge();
+};
+
+const _jwMyBidsOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  _jwMyBidsOrigNavigate(page, options);
+  if (page === 'writer-bids') renderWriterBidsPage();
+};
+
+const _jwMyBidsOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwMyBidsOrigUpdateBadges();
+  addWriterMyBidsTab();
+  updateWriterBidBadge();
+  if (document.getElementById('page-writer-bids')?.classList.contains('active')) {
+    renderWriterBidsPage();
+  }
+};
+
+const _jwMyBidsOrigLaunchApp = launchApp;
+launchApp = function(options = {}) {
+  _jwMyBidsOrigLaunchApp(options);
+  addWriterMyBidsTab();
+  updateWriterBidBadge();
+};
+
+if (typeof pageTitles === 'object') {
+  pageTitles['writer-bids'] = 'My Bids';
+}
 
 </script>
 </body>
