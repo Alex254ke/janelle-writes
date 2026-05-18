@@ -4964,6 +4964,89 @@ body.dark-mode .password-reset-help {
   border-color: rgba(142,228,214,.22);
 }
 
+
+/* ── LANDING SIGN-IN VISIBILITY + FOOTER SUPPORT CLEANUP ─────────────────── */
+.landing-nav .btn-outline,
+.site-nav .btn-outline,
+.header-actions .btn-outline,
+nav .btn-outline {
+  border: 1.5px solid rgba(42,157,143,.42);
+}
+
+.landing-nav .btn-outline[onclick*="login"],
+.site-nav .btn-outline[onclick*="login"],
+.header-actions .btn-outline[onclick*="login"],
+nav .btn-outline[onclick*="login"],
+button[onclick*="openAuthScreen('login')"],
+button[onclick*='openAuthScreen("login")'],
+button[onclick*="showLogin"],
+button[onclick*="login"] {
+  background: linear-gradient(135deg, rgba(42,157,143,.14), rgba(255,255,255,.96)) !important;
+  color: var(--teal-dark) !important;
+  border: 1.5px solid rgba(42,157,143,.42) !important;
+  box-shadow: 0 8px 20px rgba(42,157,143,.12);
+  font-weight: 900 !important;
+}
+
+.landing-nav .btn-outline[onclick*="login"]:hover,
+.site-nav .btn-outline[onclick*="login"]:hover,
+.header-actions .btn-outline[onclick*="login"]:hover,
+nav .btn-outline[onclick*="login"]:hover,
+button[onclick*="openAuthScreen('login')"]:hover,
+button[onclick*='openAuthScreen("login")']:hover,
+button[onclick*="showLogin"]:hover,
+button[onclick*="login"]:hover {
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+/* Remove the footer Support Desk WhatsApp button because the floating button already handles support. */
+.support-footer .btn,
+.support-desk .btn,
+.footer-support .btn,
+.support-card .btn,
+#support-footer .btn,
+#support-desk .btn,
+a[href*="wa.me"].footer-support-btn,
+a[href*="wa.me"].support-footer-btn {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .landing-nav .btn-outline[onclick*="login"],
+  .site-nav .btn-outline[onclick*="login"],
+  .header-actions .btn-outline[onclick*="login"],
+  nav .btn-outline[onclick*="login"],
+  button[onclick*="openAuthScreen('login')"],
+  button[onclick*='openAuthScreen("login")'],
+  button[onclick*="showLogin"],
+  button[onclick*="login"] {
+    min-width: 78px;
+    min-height: 42px;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+    color: #fff !important;
+    box-shadow: 0 12px 28px rgba(42,157,143,.24);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-nav .btn-outline[onclick*="login"],
+  .site-nav .btn-outline[onclick*="login"],
+  .header-actions .btn-outline[onclick*="login"],
+  nav .btn-outline[onclick*="login"],
+  button[onclick*="openAuthScreen('login')"],
+  button[onclick*='openAuthScreen("login")'],
+  button[onclick*="showLogin"],
+  button[onclick*="login"] {
+    min-width: 72px;
+    font-size: 12px !important;
+    padding: 9px 12px !important;
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -17703,6 +17786,28 @@ renderStudentDashboard = function() {
     }
   });
 };
+
+
+
+// ── Remove duplicate footer WhatsApp support button, keep floating support bubble.
+(function removeDuplicateFooterSupportButton() {
+  function run() {
+    document.querySelectorAll('a, button').forEach(el => {
+      const text = (el.textContent || '').trim().toLowerCase();
+      const href = (el.getAttribute('href') || '').toLowerCase();
+      const isWhatsAppSupport = text.includes('whatsapp support') || href.includes('wa.me/');
+      const isFloating = el.closest('.support-float, .support-popover, .jw-whatsapp-bubble, .floating-support, [data-floating-support]');
+      const isFooterish = el.closest('footer, .support-footer, .support-desk, .footer-support, .support-card') || text === 'whatsapp support';
+      if (isWhatsAppSupport && isFooterish && !isFloating) {
+        el.style.display = 'none';
+        el.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  setTimeout(run, 500);
+})();
 
 </script>
 </body>
