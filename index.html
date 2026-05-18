@@ -4563,6 +4563,106 @@ body.dark-mode .bid-writer-name {
   .jw-whatsapp-widget .support-popover { right: 70px; max-width: 210px; }
 }
 
+
+/* ── WRITER MY TASKS INLINE SUBMIT BUTTON ─────────────────── */
+.writer-inline-submit-btn {
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 10px 22px rgba(42,157,143,.18);
+}
+.writer-inline-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(42,157,143,.24);
+}
+
+
+/* ── LIVE WRITER BID / REQUEST UX ─────────────────── */
+.bid-live-count {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:rgba(42,157,143,.12);
+  color:var(--teal-dark);
+  border:1px solid rgba(42,157,143,.28);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.bid-live-count strong {
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px;
+  line-height:1;
+}
+.bid-owner-strip {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(42,157,143,.2);
+  background:linear-gradient(135deg, rgba(82,196,184,.10), rgba(255,255,255,.94));
+  margin:12px 0;
+}
+.bid-owner-strip-title {
+  font-weight:900;
+  color:var(--ink);
+}
+.bid-owner-strip-sub {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.bid-count-inline {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:2px 7px;
+  border-radius:999px;
+  background:rgba(42,157,143,.12);
+  color:var(--teal-dark);
+  font-size:10px;
+  font-weight:900;
+  margin-left:6px;
+  white-space:nowrap;
+}
+.bid-count-inline.hot {
+  background:rgba(217,181,107,.18);
+  color:#9a6b0b;
+  border:1px solid rgba(217,181,107,.28);
+}
+.writer-bid-live-box {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(42,157,143,.08);
+  border:1px solid rgba(42,157,143,.18);
+}
+.writer-bid-live-box .small {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:3px;
+}
+.bid-owner-table-btn {
+  font-weight:900;
+}
+body.dark-mode .bid-owner-strip,
+body.dark-mode .writer-bid-live-box {
+  background:rgba(82,196,184,.09);
+  border-color:rgba(142,228,214,.22);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -15311,6 +15411,463 @@ setTimeout(() => {
   try { updateFloatingSupportForRole(); } catch {}
   try { updateUserDisplay(); } catch {}
 }, 300);
+
+
+
+// ══════════════════════════════════════════════════════
+//  WRITER MY TASKS: LIVE SUBMIT BUTTON
+// ══════════════════════════════════════════════════════
+function writerTaskNeedsSubmitButton(t) {
+  if (!t || currentUser?.role !== 'writer') return false;
+  if (!sameEmail(t.taken_by, currentUser.email)) return false;
+
+  const status = String(t.status || '').toLowerCase();
+
+  // Button appears only while the task still needs work/submission.
+  if (['completed', 'cancelled', 'disputed'].includes(status)) return false;
+
+  // In progress / pending / late tasks should always show the submit shortcut.
+  if (['progress', 'pending', 'late'].includes(status)) return true;
+
+  // Revision tasks may need a new file/link/text submission.
+  if (status === 'revision' || t.revision_notes) return true;
+
+  return false;
+}
+
+function openWriterSubmitForTask(taskId) {
+  const t = getTaskById(taskId);
+  if (!t) {
+    notify('⚠️ Task not found.');
+    return;
+  }
+  if (!writerTaskNeedsSubmitButton(t)) {
+    notify('⚠️ This task is not currently open for submission.');
+    return;
+  }
+
+  navigate('writer-submit');
+
+  setTimeout(() => {
+    try {
+      populateWriterSubmitSelect();
+      const sel = document.getElementById('writer-submit-select');
+      if (sel) {
+        sel.value = taskId;
+        toggleSubmitType();
+        showSelectedSubmitTask();
+      }
+      const target = document.getElementById('page-writer-submit');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const zone = document.getElementById('sw-upload-zone');
+      if (zone) zone.classList.add('pulse-once');
+    } catch (err) {
+      console.warn('Could not open submit form for task:', err);
+    }
+  }, 140);
+}
+
+function attachWriterTaskSubmitButtons() {
+  if (currentUser?.role !== 'writer') return;
+
+  const tbody = document.getElementById('writer-tasks-table');
+  if (!tbody) return;
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    const id = row.querySelector('.order-link')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+
+    const actions = row.querySelector('td:last-child > div');
+    if (!actions) return;
+
+    const existing = actions.querySelector('[data-writer-inline-submit]');
+    const shouldShow = writerTaskNeedsSubmitButton(t);
+
+    if (existing && !shouldShow) {
+      existing.remove();
+      return;
+    }
+
+    if (!existing && shouldShow) {
+      actions.insertAdjacentHTML(
+        'afterbegin',
+        `<button class="btn btn-primary btn-sm writer-inline-submit-btn" data-writer-inline-submit="1" onclick="openWriterSubmitForTask('${escJS(t.id)}')">Submit</button>`
+      );
+    }
+  });
+}
+
+const _jwInlineSubmitOrigRenderWriterTasks = renderWriterTasks;
+renderWriterTasks = function() {
+  _jwInlineSubmitOrigRenderWriterTasks();
+  attachWriterTaskSubmitButtons();
+};
+
+const _jwInlineSubmitOrigWriterSubmitWork = writerSubmitWork;
+writerSubmitWork = async function() {
+  await _jwInlineSubmitOrigWriterSubmitWork();
+  setTimeout(() => {
+    if (document.getElementById('page-writer-tasks')?.classList.contains('active')) {
+      renderWriterTasks();
+    }
+  }, 250);
+};
+
+const _jwInlineSubmitOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwInlineSubmitOrigUpdateBadges();
+  attachWriterTaskSubmitButtons();
+};
+
+
+
+// ══════════════════════════════════════════════════════
+//  SMOOTH LIVE BIDDING / WRITER REQUEST FLOW
+// ══════════════════════════════════════════════════════
+function bidCountForTask(t) {
+  return getTaskBids(t).filter(b => !['withdrawn'].includes(String(b.status || '').toLowerCase())).length;
+}
+
+function pendingBidCountForTask(t) {
+  return getTaskBids(t).filter(b => String(b.status || 'pending').toLowerCase() === 'pending').length;
+}
+
+function bidCountLabel(t) {
+  const n = bidCountForTask(t);
+  return `${n} writer request${n === 1 ? '' : 's'}`;
+}
+
+function bidCountBadgeHtml(t, opts = {}) {
+  const n = bidCountForTask(t);
+  const hot = n > 0 ? ' hot' : '';
+  const label = opts.short ? `${n} bid${n === 1 ? '' : 's'}` : bidCountLabel(t);
+  return `<span class="bid-live-count${hot}" data-live-bid-count="${esc(t.id)}"><strong>${n}</strong> ${esc(label.replace(String(n), '').trim() || 'requests')}</span>`;
+}
+
+function bidCountInlineHtml(t) {
+  const n = bidCountForTask(t);
+  if (!n) return `<span class="bid-count-inline" data-live-bid-count="${esc(t.id)}">0 bids</span>`;
+  return `<span class="bid-count-inline hot" data-live-bid-count="${esc(t.id)}">📝 ${n} bid${n === 1 ? '' : 's'}</span>`;
+}
+
+function writerBidVisibilityNote(t) {
+  if (t.taken_by) return 'This task has already been assigned.';
+  return 'This task remains visible in Available Orders until the employer, student, or admin assigns it to one writer.';
+}
+
+// Override the old mini summary so writers always see live bid counts.
+renderBidSummaryMini = function(t) {
+  const bids = getTaskBids(t);
+  const mine = writerBidForTask(t);
+  const count = bidCountForTask(t);
+
+  if (currentUser?.role === 'writer') {
+    if (mine) {
+      return `<div class="order-card-bid-summary">
+        ${bidCountInlineHtml(t)} · ✓ You requested this task · ${bidStatusHtml(mine.status)}
+        <div class="bid-note" style="margin-top:4px;">${esc(writerBidVisibilityNote(t))}</div>
+      </div>`;
+    }
+    return `<div class="order-card-bid-summary">
+      ${bidCountInlineHtml(t)}
+      <div class="bid-note" style="margin-top:4px;">${count ? 'Other writers have requested this task.' : 'No writer has requested this task yet.'} ${esc(writerBidVisibilityNote(t))}</div>
+    </div>`;
+  }
+
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin()) && bids.length) {
+    return `<div class="order-card-bid-summary">${bidCountInlineHtml(t)} received</div>`;
+  }
+
+  return '';
+};
+
+// Writer modal: show live bid count before the request textbox.
+bidRequestPanelForWriter = function(t) {
+  const existing = writerBidForTask(t);
+  const count = bidCountForTask(t);
+  const liveBox = `<div class="writer-bid-live-box">
+    <div>
+      <strong>Current writer requests</strong>
+      <div class="small">${count ? `${count} writer${count === 1 ? ' has' : 's have'} already requested this task.` : 'No writer has requested this task yet.'}</div>
+      <div class="small">${esc(writerBidVisibilityNote(t))}</div>
+    </div>
+    ${bidCountBadgeHtml(t)}
+  </div>`;
+
+  if (existing) {
+    return `<div class="bid-panel">
+      <div class="bid-panel-title">Your Task Request</div>
+      ${liveBox}
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+        <div>
+          <strong>${bidStatusHtml(existing.status)}</strong>
+          <div class="bid-note">You have already requested this task. The task stays available until the employer/student/admin assigns it.</div>
+        </div>
+      </div>
+      <div class="bid-message">${esc(existing.message || 'No message added.')}</div>
+    </div>`;
+  }
+
+  return `<div class="bid-panel">
+    <div class="bid-panel-title">Request / Bid for this Task</div>
+    ${liveBox}
+    <textarea class="bid-textarea" id="writer-bid-message" placeholder="Write a short request to the employer or student. Mention your relevant experience, availability, and why you are a good fit for this order."></textarea>
+    <div class="bid-note">Top-rated writers appear higher in the bid list, so strong ratings improve your chances.</div>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="submitWriterBid('${escJS(t.id)}')">📝 Bid / Request Task</button>
+  </div>`;
+};
+
+// Employer/student/admin modal: clearer bid list.
+renderEmployerBidPanel = function(t) {
+  const bids = sortBidsByAdvantage(getTaskBids(t));
+  const count = bidCountForTask(t);
+  const ownerLabel = currentUser?.role === 'student' ? 'student' : 'employer';
+
+  if (!bids.length) {
+    if (t.taken_by) return '';
+    return `<div class="bid-panel">
+      <div class="bid-owner-strip">
+        <div>
+          <div class="bid-owner-strip-title">Writer Requests / Bids</div>
+          <div class="bid-owner-strip-sub">No writer has requested this order yet. It remains visible in Available Orders.</div>
+        </div>
+        ${bidCountBadgeHtml(t)}
+      </div>
+    </div>`;
+  }
+
+  const topEmail = topBidEmail(t);
+  return `<div class="bid-panel">
+    <div class="bid-owner-strip">
+      <div>
+        <div class="bid-owner-strip-title">Writer Requests / Bids</div>
+        <div class="bid-owner-strip-sub">${count} writer request${count === 1 ? '' : 's'} received. Choose one writer to assign this task.</div>
+      </div>
+      ${bidCountBadgeHtml(t)}
+    </div>
+    <div class="bid-note">Writers with stronger ratings appear first. The task remains available until ${esc(ownerLabel)}, admin, or student assigns it.</div>
+    ${bids.map(b => {
+      const selected = t.taken_by && sameEmail(t.taken_by, b.writer_email);
+      const isTop = sameEmail(topEmail, b.writer_email) && Number(b.rating_avg || 0) > 0;
+      return `<div class="bid-card">
+        <div class="bid-card-top">
+          <div>
+            <div class="bid-writer-name">${esc(b.writer_name || b.writer_email)} ${isTop ? '<span class="bid-advantage">Top rated advantage</span>' : ''}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${ratingChipForUser(b.writer_email, 'writer')} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
+          </div>
+          <div>${selected ? '<span class="bid-status-pill bid-status-selected">Assigned</span>' : bidStatusHtml(b.status)}</div>
+        </div>
+        <div class="bid-message">${esc(b.message || 'No message added.')}</div>
+        ${publicRatingPanelForUser(b.writer_email, 'writer', { compact:false, limit:1 })}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
+          ${!t.taken_by && !isCancelledTask(t) ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+};
+
+function updateAvailableOrderBidUI() {
+  const cards = document.querySelectorAll('#avail-orders-wrap .order-card');
+  cards.forEach(card => {
+    const id = card.querySelector('.order-card-id')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+
+    // Header badge
+    const header = card.querySelector('.order-card-header');
+    if (header && !header.querySelector('[data-card-bid-count]')) {
+      header.insertAdjacentHTML('beforeend', `<span data-card-bid-count="1">${bidCountInlineHtml(t)}</span>`);
+    } else {
+      const holder = header?.querySelector('[data-card-bid-count]');
+      if (holder) holder.innerHTML = bidCountInlineHtml(t);
+    }
+
+    // Summary block: always update, not only first render.
+    let summary = card.querySelector('[data-bid-summary]');
+    if (!summary) {
+      summary = document.createElement('div');
+      summary.dataset.bidSummary = '1';
+      const footer = card.querySelector('.order-card-footer');
+      if (footer) footer.parentNode.insertBefore(summary, footer);
+      else card.appendChild(summary);
+    }
+    summary.innerHTML = renderBidSummaryMini(t);
+
+    const btn = card.querySelector('button.btn-primary');
+    if (btn && currentUser?.role === 'writer') {
+      const mine = writerBidForTask(t);
+      btn.textContent = mine ? 'View My Request →' : 'Read & Request Task →';
+    }
+  });
+}
+
+const _jwSmoothBidOrigRenderAvailableOrders = renderAvailableOrders;
+renderAvailableOrders = function() {
+  _jwSmoothBidOrigRenderAvailableOrders();
+  updateAvailableOrderBidUI();
+};
+
+function attachOwnerBidCountsToTaskRows() {
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return;
+  const tbody = document.getElementById('emp-tasks-table');
+  if (!tbody) return;
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    const id = row.querySelector('.order-link')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+
+    const subjectCell = row.children?.[1];
+    if (subjectCell) {
+      let badge = subjectCell.querySelector('[data-owner-row-bids]');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.dataset.ownerRowBids = '1';
+        subjectCell.appendChild(badge);
+      }
+      badge.innerHTML = bidCountInlineHtml(t);
+    }
+
+    const actions = row.querySelector('td:last-child > div');
+    if (actions && !actions.querySelector('[data-view-bids-btn]')) {
+      const count = bidCountForTask(t);
+      if (!t.taken_by && count > 0) {
+        actions.insertAdjacentHTML('afterbegin', `<button class="btn btn-primary btn-sm bid-owner-table-btn" data-view-bids-btn="1" onclick="empViewTask('${escJS(t.id)}')">View Bids (${count})</button>`);
+      }
+    } else {
+      const btn = actions?.querySelector('[data-view-bids-btn]');
+      if (btn) {
+        const count = bidCountForTask(t);
+        if (!t.taken_by && count > 0) btn.textContent = `View Bids (${count})`;
+        else btn.remove();
+      }
+    }
+  });
+}
+
+const _jwSmoothBidOrigRenderEmpTasks = renderEmpTasks;
+renderEmpTasks = function() {
+  _jwSmoothBidOrigRenderEmpTasks();
+  attachOwnerBidCountsToTaskRows();
+};
+
+function attachAdminStudentBidCounts() {
+  if (!isJwAdmin()) return;
+  const wrap = document.getElementById('admin-student-orders-wrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('tbody tr').forEach(row => {
+    const id = row.querySelector('.order-link')?.textContent?.trim();
+    const t = getTaskById(id);
+    if (!t) return;
+    const actions = row.querySelector('td:last-child div');
+    if (!actions) return;
+    let btn = actions.querySelector('[data-admin-student-bids]');
+    const count = bidCountForTask(t);
+    if (!btn && count > 0 && !t.taken_by) {
+      actions.insertAdjacentHTML('afterbegin', `<button class="btn btn-primary btn-sm" data-admin-student-bids="1" onclick="empViewTask('${escJS(t.id)}')">Bids (${count})</button>`);
+    } else if (btn) {
+      if (count > 0 && !t.taken_by) btn.textContent = `Bids (${count})`;
+      else btn.remove();
+    }
+  });
+}
+
+if (typeof renderAdminStudentOrdersPage === 'function') {
+  const _jwSmoothBidOrigRenderAdminStudentOrdersPage = renderAdminStudentOrdersPage;
+  renderAdminStudentOrdersPage = function() {
+    _jwSmoothBidOrigRenderAdminStudentOrdersPage();
+    attachAdminStudentBidCounts();
+  };
+}
+
+// Secure bid submit: use Supabase RPC when available, then fallback to old JSON update.
+submitWriterBid = async function(taskId) {
+  const t = getTaskById(taskId);
+  if (!t || currentUser?.role !== 'writer') return notify('❌ Only writers can request tasks.');
+  if (t.taken_by) return notify('⚠️ This order is already assigned.');
+  if (t.status !== 'pending') return notify('⚠️ This order is not open for requests.');
+
+  const msg = (document.getElementById('writer-bid-message')?.value || '').trim();
+  if (!msg || msg.length < 20) return notify('⚠️ Please write a short bid/request message of at least 20 characters.');
+
+  const bids = getTaskBids(t);
+  if (bids.some(b => sameEmail(b.writer_email, currentUser.email))) {
+    return notify('⚠️ You have already requested this task.');
+  }
+
+  setLoading(true);
+  try {
+    // Preferred secure path. Run the SQL helper to enable this RPC.
+    if (_sb?.rpc) {
+      const { data, error } = await _sb.rpc('jw_add_task_bid', {
+        p_task_id: taskId,
+        p_message: msg
+      });
+      if (!error && data) {
+        t.ratings = data;
+        setLoading(false);
+        notify('✓ Task request sent. The task remains available until assigned.', 'message');
+        closeModal('modal-take-order');
+        renderAvailableOrders();
+        updateBadges();
+        return;
+      }
+      if (error && !String(error.message || '').toLowerCase().includes('function')) {
+        throw error;
+      }
+    }
+
+    // Fallback for deployments that have not run the RPC SQL yet.
+    const stats = writerBidStats(currentUser.email);
+    const bid = {
+      id: 'BID-' + Date.now().toString(36).toUpperCase(),
+      writer_email: currentUser.email,
+      writer_name: currentUser.name,
+      message: msg,
+      status: 'pending',
+      rating_avg: stats.avg,
+      rating_count: stats.count,
+      at: new Date().toISOString()
+    };
+    const ratings = saveTaskWorkflowMeta(t, { __bids: [...bids, bid] });
+    await dbUpdateTask(t.id, { ratings });
+    t.ratings = ratings;
+    setLoading(false);
+    notify('✓ Task request sent. The task remains available until assigned.', 'message');
+    closeModal('modal-take-order');
+    renderAvailableOrders();
+    updateBadges();
+  } catch (err) {
+    setLoading(false);
+    notify('❌ Bid failed: ' + err.message);
+  }
+};
+
+const _jwSmoothBidOrigEmpViewTask = empViewTask;
+empViewTask = function(id) {
+  _jwSmoothBidOrigEmpViewTask(id);
+  // Ensure latest bid panel is present after all wrappers and live refreshes.
+  const t = getTaskById(id);
+  if (!t) return;
+  if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return;
+
+  const body = document.getElementById('vtm-body');
+  if (!body) return;
+  const oldPanel = body.querySelector('[data-bid-employer-panel]');
+  if (oldPanel) oldPanel.innerHTML = renderEmployerBidPanel(t) + renderReassignStatusPanel(t);
+};
+
+// Refresh bid views during realtime updates.
+const _jwSmoothBidOrigUpdateBadges = updateBadges;
+updateBadges = function() {
+  _jwSmoothBidOrigUpdateBadges();
+  updateAvailableOrderBidUI();
+  attachOwnerBidCountsToTaskRows();
+  attachAdminStudentBidCounts();
+};
 
 </script>
 </body>
