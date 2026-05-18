@@ -5047,6 +5047,64 @@ a[href*="wa.me"].support-footer-btn {
   }
 }
 
+
+/* ── MOBILE DRAWER SIGN-IN BUTTON CONTRAST FIX ─────────────────── */
+.mobile-menu .btn-outline,
+.mobile-nav .btn-outline,
+.mobile-drawer .btn-outline,
+.nav-drawer .btn-outline,
+.drawer-menu .btn-outline,
+.mobile-menu button,
+.mobile-nav button,
+.mobile-drawer button,
+.nav-drawer button,
+.drawer-menu button {
+  color: var(--ink) !important;
+}
+
+.mobile-menu .btn-outline[onclick*="login"],
+.mobile-nav .btn-outline[onclick*="login"],
+.mobile-drawer .btn-outline[onclick*="login"],
+.nav-drawer .btn-outline[onclick*="login"],
+.drawer-menu .btn-outline[onclick*="login"],
+.mobile-menu button[onclick*="openAuthScreen"],
+.mobile-nav button[onclick*="openAuthScreen"],
+.mobile-drawer button[onclick*="openAuthScreen"],
+.nav-drawer button[onclick*="openAuthScreen"],
+.drawer-menu button[onclick*="openAuthScreen"] {
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(42,157,143,.65) !important;
+  box-shadow: 0 14px 32px rgba(42,157,143,.24) !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.18);
+}
+
+/* Extra fallback for mobile menu buttons where the button has no useful class but the text is Sign In. */
+@media (max-width: 900px) {
+  .mobile-menu a,
+  .mobile-menu button,
+  .mobile-nav a,
+  .mobile-nav button,
+  .mobile-drawer a,
+  .mobile-drawer button,
+  .nav-drawer a,
+  .nav-drawer button,
+  .drawer-menu a,
+  .drawer-menu button {
+    opacity: 1 !important;
+  }
+
+  .mobile-signin-strong {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+    color: #ffffff !important;
+    border: 1.5px solid rgba(42,157,143,.65) !important;
+    box-shadow: 0 14px 32px rgba(42,157,143,.24) !important;
+    font-weight: 900 !important;
+    text-shadow: 0 1px 1px rgba(0,0,0,.18);
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -17807,6 +17865,39 @@ renderStudentDashboard = function() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
   setTimeout(run, 500);
+})();
+
+
+
+// ── Strong mobile drawer Sign In button contrast.
+(function strengthenMobileDrawerSignIn() {
+  function isMobileMenuElement(el) {
+    return !!el.closest('.mobile-menu, .mobile-nav, .mobile-drawer, .nav-drawer, .drawer-menu, [id*="mobile"], [class*="mobile"]');
+  }
+
+  function run() {
+    document.querySelectorAll('button, a').forEach(el => {
+      const text = (el.textContent || '').trim().toLowerCase();
+      const onclick = (el.getAttribute('onclick') || '').toLowerCase();
+      const href = (el.getAttribute('href') || '').toLowerCase();
+      const isSignIn = text === 'sign in' || text.includes('sign in');
+      const opensLogin = onclick.includes('login') || onclick.includes('openauthscreen') || href.includes('login');
+      if (isSignIn && (isMobileMenuElement(el) || opensLogin)) {
+        el.classList.add('mobile-signin-strong');
+        el.style.color = '#ffffff';
+        el.style.background = 'linear-gradient(135deg, var(--teal), var(--teal-dark))';
+        el.style.border = '1.5px solid rgba(42,157,143,.65)';
+        el.style.fontWeight = '900';
+        el.style.opacity = '1';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+
+  document.addEventListener('click', () => setTimeout(run, 80));
+  setTimeout(run, 400);
 })();
 
 </script>
