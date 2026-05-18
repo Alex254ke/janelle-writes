@@ -4889,6 +4889,61 @@ body.dark-mode .writer-profile-action-btn {
   color: #8ee4d6 !important;
 }
 
+
+/* ── STUDENT ADMIN MESSAGES: COLOUR OVERLAYS ─────────────────── */
+.message-conversation-card.admin-msg-from-student,
+.message-bubble.admin-msg-from-student {
+  border-left: 5px solid #2a9d8f !important;
+  background: linear-gradient(135deg, rgba(42,157,143,.14), rgba(255,255,255,.96)) !important;
+}
+.message-conversation-card.admin-msg-from-writer,
+.message-bubble.admin-msg-from-writer {
+  border-left: 5px solid #8e44ad !important;
+  background: linear-gradient(135deg, rgba(142,68,173,.12), rgba(255,255,255,.96)) !important;
+}
+.message-conversation-card.admin-msg-from-employer,
+.message-bubble.admin-msg-from-employer {
+  border-left: 5px solid #e67e22 !important;
+  background: linear-gradient(135deg, rgba(230,126,34,.12), rgba(255,255,255,.96)) !important;
+}
+.message-conversation-card.admin-msg-from-admin,
+.message-bubble.admin-msg-from-admin {
+  border-left: 5px solid #0f1923 !important;
+  background: linear-gradient(135deg, rgba(15,25,35,.08), rgba(255,255,255,.96)) !important;
+}
+.admin-msg-role-chip {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-left:6px;
+  padding:2px 7px;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+}
+.admin-msg-role-chip.student { background:rgba(42,157,143,.14); color:#1a7068; }
+.admin-msg-role-chip.writer { background:rgba(142,68,173,.13); color:#7b2fa0; }
+.admin-msg-role-chip.employer { background:rgba(230,126,34,.14); color:#b35f0f; }
+.admin-msg-role-chip.admin { background:rgba(15,25,35,.10); color:#0f1923; }
+body.dark-mode .message-conversation-card.admin-msg-from-student,
+body.dark-mode .message-bubble.admin-msg-from-student {
+  background: linear-gradient(135deg, rgba(42,157,143,.18), #14202b) !important;
+}
+body.dark-mode .message-conversation-card.admin-msg-from-writer,
+body.dark-mode .message-bubble.admin-msg-from-writer {
+  background: linear-gradient(135deg, rgba(142,68,173,.18), #14202b) !important;
+}
+body.dark-mode .message-conversation-card.admin-msg-from-employer,
+body.dark-mode .message-bubble.admin-msg-from-employer {
+  background: linear-gradient(135deg, rgba(230,126,34,.18), #14202b) !important;
+}
+body.dark-mode .message-conversation-card.admin-msg-from-admin,
+body.dark-mode .message-bubble.admin-msg-from-admin {
+  background: linear-gradient(135deg, rgba(255,255,255,.08), #14202b) !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -5754,7 +5809,7 @@ body.dark-mode .writer-profile-action-btn {
     <div class="quick-actions">
       <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post Assignment</div><div class="qa-sub">Share instructions and deadline</div></div>
       <div class="qa-card" onclick="navigate('emp-tasks')"><div class="qa-icon">📋</div><div class="qa-title">My Orders</div><div class="qa-sub">Track progress privately</div></div>
-      <div class="qa-card" onclick="openMessagesInbox()"><div class="qa-icon">💬</div><div class="qa-title">Message Admin</div><div class="qa-sub">Discuss payment and order details</div></div>
+      <div class="qa-card" onclick="openStudentAdminMessages()"><div class="qa-icon">💬</div><div class="qa-title">Message Admin</div><div class="qa-sub">Discuss payment and order details</div></div>
     </div>
     <div class="section-header"><div class="section-title">Recent <span>Assignments</span></div></div>
     <div class="table-wrap">
@@ -12633,6 +12688,122 @@ function handleMessageEnterKey(e) {
 document.addEventListener('keydown', handleAuthEnterKey);
 document.addEventListener('keydown', handleMessageEnterKey);
 
+
+// ══════════════════════════════════════════════════════
+//  WRITER SIGNUP ROLE STABILITY PATCH
+//  Prevents new writer accounts from briefly opening the student platform.
+// ══════════════════════════════════════════════════════
+function jwRoleKeyForEmail(email) {
+  return 'jw_platform_role_' + String(email || '').trim().toLowerCase();
+}
+
+function jwRememberRoleForEmail(email, role) {
+  const r = normalizePlatformRole(role, '');
+  const e = String(email || '').trim().toLowerCase();
+  if (!e || !r) return;
+  try {
+    localStorage.setItem(jwRoleKeyForEmail(e), r);
+    sessionStorage.setItem(jwRoleKeyForEmail(e), r);
+  } catch {}
+}
+
+function jwRememberedRoleForEmail(email) {
+  const e = String(email || '').trim().toLowerCase();
+  if (!e) return '';
+  try {
+    const direct = sessionStorage.getItem(jwRoleKeyForEmail(e)) || localStorage.getItem(jwRoleKeyForEmail(e));
+    if (direct) return normalizePlatformRole(direct, '');
+    const cached = JSON.parse(localStorage.getItem('jw_session') || 'null');
+    if (cached?.email && sameEmail(cached.email, e) && cached.role) {
+      return normalizePlatformRole(cached.role, '');
+    }
+  } catch {}
+  return '';
+}
+
+function jwExplicitAuthRoleForSession(session, options = {}) {
+  const email = String(session?.user?.email || session?.user?.user_metadata?.email || '').toLowerCase();
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  const fromOptions = normalizePlatformRole(options.role, '');
+  const fromGoogle = normalizePlatformRole(localStorage.getItem('jw_google_role'), '');
+  const remembered = jwRememberedRoleForEmail(email);
+  const metaRole = normalizePlatformRole(session?.user?.user_metadata?.role, '');
+
+  if (intent === 'signup') {
+    return fromOptions || fromGoogle || remembered || metaRole || normalizePlatformRole(_selectedRole, 'student');
+  }
+
+  // For login, do not use _selectedRole as fallback because the signup UI defaults to student.
+  // Use the stored/metadata role first so writers do not open the student dashboard.
+  return remembered || metaRole || fromOptions || fromGoogle || 'employer';
+}
+
+const _jwRoleOrigDoSignup = doSignup;
+doSignup = async function() {
+  const email = document.getElementById('signup-email')?.value?.trim().toLowerCase() || '';
+  jwRememberRoleForEmail(email, _selectedRole);
+  return await _jwRoleOrigDoSignup.apply(this, arguments);
+};
+
+const _jwRoleOrigVerify2FA = verify2FA;
+verify2FA = async function() {
+  if (_pending2FA?.email && _pending2FA?.role) {
+    jwRememberRoleForEmail(_pending2FA.email, _pending2FA.role);
+  }
+  return await _jwRoleOrigVerify2FA.apply(this, arguments);
+};
+
+const _jwRoleOrigSaveCurrentSessionUser = saveCurrentSessionUser;
+saveCurrentSessionUser = function(user) {
+  if (user?.email && user?.role) jwRememberRoleForEmail(user.email, user.role);
+  return _jwRoleOrigSaveCurrentSessionUser(forceAdminUserShape(user));
+};
+
+const _jwRoleOrigFinishSecureAuthSession = finishSecureAuthSession;
+finishSecureAuthSession = async function(session, options = {}) {
+  const email = String(session?.user?.email || session?.user?.user_metadata?.email || '').toLowerCase();
+  const stableRole = jwExplicitAuthRoleForSession(session, options);
+  if (email && stableRole) jwRememberRoleForEmail(email, stableRole);
+
+  const ok = await _jwRoleOrigFinishSecureAuthSession(session, {
+    ...options,
+    role: stableRole || options.role || 'employer'
+  });
+
+  // If an early cached session accidentally loaded as student, correct it immediately.
+  const remembered = jwRememberedRoleForEmail(email);
+  if (ok && currentUser?.email && sameEmail(currentUser.email, email) && remembered && currentUser.role !== remembered && !isJwAdmin()) {
+    const previousRole = currentUser.role;
+    currentUser = {
+      ...currentUser,
+      role: remembered,
+      profile: {
+        ...(currentUser.profile || {}),
+        title: roleTitle(remembered),
+        role_label: roleTitle(remembered)
+      }
+    };
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    refreshAppChromeAfterProfileUpdate(previousRole);
+  }
+
+  return ok;
+};
+
+const _jwRoleOrigDoLogout = doLogout;
+doLogout = async function() {
+  const lastEmail = currentUser?.email || '';
+  const lastRole = currentUser?.role || '';
+  if (lastEmail && lastRole) jwRememberRoleForEmail(lastEmail, lastRole);
+  try {
+    localStorage.removeItem('jw_google_intent');
+    localStorage.removeItem('jw_google_role');
+    localStorage.removeItem('jw_google_signup_profile');
+  } catch {}
+  return await _jwRoleOrigDoLogout.apply(this, arguments);
+};
+
+
 // ══════════════════════════════════════════════════════
 //  INIT// ══════════════════════════════════════════════════════
 //  INIT
@@ -17183,6 +17354,182 @@ const _jwProfileButtonOrigUpdateBadges = updateBadges;
 updateBadges = function() {
   _jwProfileButtonOrigUpdateBadges();
   ensureEmployerWriterProfileButtons();
+};
+
+
+
+// ══════════════════════════════════════════════════════
+//  STUDENT MESSAGE ADMIN + ADMIN MESSAGE COLOUR OVERLAYS
+// ══════════════════════════════════════════════════════
+function jwLatestStudentOrderForMessaging() {
+  const list = (typeof myTaskList === 'function' ? myTaskList() : [])
+    .filter(t => isStudentOrder(t))
+    .sort((a, b) => new Date(b.updated_at || b.created_at || b.date || 0) - new Date(a.updated_at || a.created_at || a.date || 0));
+  return list[0] || null;
+}
+
+function jwStudentSupportThreadId() {
+  const emailKey = String(currentUser?.email || 'student')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 32) || 'student';
+  return 'JW-STU-MSG-' + emailKey.toUpperCase();
+}
+
+async function openStudentAdminMessages() {
+  if (currentUser?.role !== 'student') {
+    openMessagesInbox();
+    return;
+  }
+
+  let task = jwLatestStudentOrderForMessaging();
+
+  if (!task) {
+    const id = jwStudentSupportThreadId();
+    task = getTaskById(id);
+
+    if (!task) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const supportTask = {
+        id,
+        subject: 'Student admin support',
+        description: 'Private support conversation between the student and Janelle Writes admin.',
+        instructions: 'Student support conversation.',
+        level: 'Support',
+        style: 'Support',
+        pages: 1,
+        words: 0,
+        deadline: tomorrow.toISOString().slice(0, 10),
+        price_per_page: 0,
+        total: 0,
+        payment: 'unpaid',
+        status: 'pending',
+        posted_by: currentUser.email,
+        posted_by_name: currentUser.name || currentUser.email,
+        taken_by: null,
+        taken_by_name: null,
+        order_type: 'international_student',
+        student_order: true,
+        support_thread: true,
+        instruction_files: [],
+        submitted_files: [],
+        messages: [{
+          id: 'msg-support-open-' + Date.now(),
+          task_id: id,
+          sender_email: currentUser.email,
+          sender_name: currentUser.name || currentUser.email,
+          sender_role: 'student',
+          channel: 'student',
+          body: 'Hello admin, I need help with my student account or assignment.',
+          at: new Date().toISOString(),
+          read_by: [currentUser.email]
+        }],
+        disputes: [],
+        ratings: {}
+      };
+
+      try {
+        setLoading(true);
+        const saved = await dbInsertTaskSafe(supportTask);
+        setLoading(false);
+        upsertLocalTask(saved);
+        tasks = dedupeTasks(tasks);
+        task = saved;
+        notify('💬 Student admin message thread opened.', 'message');
+      } catch (err) {
+        setLoading(false);
+        console.warn('Could not create student support thread:', err);
+        notify('⚠️ Could not create a support thread yet. Please post an assignment first or use WhatsApp support.');
+        openMessagesInbox();
+        return;
+      }
+    }
+  }
+
+  _preselectMessageTaskId = task.id;
+  navigate('messages');
+}
+
+function jwMessageRoleClass(role) {
+  const r = String(role || '').toLowerCase();
+  if (r === 'student') return 'admin-msg-from-student';
+  if (r === 'writer') return 'admin-msg-from-writer';
+  if (r === 'employer') return 'admin-msg-from-employer';
+  if (r === 'admin') return 'admin-msg-from-admin';
+  return 'admin-msg-from-admin';
+}
+
+function jwRoleChipHtml(role) {
+  const r = String(role || 'admin').toLowerCase();
+  const label = r === 'student' ? 'Student' : (r === 'writer' ? 'Writer' : (r === 'employer' ? 'Employer' : 'Admin'));
+  const cls = r === 'student' ? 'student' : (r === 'writer' ? 'writer' : (r === 'employer' ? 'employer' : 'admin'));
+  return `<span class="admin-msg-role-chip ${cls}">${label}</span>`;
+}
+
+function styleAdminStudentMessageOverlays() {
+  if (!isJwAdmin()) return;
+
+  const listWrap = document.getElementById('admin-student-msg-list');
+  if (listWrap) {
+    listWrap.querySelectorAll('.message-conversation-card').forEach(card => {
+      card.classList.remove('admin-msg-from-student', 'admin-msg-from-writer', 'admin-msg-from-employer', 'admin-msg-from-admin');
+      const id = card.querySelector('.message-conversation-id')?.textContent?.trim();
+      const task = getTaskById(id);
+      const last = latestMessage(getTaskMessages(task));
+      const role = last?.sender_role || (isStudentOrder(task) ? 'student' : 'admin');
+      card.classList.add(jwMessageRoleClass(role));
+      const meta = card.querySelector('.message-conversation-meta');
+      if (meta && !meta.querySelector('.admin-msg-role-chip')) {
+        meta.insertAdjacentHTML('beforeend', ' ' + jwRoleChipHtml(role));
+      }
+    });
+  }
+
+  const thread = document.getElementById('admin-student-msg-thread');
+  const task = getTaskById(_adminStudentMessageTaskId);
+  if (thread && task) {
+    const messages = getTaskMessages(task);
+    thread.querySelectorAll('.message-bubble').forEach((bubble, idx) => {
+      const msg = messages[idx];
+      if (!msg) return;
+      bubble.classList.remove('admin-msg-from-student', 'admin-msg-from-writer', 'admin-msg-from-employer', 'admin-msg-from-admin');
+      bubble.classList.add(jwMessageRoleClass(msg.sender_role));
+      const meta = bubble.querySelector('.message-meta');
+      if (meta && !meta.querySelector('.admin-msg-role-chip')) {
+        meta.insertAdjacentHTML('beforeend', ' ' + jwRoleChipHtml(msg.sender_role));
+      }
+    });
+  }
+}
+
+if (typeof renderAdminStudentMessagesPage === 'function') {
+  const _jwStudentColourOrigRenderAdminStudentMessagesPage = renderAdminStudentMessagesPage;
+  renderAdminStudentMessagesPage = function() {
+    _jwStudentColourOrigRenderAdminStudentMessagesPage();
+    setTimeout(styleAdminStudentMessageOverlays, 40);
+  };
+}
+
+if (typeof adminSelectStudentMessageThread === 'function') {
+  const _jwStudentColourOrigAdminSelectStudentMessageThread = adminSelectStudentMessageThread;
+  adminSelectStudentMessageThread = function(id) {
+    _jwStudentColourOrigAdminSelectStudentMessageThread(id);
+    setTimeout(styleAdminStudentMessageOverlays, 40);
+  };
+}
+
+const _jwStudentMsgOrigRenderStudentDashboard = renderStudentDashboard;
+renderStudentDashboard = function() {
+  _jwStudentMsgOrigRenderStudentDashboard();
+  document.querySelectorAll('#page-student-dashboard .qa-card').forEach(card => {
+    const title = card.querySelector('.qa-title')?.textContent?.trim().toLowerCase();
+    if (title === 'message admin') {
+      card.setAttribute('onclick', 'openStudentAdminMessages()');
+      card.style.cursor = 'pointer';
+    }
+  });
 };
 
 </script>
