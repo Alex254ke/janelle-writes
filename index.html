@@ -4467,29 +4467,38 @@ body.dark-mode .bid-writer-name {
 /* ── POLISHED WHATSAPP SUPPORT + PROFILE AVATAR FIX ─────────────────── */
 .floating-support-widget.jw-whatsapp-widget {
   position: fixed;
-  right: 22px;
-  bottom: 22px;
+  right: 24px;
+  bottom: 24px;
   z-index: 2147483000;
   display: flex;
   align-items: center;
   gap: 12px;
 }
+.floating-support-widget.jw-whatsapp-widget::before {
+  content: '';
+  position: absolute;
+  inset: -14px -18px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, .16);
+  box-shadow: 0 0 0 10px rgba(34, 197, 94, .07);
+  pointer-events: none;
+}
 .jw-whatsapp-widget .support-trigger {
   position: relative;
   width: auto;
-  min-width: 176px;
-  height: 64px;
-  padding: 10px 16px 10px 10px;
+  min-width: 170px;
+  height: 58px;
+  padding: 8px 18px 8px 9px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 11px;
-  background: linear-gradient(135deg, #22c55e 0%, #128c4a 100%);
+  gap: 12px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 52%, #128c4a 100%);
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 18px 44px rgba(18, 140, 74, .34), 0 0 0 8px rgba(37, 211, 102, .10);
-  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 18px 40px rgba(18, 140, 74, .34), inset 0 1px 0 rgba(255,255,255,.24);
+  border: 1px solid rgba(255,255,255,.38);
   transition: transform .22s ease, box-shadow .22s ease;
 }
 .jw-whatsapp-widget .support-trigger::after {
@@ -4505,24 +4514,45 @@ body.dark-mode .bid-writer-name {
 .jw-whatsapp-widget .support-trigger:hover,
 .jw-whatsapp-widget .support-trigger:focus {
   transform: translateY(-3px);
-  box-shadow: 0 24px 58px rgba(18, 140, 74, .44), 0 0 0 10px rgba(37, 211, 102, .12);
+  box-shadow: 0 24px 54px rgba(18, 140, 74, .44), inset 0 1px 0 rgba(255,255,255,.28);
   outline: none;
 }
 .support-trigger-icon {
-  width: 42px;
-  height: 42px;
+  position: relative;
+  width: 43px;
+  height: 43px;
   border-radius: 50%;
-  background: rgba(255,255,255,.20);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.34);
+  background: rgba(13, 148, 70, .94);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.28), 0 8px 18px rgba(12, 101, 54, .22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 0;
   flex: 0 0 auto;
+}
+.support-trigger-icon::before {
+  content: '';
+  width: 18px;
+  height: 13px;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: transparent;
+}
+.support-trigger-icon::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  bottom: 12px;
+  width: 7px;
+  height: 7px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-35deg);
+  background: rgba(13, 148, 70, .94);
 }
 .support-trigger-copy {
   display: grid;
-  line-height: 1.1;
+  line-height: 1.05;
   text-align: left;
 }
 .support-trigger-copy strong {
@@ -4531,9 +4561,9 @@ body.dark-mode .bid-writer-name {
   color: #fff;
 }
 .support-trigger-copy small {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: rgba(255,255,255,.78);
+  color: rgba(255,255,255,.86);
 }
 .jw-whatsapp-widget .support-popover {
   right: 188px;
@@ -4573,11 +4603,13 @@ body.dark-mode .bid-writer-name {
   color: #fff;
 }
 @media (max-width: 720px) {
-  .floating-support-widget.jw-whatsapp-widget { right: 14px; bottom: 14px; }
-  .jw-whatsapp-widget .support-trigger { min-width: 58px; width: 58px; height: 58px; padding: 8px; justify-content: center; }
-  .support-trigger-copy { display: none; }
-  .support-trigger-icon { width: 42px; height: 42px; }
-  .jw-whatsapp-widget .support-popover { right: 70px; max-width: 210px; }
+  .floating-support-widget.jw-whatsapp-widget { right: 16px; bottom: 16px; }
+  .floating-support-widget.jw-whatsapp-widget::before { inset: -10px -12px; }
+  .jw-whatsapp-widget .support-trigger { min-width: 154px; height: 54px; padding: 7px 14px 7px 8px; }
+  .support-trigger-icon { width: 40px; height: 40px; }
+  .support-trigger-copy strong { font-size: 13px; }
+  .support-trigger-copy small { font-size: 10px; }
+  .jw-whatsapp-widget .support-popover { right: 0; bottom: 68px; max-width: 210px; }
 }
 
 
@@ -21666,6 +21698,138 @@ doLogout = async function() {
     }
   }, true);
 });
+
+/* ---------- Final task-detail enforcement: no legacy task modals ---------- */
+function jwCloseLegacyTaskDetailModals() {
+  ['modal-view-task', 'modal-take-order'].forEach(id => {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.style.display = '';
+  });
+}
+
+function jwTaskIdFromAnyTaskElement(el) {
+  if (!el) return '';
+  try {
+    if (typeof extractTaskIdFromClickedElement === 'function') {
+      const existing = extractTaskIdFromClickedElement(el);
+      if (existing) return existing;
+    }
+  } catch {}
+
+  const taskSelector = [
+    '.order-link',
+    '.order-card',
+    '.bid-task-card',
+    '.task-card',
+    '[data-task-id]',
+    '[data-order-id]',
+    '[onclick*="empViewTask"]',
+    '[onclick*="openTakeOrderModal"]',
+    '[onclick*="openTaskDetailsPage"]'
+  ].join(', ');
+
+  const node = el.closest?.(taskSelector) || el;
+  const checks = [node, el];
+
+  for (const item of checks) {
+    if (!item) continue;
+    const direct = item.getAttribute?.('data-task-id') || item.dataset?.taskId || item.getAttribute?.('data-order-id') || '';
+    if (direct && typeof getTaskById === 'function' && getTaskById(direct)) return direct;
+
+    const action = String(item.getAttribute?.('onclick') || '');
+    const actionMatch = action.match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/i);
+    if (actionMatch && typeof getTaskById === 'function' && getTaskById(actionMatch[0])) return actionMatch[0];
+
+    const textMatch = String(item.textContent || '').match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/i);
+    if (textMatch && typeof getTaskById === 'function' && getTaskById(textMatch[0])) return textMatch[0];
+  }
+
+  return '';
+}
+
+function jwOpenDedicatedTaskPageOnly(taskId, options = {}) {
+  if (!taskId) return false;
+  const id = String(taskId).trim();
+  if (!id || (typeof getTaskById === 'function' && !getTaskById(id))) return false;
+
+  jwCloseLegacyTaskDetailModals();
+  _activeTaskDetailId = id;
+  try { jwSaveTaskReturnPage(id, options.returnPage); } catch {}
+
+  const wrap = document.getElementById('task-details-wrap');
+  if (wrap) {
+    wrap.innerHTML = typeof taskDetailLoaderHtml === 'function'
+      ? taskDetailLoaderHtml()
+      : jwGlobalLoadingInline('Opening task details...');
+  }
+
+  try { jwShowGlobalLoader('Opening task details...'); } catch {}
+  navigate('task-details', { skipHistory: !!options.skipHistory });
+
+  try {
+    const url = '#task=' + encodeURIComponent(id);
+    if (options.skipHistory) history.replaceState(history.state || {}, document.title, url);
+    else if (location.hash !== url) history.pushState(history.state || {}, document.title, url);
+  } catch {}
+
+  setTimeout(() => {
+    jwCloseLegacyTaskDetailModals();
+    renderTaskDetailsPage();
+    try { jwHideGlobalLoader(); } catch {}
+    setTimeout(jwFixRenderedTaskBackButtons, 80);
+  }, options.fast ? 90 : 360);
+
+  return false;
+}
+
+openTaskDetailsPage = function(taskId, options = {}) {
+  return jwOpenDedicatedTaskPageOnly(taskId, options);
+};
+
+empViewTask = function(id) {
+  return jwOpenDedicatedTaskPageOnly(id);
+};
+
+openTakeOrderModal = function(id) {
+  return jwOpenDedicatedTaskPageOnly(id);
+};
+
+document.addEventListener('click', function(e) {
+  if (!currentUser) return;
+  if (e.target.closest?.('#page-messages, #page-admin-student-messages')) return;
+
+  const taskOpenTrigger = e.target.closest?.([
+    '.order-link',
+    '[data-task-id]',
+    '[data-order-id]',
+    '[onclick*="empViewTask"]',
+    '[onclick*="openTakeOrderModal"]',
+    '[onclick*="openTaskDetailsPage"]'
+  ].join(', '));
+
+  const interactive = e.target.closest?.('button, a, input, textarea, select, label');
+  if (interactive && !taskOpenTrigger) return;
+
+  const candidate = taskOpenTrigger || e.target.closest?.('.order-card, .bid-task-card, .task-card, tr');
+  const id = jwTaskIdFromAnyTaskElement(candidate);
+  if (!id) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+  jwOpenDedicatedTaskPageOnly(id);
+  return false;
+}, true);
+
+document.addEventListener('pointerdown', function(e) {
+  if (!currentUser) return;
+  const trigger = e.target.closest?.('.order-link, [data-task-id], [data-order-id], [onclick*="empViewTask"], [onclick*="openTakeOrderModal"], [onclick*="openTaskDetailsPage"], .order-card, .bid-task-card, .task-card, tr');
+  if (!trigger) return;
+  const id = jwTaskIdFromAnyTaskElement(trigger);
+  if (id) jwSaveTaskReturnPage(id, jwCurrentVisiblePageName());
+}, true);
 
 /* ---------- Boot safety ---------- */
 setTimeout(() => {
