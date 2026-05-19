@@ -4479,14 +4479,14 @@ body.dark-mode .bid-writer-name {
   position: absolute;
   inset: -14px -18px;
   border-radius: 999px;
-  background: rgba(34, 197, 94, .16);
-  box-shadow: 0 0 0 10px rgba(34, 197, 94, .07);
+  background: rgba(82, 196, 184, .16);
+  box-shadow: 0 0 0 10px rgba(82, 196, 184, .07);
   pointer-events: none;
 }
 .jw-whatsapp-widget .support-trigger {
   position: relative;
   width: auto;
-  min-width: 170px;
+  min-width: 128px;
   height: 58px;
   padding: 8px 18px 8px 9px;
   border-radius: 999px;
@@ -4494,11 +4494,11 @@ body.dark-mode .bid-writer-name {
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 52%, #128c4a 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #f4fffd 0%, #e2f8f4 100%);
+  color: #123c3a;
   text-decoration: none;
-  box-shadow: 0 18px 40px rgba(18, 140, 74, .34), inset 0 1px 0 rgba(255,255,255,.24);
-  border: 1px solid rgba(255,255,255,.38);
+  box-shadow: 0 18px 38px rgba(25, 88, 84, .20), inset 0 1px 0 rgba(255,255,255,.78);
+  border: 1px solid rgba(42, 157, 143, .42);
   transition: transform .22s ease, box-shadow .22s ease;
 }
 .jw-whatsapp-widget .support-trigger::after {
@@ -4506,7 +4506,7 @@ body.dark-mode .bid-writer-name {
   position: absolute;
   inset: -7px;
   border-radius: inherit;
-  border: 1px solid rgba(37, 211, 102, .32);
+  border: 1px solid rgba(82, 196, 184, .34);
   opacity: .85;
   animation: jwSupportPulse 2.8s ease-out infinite;
   pointer-events: none;
@@ -4514,7 +4514,7 @@ body.dark-mode .bid-writer-name {
 .jw-whatsapp-widget .support-trigger:hover,
 .jw-whatsapp-widget .support-trigger:focus {
   transform: translateY(-3px);
-  box-shadow: 0 24px 54px rgba(18, 140, 74, .44), inset 0 1px 0 rgba(255,255,255,.28);
+  box-shadow: 0 24px 52px rgba(25, 88, 84, .28), inset 0 1px 0 rgba(255,255,255,.9);
   outline: none;
 }
 .support-trigger-icon {
@@ -4522,33 +4522,23 @@ body.dark-mode .bid-writer-name {
   width: 43px;
   height: 43px;
   border-radius: 50%;
-  background: rgba(13, 148, 70, .94);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.28), 0 8px 18px rgba(12, 101, 54, .22);
+  background: linear-gradient(135deg, #0f766e, #123c3a);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 8px 18px rgba(25, 88, 84, .22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 0;
   flex: 0 0 auto;
 }
-.support-trigger-icon::before {
-  content: '';
-  width: 18px;
-  height: 13px;
-  border: 2px solid #fff;
-  border-radius: 4px;
-  background: transparent;
-}
-.support-trigger-icon::after {
-  content: '';
-  position: absolute;
-  left: 15px;
-  bottom: 12px;
-  width: 7px;
-  height: 7px;
-  border-left: 2px solid #fff;
-  border-bottom: 2px solid #fff;
-  transform: rotate(-35deg);
-  background: rgba(13, 148, 70, .94);
+.support-trigger-icon svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .support-trigger-copy {
   display: grid;
@@ -4558,7 +4548,7 @@ body.dark-mode .bid-writer-name {
 .support-trigger-copy strong {
   font-size: 14px;
   font-weight: 900;
-  color: #fff;
+  color: #123c3a;
 }
 .support-trigger-copy small {
   font-size: 11px;
@@ -4605,7 +4595,7 @@ body.dark-mode .bid-writer-name {
 @media (max-width: 720px) {
   .floating-support-widget.jw-whatsapp-widget { right: 16px; bottom: 16px; }
   .floating-support-widget.jw-whatsapp-widget::before { inset: -10px -12px; }
-  .jw-whatsapp-widget .support-trigger { min-width: 154px; height: 54px; padding: 7px 14px 7px 8px; }
+  .jw-whatsapp-widget .support-trigger { min-width: 122px; height: 54px; padding: 7px 14px 7px 8px; }
   .support-trigger-icon { width: 40px; height: 40px; }
   .support-trigger-copy strong { font-size: 13px; }
   .support-trigger-copy small { font-size: 10px; }
@@ -7963,8 +7953,14 @@ body.dark .task-detail-stat {
     <small>Open a chat with Janelle Writes support.</small>
   </a>
   <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">
-    <span class="support-trigger-icon">💬</span>
-    <span class="support-trigger-copy"><strong>Live Support</strong><small>WhatsApp</small></span>
+    <span class="support-trigger-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M5.5 18.5l.8-3.1A7.5 7.5 0 1 1 9 17.4l-3.5 1.1z"></path>
+        <path d="M8.5 10h7"></path>
+        <path d="M8.5 13h4.6"></path>
+      </svg>
+    </span>
+    <span class="support-trigger-copy"><strong>Support</strong></span>
   </a>
 </div>
 
@@ -12030,8 +12026,8 @@ function renderEmpDashboard() {
     return;
   }
   tbody.innerHTML = recent.map(t => `
-    <tr onclick="empViewTask('${t.id}')" style="cursor:pointer;">
-      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
+    <tr data-task-id="${escJS(t.id)}" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'emp-dashboard' })" style="cursor:pointer;">
+      <td><button class="order-link" data-task-id="${escJS(t.id)}" onclick="event.stopPropagation();openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'emp-dashboard' })">${t.id}</button></td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);">${fmtDate(t.deadline)}</td>
@@ -12066,8 +12062,8 @@ function renderStudentDashboard() {
     return;
   }
   tbody.innerHTML = recent.map(t => `
-    <tr onclick="empViewTask('${t.id}')" style="cursor:pointer;">
-      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${esc(t.id)}</button></td>
+    <tr data-task-id="${escJS(t.id)}" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'student-dashboard' })" style="cursor:pointer;">
+      <td><button class="order-link" data-task-id="${escJS(t.id)}" onclick="event.stopPropagation();openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'student-dashboard' })">${esc(t.id)}</button></td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject || '')}</td>
       <td><span class="badge badge-style">${esc(t.style || '')}</span></td>
       <td style="color:var(--rust);">${fmtDate(t.deadline)}</td>
@@ -12106,7 +12102,7 @@ function renderEmpTasks() {
   }
   tbody.innerHTML = list.map(t => `
     <tr>
-      <td><button class="order-link" onclick="event.stopPropagation();empViewTask('${t.id}')">${t.id}</button></td>
+      <td><button class="order-link" data-task-id="${escJS(t.id)}" onclick="event.stopPropagation();openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'emp-tasks' })">${t.id}</button></td>
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
       <td><span class="badge badge-style">${t.style}</span></td>
       <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
@@ -12116,7 +12112,7 @@ function renderEmpTasks() {
       <td style="font-weight:600;">KES ${t.total.toLocaleString()}</td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="empViewTask('${t.id}')">View ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
+          <button class="btn btn-outline btn-sm" data-task-id="${escJS(t.id)}" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'emp-tasks' })">Open Page ${(()=>{ const f=parseSubmittedFiles(t.submitted_files); return f.length||t.submitted_link||t.submitted_text?'<span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:3px;">📎 '+((f.length)||'link')+'</span>':'' })()}</button>
           ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">Profile</button><button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>${!hasSubmittedWork(t) && !['completed','cancelled'].includes(t.status) ? `<button class="btn btn-outline btn-sm" onclick="employerSendReminder('${t.id}')">Remind</button>` : ''}` : ''}
           ${!hasOpenDispute(t) && t.taken_by ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : ''}
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
@@ -12133,6 +12129,9 @@ function renderEmpTasks() {
 let _activeTaskModalId = null;
 
 function empViewTask(id) {
+  if (typeof openTaskDetailsPage === 'function') {
+    return openTaskDetailsPage(id, { returnPage: jwCurrentVisiblePageName?.() || 'emp-tasks' });
+  }
   _activeTaskModalId = id;
   const t = tasks.find(t => t.id === id);
   if (!t) return;
@@ -12393,6 +12392,9 @@ function renderAvailableOrders() {
 }
 
 function openTakeOrderModal(id) {
+  if (typeof openTaskDetailsPage === 'function') {
+    return openTaskDetailsPage(id, { returnPage: jwCurrentVisiblePageName?.() || 'writer-available' });
+  }
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   _pendingTakeId = id;
@@ -17220,8 +17222,8 @@ updateFloatingSupportForRole = function() {
   const isStudent = currentUser?.role === 'student';
   const strong = document.querySelector('.support-trigger-copy strong');
   const small = document.querySelector('.support-trigger-copy small');
-  if (strong) strong.textContent = isStudent ? 'Student Support' : 'Live Support';
-  if (small) small.textContent = 'WhatsApp';
+  if (strong) strong.textContent = 'Support';
+  if (small) small.remove();
 };
 
 setTimeout(() => {
@@ -21784,16 +21786,45 @@ function jwOpenDedicatedTaskPageOnly(taskId, options = {}) {
   return false;
 }
 
+function jwTaskIdFromLocation() {
+  try {
+    const match = String(location.hash || '').match(/^#task=(.+)$/);
+    return match ? decodeURIComponent(match[1]) : '';
+  } catch {
+    return '';
+  }
+}
+
+function jwTaskDetailUrl(taskId) {
+  const base = String(window.location.href || '').split('#')[0];
+  return base + '#task=' + encodeURIComponent(String(taskId || '').trim());
+}
+
+function jwOpenTaskDetailInNewTab(taskId) {
+  const id = String(taskId || '').trim();
+  if (!id) return false;
+  const opened = window.open(jwTaskDetailUrl(id), '_blank');
+  if (opened) {
+    try { opened.opener = null; } catch {}
+    return false;
+  }
+
+  return jwOpenDedicatedTaskPageOnly(id, { sameTab: true });
+}
+
 openTaskDetailsPage = function(taskId, options = {}) {
-  return jwOpenDedicatedTaskPageOnly(taskId, options);
+  if (options.sameTab || options.inPlace || options.fromHash || options.skipHistory) {
+    return jwOpenDedicatedTaskPageOnly(taskId, options);
+  }
+  return jwOpenTaskDetailInNewTab(taskId);
 };
 
 empViewTask = function(id) {
-  return jwOpenDedicatedTaskPageOnly(id);
+  return jwOpenTaskDetailInNewTab(id);
 };
 
 openTakeOrderModal = function(id) {
-  return jwOpenDedicatedTaskPageOnly(id);
+  return jwOpenTaskDetailInNewTab(id);
 };
 
 document.addEventListener('click', function(e) {
@@ -21819,7 +21850,7 @@ document.addEventListener('click', function(e) {
   e.preventDefault();
   e.stopPropagation();
   if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-  jwOpenDedicatedTaskPageOnly(id);
+  jwOpenTaskDetailInNewTab(id);
   return false;
 }, true);
 
@@ -21831,6 +21862,84 @@ document.addEventListener('pointerdown', function(e) {
   if (id) jwSaveTaskReturnPage(id, jwCurrentVisiblePageName());
 }, true);
 
+let __jwTaskHashPoll = null;
+
+function jwShowTaskHashWaitingPage(taskId) {
+  if (!currentUser || !taskId) return;
+  const wrap = document.getElementById('task-details-wrap');
+  try { navigate('task-details', { skipHistory: true }); } catch {}
+  if (wrap) {
+    wrap.innerHTML = typeof taskDetailLoaderHtml === 'function'
+      ? taskDetailLoaderHtml()
+      : jwGlobalLoadingInline('Opening task details...');
+  }
+  try { jwShowGlobalLoader('Loading task details...'); } catch {}
+}
+
+function jwOpenTaskFromHashWhenReady() {
+  const taskId = jwTaskIdFromLocation();
+  if (!taskId || !currentUser) return false;
+
+  if (typeof getTaskById === 'function' && getTaskById(taskId)) {
+    jwOpenDedicatedTaskPageOnly(taskId, { fast: true, skipHistory: true, fromHash: true, sameTab: true });
+    return true;
+  }
+
+  jwShowTaskHashWaitingPage(taskId);
+  return false;
+}
+
+function jwStartTaskHashPolling() {
+  if (__jwTaskHashPoll) return;
+  let attempts = 0;
+  jwOpenTaskFromHashWhenReady();
+  __jwTaskHashPoll = setInterval(() => {
+    attempts += 1;
+    if (jwOpenTaskFromHashWhenReady() || attempts > 80) {
+      clearInterval(__jwTaskHashPoll);
+      __jwTaskHashPoll = null;
+      if (attempts > 80) {
+        try { jwHideGlobalLoader(); } catch {}
+        notify('⚠️ The task is still loading. Please refresh this tab if it does not appear.');
+      }
+    }
+  }, 500);
+}
+
+if (typeof refreshTasks === 'function' && !refreshTasks.__jwFinalFastLoader) {
+  const __jwFinalRefreshTasks = refreshTasks;
+  refreshTasks = async function() {
+    let loaderTimer = null;
+    const shouldShowLoader = !!currentUser && document.getElementById('app-shell')?.style.display !== 'none';
+    if (shouldShowLoader) {
+      loaderTimer = setTimeout(() => {
+        try { jwShowGlobalLoader(jwTaskIdFromLocation() ? 'Loading task details...' : 'Loading tasks...'); } catch {}
+      }, 350);
+    }
+
+    try {
+      tasks = dedupeTasks(await dbGetTasks());
+      updateBadges();
+      setTimeout(() => { try { autoMarkLateTasks(true); } catch {} }, 900);
+      setTimeout(() => { try { autoSendTaskReminders(true); } catch {} }, 1800);
+      setTimeout(jwOpenTaskFromHashWhenReady, 40);
+      return tasks;
+    } finally {
+      if (loaderTimer) clearTimeout(loaderTimer);
+      if (!jwTaskIdFromLocation()) {
+        setTimeout(() => { try { jwHideGlobalLoader(); } catch {} }, 180);
+      }
+    }
+  };
+  refreshTasks.__jwFinalFastLoader = true;
+  refreshTasks.__jwPreviousRefresh = __jwFinalRefreshTasks;
+}
+
+if (jwTaskIdFromLocation()) {
+  setTimeout(jwStartTaskHashPolling, 250);
+  setTimeout(jwStartTaskHashPolling, 1200);
+}
+
 /* ---------- Boot safety ---------- */
 setTimeout(() => {
   jwRemoveFooterSupportButtons();
@@ -21840,7 +21949,8 @@ setTimeout(() => {
     const match = raw.match(/^#task=(.+)$/);
     if (match && currentUser) {
       const id = decodeURIComponent(match[1]);
-      if (typeof getTaskById === 'function' && getTaskById(id)) openTaskDetailsPage(id, { fast: true, skipHistory: true });
+      if (typeof getTaskById === 'function' && getTaskById(id)) openTaskDetailsPage(id, { fast: true, skipHistory: true, fromHash: true, sameTab: true });
+      else jwStartTaskHashPolling();
     }
   } catch {}
 }, 900);
