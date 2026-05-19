@@ -3505,7 +3505,7 @@ body.dark-mode .google-auth-separator::after {
 }
 .app-support-footer-grid {
   display: grid;
-  grid-template-columns: 1.05fr 1.55fr auto;
+  grid-template-columns: minmax(220px, 1.05fr) minmax(280px, 1.55fr);
   gap: 24px;
   align-items: center;
 }
@@ -4475,6 +4475,7 @@ body.dark-mode .bid-writer-name {
   gap: 12px;
 }
 .jw-whatsapp-widget .support-trigger {
+  position: relative;
   width: auto;
   min-width: 176px;
   height: 64px;
@@ -4491,6 +4492,16 @@ body.dark-mode .bid-writer-name {
   border: 1px solid rgba(255,255,255,.55);
   transition: transform .22s ease, box-shadow .22s ease;
 }
+.jw-whatsapp-widget .support-trigger::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: inherit;
+  border: 1px solid rgba(37, 211, 102, .32);
+  opacity: .85;
+  animation: jwSupportPulse 2.8s ease-out infinite;
+  pointer-events: none;
+}
 .jw-whatsapp-widget .support-trigger:hover,
 .jw-whatsapp-widget .support-trigger:focus {
   transform: translateY(-3px);
@@ -4501,7 +4512,8 @@ body.dark-mode .bid-writer-name {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.20);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.34);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4529,6 +4541,11 @@ body.dark-mode .bid-writer-name {
   min-width: 236px;
   padding: 14px 16px;
   border-radius: 18px;
+}
+@keyframes jwSupportPulse {
+  0% { transform: scale(.96); opacity: .72; }
+  55% { transform: scale(1.08); opacity: .14; }
+  100% { transform: scale(1.12); opacity: 0; }
 }
 .user-avatar,
 .profile-mini-avatar,
@@ -6377,9 +6394,6 @@ body.dark .task-detail-stat {
           <a class="footer-contact-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">
             <span class="footer-icon">📸</span> @Janelle_assignments
           </a>
-          <a class="footer-contact-link" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener">
-            <span class="footer-icon">💬</span> +254 723 156 622
-          </a>
           <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
             <span class="footer-icon">✉️</span> janellewrites979@gmail.com
           </a>
@@ -6537,12 +6551,12 @@ body.dark .task-detail-stat {
     <!-- SIGNUP FORM -->
     <div id="signup-form" style="display:none;">
       <div class="auth-role-select">
-        <div class="role-card selected" id="role-student" onclick="selectRole('student')">
+        <div class="role-card" id="role-student" onclick="selectRole('student')">
           <div class="role-icon">🎓</div>
           <div class="role-name">International Student</div>
           <div class="role-desc">Post assignments with admin-guided support</div>
         </div>
-        <div class="role-card" id="role-employer" onclick="selectRole('employer')">
+        <div class="role-card selected" id="role-employer" onclick="selectRole('employer')">
           <div class="role-icon">🏢</div>
           <div class="role-name">Employer</div>
           <div class="role-desc">Post writing tasks & manage orders</div>
@@ -6557,7 +6571,7 @@ body.dark .task-detail-stat {
         <label class="form-label">Full Name</label>
         <input type="text" class="form-input" id="signup-name" placeholder="Your full name">
       </div>
-      <div class="student-signup-fields" id="student-signup-fields" style="display:block;">
+      <div class="student-signup-fields" id="student-signup-fields" style="display:none;">
         <div class="form-group">
           <label class="form-label">Country</label>
           <input type="text" class="form-input" id="signup-country" placeholder="e.g. United States">
@@ -7663,7 +7677,6 @@ body.dark .task-detail-stat {
         <div class="app-support-meta">Janelle Writes keeps order conversations, files, ratings, invoices, and support records connected to the right account.</div>
       </div>
 
-      <a class="btn btn-primary app-support-whatsapp" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener">💬 WhatsApp Support</a>
     </div>
     <div class="footer-rights">© 2026 Janelle Writes. All rights reserved.</div>
   </footer>
@@ -8291,7 +8304,7 @@ function startGoogleAuth(intent = 'login') {
   try {
     localStorage.setItem('jw_google_intent', intent);
     if (intent === 'signup') {
-      localStorage.setItem('jw_google_role', normalizePlatformRole(_selectedRole, 'student'));
+      localStorage.setItem('jw_google_role', normalizePlatformRole(_selectedRole, 'employer'));
       localStorage.setItem('jw_google_signup_profile', JSON.stringify(studentSignupExtraProfile()));
     } else {
       localStorage.removeItem('jw_google_role');
@@ -8314,7 +8327,7 @@ function startGoogleAuth(intent = 'login') {
 }
 
 function googleProfileFromSession(session) {
-  return authProfileFromSession(session, localStorage.getItem('jw_google_role') || _selectedRole || 'student');
+  return authProfileFromSession(session, localStorage.getItem('jw_google_role') || _selectedRole || 'employer');
 }
 
 async function createGooglePlatformUser(g, role) {
@@ -8339,7 +8352,7 @@ async function createGooglePlatformUser(g, role) {
 
 async function finishGoogleLoginWithSession(session) {
   const intent = localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = normalizePlatformRole(localStorage.getItem('jw_google_role') || _selectedRole, 'student');
+  const selectedRole = normalizePlatformRole(localStorage.getItem('jw_google_role') || _selectedRole, 'employer');
   return await finishSecureAuthSession(session, { intent, role: selectedRole });
 }
 
@@ -8597,7 +8610,7 @@ function localPlatformUserFromAuth(authUser, role = 'employer') {
     id: authUser.auth_id || authUser.email,
     email: authUser.email,
     name: authUser.name || authUser.email,
-    role: normalizePlatformRole(role || authUser.role, 'student'),
+    role: normalizePlatformRole(role || authUser.role, 'employer'),
     profile
   };
 }
@@ -8617,7 +8630,7 @@ function platformUserFromRecord(record, authUser, selectedRole) {
   const row = record || localPlatformUserFromAuth(authUser, selectedRole);
   const email = String(row.email || authUser.email || '').toLowerCase();
   const profile = normalizeProfile(row.profile);
-  const selected = normalizePlatformRole(selectedRole || authUser.role, 'student');
+  const selected = normalizePlatformRole(selectedRole || authUser.role, 'employer');
   const rowRole = normalizePlatformRole(row.role, selected);
   const shouldPreserveStudent =
     selected === 'student' &&
@@ -8661,7 +8674,7 @@ function refreshAppChromeAfterProfileUpdate(previousRole) {
 }
 
 async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
-  selectedRole = normalizePlatformRole(selectedRole, 'student');
+  selectedRole = normalizePlatformRole(selectedRole, 'employer');
   const extraProfile = pendingSignupProfileForEmail(authUser.email);
   try {
     return await secureUpsertPlatformUser({
@@ -8691,7 +8704,7 @@ async function createOrRecoverPlatformUser(authUser, selectedRole, intent) {
 }
 
 async function safeLinkExistingPlatformUser(existing, authUser, selectedRole) {
-  selectedRole = normalizePlatformRole(selectedRole, existing?.role || 'student');
+  selectedRole = normalizePlatformRole(selectedRole, existing?.role || 'employer');
   try {
     const oldProfile = normalizeProfile(existing.profile);
     const linkedExisting = await secureUpsertPlatformUser({
@@ -8724,20 +8737,20 @@ async function safeLinkExistingPlatformUser(existing, authUser, selectedRole) {
   return existing;
 }
 
-function authProfileFromSession(session, fallbackRole = 'student') {
+function authProfileFromSession(session, fallbackRole = 'employer') {
   const user = session?.user || {};
   const meta = user.user_metadata || {};
   const app = user.app_metadata || {};
   const provider = app.provider || 'email';
   const email = String(user.email || meta.email || '').toLowerCase();
   const name = meta.full_name || meta.name || email.split('@')[0] || 'User';
-  const role = normalizePlatformRole(meta.role || fallbackRole, 'student');
+  const role = normalizePlatformRole(meta.role || fallbackRole, 'employer');
   const photo = meta.avatar_url || meta.picture || '';
   return { email, name, role, photo, provider, auth_id: user.id, email_confirmed_at: user.email_confirmed_at };
 }
 
 async function finishSecureAuthSession(session, options = {}) {
-  const authUser = authProfileFromSession(session, options.role || 'student');
+  const authUser = authProfileFromSession(session, options.role || 'employer');
 
   if (!authUser.email) {
     notify('❌ No verified email was returned. Please try another sign-in method.');
@@ -8750,7 +8763,7 @@ async function finishSecureAuthSession(session, options = {}) {
   }
 
   const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
-  const selectedRole = normalizePlatformRole(options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole, 'student');
+  const selectedRole = normalizePlatformRole(options.role || localStorage.getItem('jw_google_role') || authUser.role || _selectedRole, 'employer');
   let existing = null;
   try {
     existing = await promiseWithTimeout(dbGetUserByEmail(authUser.email), 1600, 'Profile lookup');
@@ -8788,7 +8801,7 @@ async function finishSecureAuthSession(session, options = {}) {
 //  AUTH
 // ══════════════════════════════════════════════════════
 let _authMode = 'login';
-let _selectedRole = 'student';
+let _selectedRole = 'employer';
 let _pendingGoogleAuth = null;
 
 function switchAuthTab(tab) {
@@ -13890,10 +13903,10 @@ function jwExplicitAuthRoleForSession(session, options = {}) {
   const metaRole = normalizePlatformRole(session?.user?.user_metadata?.role, '');
 
   if (intent === 'signup') {
-    return fromOptions || fromGoogle || remembered || metaRole || normalizePlatformRole(_selectedRole, 'student');
+    return fromOptions || fromGoogle || remembered || metaRole || normalizePlatformRole(_selectedRole, 'employer');
   }
 
-  // For login, do not use _selectedRole as fallback because the signup UI defaults to student.
+  // For login, do not use _selectedRole as fallback; use the stored database/user-metadata role.
   // Use the stored/metadata role first so writers do not open the student dashboard.
   return remembered || metaRole || fromOptions || fromGoogle || 'employer';
 }
@@ -21393,12 +21406,30 @@ function jwExplicitSignupRole() {
 }
 
 function jwSafeRoleForAuth(authUser, existing, options = {}) {
-  if (existing?.role) return normalizePlatformRole(existing.role, 'employer');
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  const existingRole = normalizePlatformRole(existing?.role, '');
+  const existingProfile = normalizeProfile(existing?.profile);
+  const authRole = normalizePlatformRole(authUser?.role, '');
+  const optionRole = normalizePlatformRole(options.role, '');
+  const pendingProfile = pendingSignupProfileForEmail(authUser?.email);
+  const pendingStudent =
+    existingProfile?.student_private === true ||
+    pendingProfile?.student_private === true ||
+    authRole === 'student' ||
+    (intent === 'signup' && optionRole === 'student') ||
+    jwExplicitSignupRole() === 'student';
+
+  if (existingRole === 'admin' || isJwAdminEmail(authUser?.email)) return 'admin';
+  if (existingRole === 'writer') return 'writer';
+  if (existingRole === 'student') return 'student';
+  if (existingRole === 'employer' && pendingStudent) return 'student';
+  if (existingRole) return existingRole;
+  if (pendingStudent) return 'student';
+
   const cachedRole = jwCachedRoleForEmail(authUser.email);
   if (cachedRole) return cachedRole;
   const signupRole = jwExplicitSignupRole();
   if (signupRole) return signupRole;
-  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
   if (intent === 'signup') return normalizePlatformRole(options.role || authUser.role || 'employer', 'employer');
   return normalizePlatformRole(authUser.role || 'employer', 'employer');
 }
