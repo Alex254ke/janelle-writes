@@ -5560,6 +5560,27 @@ body.dark .task-detail-stat-value {
   color: #f4fbfa;
 }
 
+
+/* ── LOGOUT / LANDING FREEZE SAFETY RESET ─────────────────── */
+body.jw-logged-out-safe {
+  overflow: auto !important;
+  pointer-events: auto !important;
+}
+
+body.jw-logged-out-safe #landing-page {
+  display: block !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+body.jw-logged-out-safe #app-shell,
+body.jw-logged-out-safe #auth-screen,
+body.jw-logged-out-safe .modal-overlay.open,
+body.jw-logged-out-safe .session-modal.open {
+  pointer-events: none;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -19373,6 +19394,225 @@ document.addEventListener('pointerdown', function(e) {
   const clickedTask = e.target.closest('.order-link, .order-card, .bid-task-card, tr, .task-card, [data-task-id]');
   if (clickedTask) jwSaveTaskReturnPage('', active);
 }, true);
+
+
+
+// ══════════════════════════════════════════════════════
+//  LOGOUT / LANDING FREEZE FIX
+//  Fully clears app/mobile/modal state so landing page stays clickable after logout.
+// ══════════════════════════════════════════════════════
+function jwSafeElement(id) {
+  return document.getElementById(id);
+}
+
+function jwStopBackgroundWorkForLogout() {
+  try { if (typeof stopSessionGuard === 'function') stopSessionGuard(); } catch {}
+  try { clearInterval(window._otpTimerInterval || _otpTimerInterval); } catch {}
+  try { _otpTimerInterval = null; } catch {}
+  try { _otpResendCooldown = false; } catch {}
+  try { _dashboardDataRefreshRunning = false; } catch {}
+  try { _reminderAutoRunning = false; } catch {}
+  try { _lateAutoMarkRunning = false; } catch {}
+  try { _backLogoutArmed = false; } catch {}
+  try { _appHistoryReady = false; } catch {}
+  try {
+    if (typeof _realtimeSub !== 'undefined' && _realtimeSub) {
+      _realtimeSub.unsubscribe();
+      _realtimeSub = null;
+    }
+  } catch {}
+}
+
+function jwCloseAllBlockingUi() {
+  try { if (typeof closeLandingMenu === 'function') closeLandingMenu(); } catch {}
+  try { if (typeof closeMobileMenu === 'function') closeMobileMenu(); } catch {}
+  try { if (typeof hideAuthCallbackLoading === 'function') hideAuthCallbackLoading(); } catch {}
+  try { if (typeof hideSessionModal === 'function') hideSessionModal(); } catch {}
+
+  document.body.classList.remove('nav-open', 'modal-open', 'sidebar-open', 'menu-open');
+  document.body.classList.add('jw-logged-out-safe');
+  document.body.style.overflow = '';
+  document.body.style.pointerEvents = '';
+  document.documentElement.style.overflow = '';
+
+  const sidebar = jwSafeElement('sidebar');
+  const mobileOverlay = jwSafeElement('mobile-overlay');
+  const landingMenu = jwSafeElement('landing-mobile-menu');
+  if (sidebar) sidebar.classList.remove('open');
+  if (mobileOverlay) mobileOverlay.classList.remove('open');
+  if (landingMenu) landingMenu.classList.remove('open');
+
+  document.querySelectorAll('.modal-overlay, .session-modal, .modal, .drawer, .offcanvas').forEach(el => {
+    el.classList.remove('open', 'active', 'show');
+    el.setAttribute('aria-hidden', 'true');
+    if (el.classList.contains('modal-overlay') || el.classList.contains('session-modal')) {
+      el.style.display = 'none';
+    }
+  });
+
+  document.querySelectorAll('.mobile-inline-bid-detail').forEach(el => el.remove());
+  document.querySelectorAll('.jw-mobile-inline-message-panel').forEach(el => {
+    el.classList.remove('jw-mobile-inline-message-panel');
+  });
+  document.querySelectorAll('.message-conversation-list').forEach(el => {
+    el.classList.remove('jw-mobile-inline-message-active');
+  });
+}
+
+function jwResetButtonsAfterLogout() {
+  try {
+    document.querySelectorAll('button, input, textarea, select').forEach(el => {
+      if (el.dataset && el.dataset.origText) {
+        el.innerHTML = el.dataset.origText;
+        delete el.dataset.origText;
+      }
+      if (el.matches('button')) el.disabled = false;
+    });
+  } catch {}
+}
+
+function jwShowCleanLandingAfterLogout() {
+  jwCloseAllBlockingUi();
+  jwResetButtonsAfterLogout();
+
+  const landing = jwSafeElement('landing-page');
+  const auth = jwSafeElement('auth-screen');
+  const app = jwSafeElement('app-shell');
+
+  if (landing) {
+    landing.style.display = 'block';
+    landing.removeAttribute('aria-hidden');
+    landing.style.pointerEvents = 'auto';
+    landing.style.opacity = '1';
+    landing.style.visibility = 'visible';
+  }
+  if (auth) {
+    auth.style.display = 'none';
+    auth.setAttribute('aria-hidden', 'true');
+  }
+  if (app) {
+    app.style.display = 'none';
+    app.setAttribute('aria-hidden', 'true');
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+  try {
+    const email = jwSafeElement('login-email');
+    const pass = jwSafeElement('login-password');
+    if (email) email.value = '';
+    if (pass) pass.value = '';
+  } catch {}
+
+  try { window.scrollTo({ top: 0, behavior: 'auto' }); } catch { window.scrollTo(0, 0); }
+
+  try {
+    history.replaceState({ jwApp: false, page: 'landing' }, '', window.location.pathname + window.location.search);
+  } catch {}
+
+  try { if (typeof finishInitialPageBoot === 'function') finishInitialPageBoot(false); } catch {}
+
+  // Self-heal check: if anything still blocks the landing page after logout, remove it again.
+  setTimeout(() => {
+    jwCloseAllBlockingUi();
+    const landingVisible = landing && getComputedStyle(landing).display !== 'none';
+    const appHidden = !app || getComputedStyle(app).display === 'none';
+    if (!landingVisible || !appHidden) {
+      if (landing) landing.style.display = 'block';
+      if (app) app.style.display = 'none';
+      if (auth) auth.style.display = 'none';
+    }
+  }, 350);
+
+  setTimeout(() => {
+    jwCloseAllBlockingUi();
+    document.body.classList.remove('jw-logged-out-safe');
+  }, 1400);
+}
+
+// Patch landing display too, so any normal call to showLandingPage gets the same cleanup.
+if (typeof showLandingPage === 'function' && !showLandingPage.__jwFreezeSafePatched) {
+  const _jwOriginalShowLandingPage = showLandingPage;
+  showLandingPage = function() {
+    try {
+      const result = _jwOriginalShowLandingPage.apply(this, arguments);
+      jwShowCleanLandingAfterLogout();
+      return result;
+    } catch (err) {
+      console.warn('showLandingPage failed; using clean fallback.', err);
+      jwShowCleanLandingAfterLogout();
+    }
+  };
+  showLandingPage.__jwFreezeSafePatched = true;
+}
+
+// Strong logout override. It avoids leaving #login in the URL, which was causing confusing auth/landing state.
+if (typeof doLogout === 'function' && !doLogout.__jwFreezeSafePatched) {
+  const _jwOriginalDoLogout = doLogout;
+  doLogout = async function() {
+    jwStopBackgroundWorkForLogout();
+
+    try {
+      if (typeof _sb !== 'undefined' && _sb?.auth) {
+        await _sb.auth.signOut();
+      }
+    } catch (err) {
+      console.warn('Supabase sign-out warning:', err);
+    }
+
+    try {
+      currentUser = null;
+      tasks = [];
+      _currentPage = null;
+      _activeTaskDetailId = '';
+      _preselectMessageTaskId = null;
+    } catch {}
+
+    try {
+      localStorage.removeItem('jw_session');
+      localStorage.removeItem('jw_google_intent');
+      localStorage.removeItem('jw_google_role');
+      localStorage.removeItem('jw_google_signup_profile');
+      localStorage.removeItem('jw_password_recovery_pending');
+      localStorage.removeItem('jw_password_recovery_email');
+    } catch {}
+
+    try {
+      sessionStorage.removeItem('jw_task_detail_return_page');
+      sessionStorage.removeItem('jw_password_recovery_email');
+    } catch {}
+
+    jwShowCleanLandingAfterLogout();
+
+    try { notify('👋 Signed out successfully'); } catch {}
+    return false;
+  };
+  doLogout.__jwFreezeSafePatched = true;
+}
+
+// If the old browser-back guard sends the user to #login, correct it to a clean landing state.
+window.addEventListener('hashchange', () => {
+  if (!currentUser && String(location.hash || '').toLowerCase() === '#login') {
+    jwShowCleanLandingAfterLogout();
+  }
+});
+
+// Emergency safety: if logged out but app-shell remains visible, fix without requiring browser refresh.
+setInterval(() => {
+  try {
+    const session = localStorage.getItem('jw_session');
+    const app = jwSafeElement('app-shell');
+    const landing = jwSafeElement('landing-page');
+    if (!session && !currentUser && app && getComputedStyle(app).display !== 'none') {
+      jwShowCleanLandingAfterLogout();
+    }
+    if (!session && !currentUser && landing && getComputedStyle(landing).display !== 'none') {
+      document.body.classList.remove('nav-open', 'modal-open');
+      document.body.style.overflow = '';
+      landing.style.pointerEvents = 'auto';
+    }
+  } catch {}
+}, 2000);
 
 </script>
 </body>
