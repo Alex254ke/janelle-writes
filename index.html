@@ -5673,6 +5673,49 @@ body.dark .jw-data-loading-title {
   }
 }
 
+
+/* ── INSTANT LOGOUT SHELL HIDE FIX ─────────────────── */
+body.jw-logout-transition {
+  overflow: auto !important;
+  pointer-events: auto !important;
+}
+
+body.jw-logout-transition #app-shell,
+body.jw-logout-transition aside.sidebar,
+body.jw-logout-transition .sidebar,
+body.jw-logout-transition .mobile-overlay,
+body.jw-logout-transition #mobile-overlay,
+body.jw-logout-transition .jw-data-loading-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.jw-logout-transition #landing-page {
+  display: block !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-left: 0 !important;
+  transform: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.jw-logout-transition #auth-screen {
+  display: none !important;
+}
+
+body.jw-logout-transition .landing-header,
+body.jw-logout-transition .landing-page,
+body.jw-logout-transition .landing {
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -19967,6 +20010,218 @@ setInterval(() => {
     }
   } catch {}
 }, 6000);
+
+
+
+// ══════════════════════════════════════════════════════
+//  INSTANT LOGOUT SHELL HIDE FIX
+//  Hides dashboard/sidebar immediately before waiting for Supabase sign-out.
+// ══════════════════════════════════════════════════════
+let __jwLogoutBusy = false;
+
+function jwBeginInstantLogoutUi() {
+  try { if (typeof jwHideDataOverlay === 'function') jwHideDataOverlay(); } catch {}
+  try { if (typeof closeMobileMenu === 'function') closeMobileMenu(); } catch {}
+  try { if (typeof closeLandingMenu === 'function') closeLandingMenu(); } catch {}
+  try { if (typeof hideSessionModal === 'function') hideSessionModal(); } catch {}
+  try { if (typeof hideAuthCallbackLoading === 'function') hideAuthCallbackLoading(); } catch {}
+
+  document.body.classList.add('jw-logout-transition', 'jw-logged-out-safe');
+  document.body.classList.remove('nav-open', 'modal-open', 'sidebar-open', 'menu-open');
+  document.body.style.overflow = '';
+  document.body.style.pointerEvents = '';
+  document.documentElement.style.overflow = '';
+
+  const app = document.getElementById('app-shell');
+  const sidebar = document.getElementById('sidebar');
+  const auth = document.getElementById('auth-screen');
+  const landing = document.getElementById('landing-page');
+  const overlay = document.getElementById('mobile-overlay');
+  const menu = document.getElementById('landing-mobile-menu');
+
+  if (overlay) overlay.classList.remove('open');
+  if (sidebar) sidebar.classList.remove('open');
+  if (menu) menu.classList.remove('open');
+
+  // Important: hide the dashboard shell immediately, before network signOut completes.
+  if (app) {
+    app.style.display = 'none';
+    app.style.visibility = 'hidden';
+    app.setAttribute('aria-hidden', 'true');
+  }
+  if (auth) {
+    auth.style.display = 'none';
+    auth.setAttribute('aria-hidden', 'true');
+  }
+  if (landing) {
+    landing.style.display = 'block';
+    landing.style.visibility = 'visible';
+    landing.style.opacity = '1';
+    landing.style.pointerEvents = 'auto';
+    landing.removeAttribute('aria-hidden');
+  }
+
+  document.querySelectorAll('.modal-overlay, .session-modal, .modal, .drawer, .offcanvas').forEach(el => {
+    el.classList.remove('open', 'active', 'show');
+    el.setAttribute('aria-hidden', 'true');
+    if (el.classList.contains('modal-overlay') || el.classList.contains('session-modal')) {
+      el.style.display = 'none';
+    }
+  });
+
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0, 0); }
+}
+
+function jwFinalizeInstantLogoutUi() {
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+
+  if (landing) {
+    landing.style.display = 'block';
+    landing.style.visibility = 'visible';
+    landing.style.opacity = '1';
+    landing.style.pointerEvents = 'auto';
+    landing.removeAttribute('aria-hidden');
+  }
+  if (auth) {
+    auth.style.display = 'none';
+    auth.setAttribute('aria-hidden', 'true');
+  }
+  if (app) {
+    app.style.display = 'none';
+    app.style.visibility = 'hidden';
+    app.setAttribute('aria-hidden', 'true');
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+  try {
+    const email = document.getElementById('login-email');
+    const pass = document.getElementById('login-password');
+    if (email) email.value = '';
+    if (pass) pass.value = '';
+  } catch {}
+
+  try {
+    history.replaceState({ jwApp: false, page: 'landing' }, '', window.location.pathname + window.location.search);
+  } catch {}
+
+  setTimeout(() => {
+    document.body.classList.remove('jw-logout-transition', 'jw-logged-out-safe');
+    document.body.classList.remove('nav-open', 'modal-open', 'sidebar-open', 'menu-open');
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    if (landing) landing.style.pointerEvents = 'auto';
+  }, 650);
+}
+
+function jwSignOutWithTimeout() {
+  return Promise.race([
+    (async () => {
+      try {
+        if (typeof _sb !== 'undefined' && _sb?.auth) {
+          await _sb.auth.signOut();
+        }
+      } catch (err) {
+        console.warn('Supabase sign-out warning:', err);
+      }
+    })(),
+    new Promise(resolve => setTimeout(resolve, 1800))
+  ]);
+}
+
+// Final override: mobile/desktop logout should never leave sidebar visible.
+doLogout = async function() {
+  if (__jwLogoutBusy) return false;
+  __jwLogoutBusy = true;
+
+  jwBeginInstantLogoutUi();
+
+  try { if (typeof stopSessionGuard === 'function') stopSessionGuard(); } catch {}
+  try { clearInterval(window._otpTimerInterval || _otpTimerInterval); } catch {}
+  try { _dashboardDataRefreshRunning = false; } catch {}
+  try { _reminderAutoRunning = false; } catch {}
+  try { _lateAutoMarkRunning = false; } catch {}
+
+  try {
+    currentUser = null;
+    tasks = [];
+    _currentPage = null;
+    _activeTaskDetailId = '';
+    _backLogoutArmed = false;
+    _appHistoryReady = false;
+    _preselectMessageTaskId = null;
+  } catch {}
+
+  try {
+    if (typeof _realtimeSub !== 'undefined' && _realtimeSub) {
+      _realtimeSub.unsubscribe();
+      _realtimeSub = null;
+    }
+  } catch {}
+
+  try {
+    localStorage.removeItem('jw_session');
+    localStorage.removeItem('jw_google_intent');
+    localStorage.removeItem('jw_google_role');
+    localStorage.removeItem('jw_google_signup_profile');
+    localStorage.removeItem('jw_password_recovery_pending');
+    localStorage.removeItem('jw_password_recovery_email');
+  } catch {}
+
+  try {
+    sessionStorage.removeItem('jw_task_detail_return_page');
+    sessionStorage.removeItem('jw_password_recovery_email');
+  } catch {}
+
+  // Do network sign-out after UI is already hidden.
+  await jwSignOutWithTimeout();
+
+  jwFinalizeInstantLogoutUi();
+
+  try { notify('👋 Signed out successfully'); } catch {}
+  setTimeout(() => { __jwLogoutBusy = false; }, 900);
+  return false;
+};
+
+// Make every Sign Out tap use the instant handler first, before old onclick handlers run.
+['pointerdown', 'touchstart', 'click'].forEach(eventName => {
+  document.addEventListener(eventName, function(e) {
+    const el = e.target.closest?.('.btn-logout, [onclick*="doLogout"]');
+    if (!el) return;
+    const text = String(el.textContent || '').toLowerCase();
+    const action = String(el.getAttribute?.('onclick') || '').toLowerCase();
+    if (text.includes('sign out') || text.includes('log out') || action.includes('dologout')) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      doLogout();
+      return false;
+    }
+  }, true);
+});
+
+// Safety check: if landing is visible while sidebar/app-shell is still visible, fix it immediately.
+function jwFixLogoutVisualLeak() {
+  try {
+    const hasSession = !!localStorage.getItem('jw_session') || !!currentUser;
+    if (hasSession) return;
+
+    const landing = document.getElementById('landing-page');
+    const app = document.getElementById('app-shell');
+    if (!landing || !app) return;
+
+    const landingVisible = getComputedStyle(landing).display !== 'none';
+    const appVisible = getComputedStyle(app).display !== 'none';
+    if (landingVisible && appVisible) {
+      jwBeginInstantLogoutUi();
+      jwFinalizeInstantLogoutUi();
+    }
+  } catch {}
+}
+
+setInterval(jwFixLogoutVisualLeak, 1200);
 
 </script>
 </body>
