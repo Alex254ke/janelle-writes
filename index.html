@@ -19214,6 +19214,166 @@ window.addEventListener('popstate', () => {
   }
 });
 
+
+
+// ══════════════════════════════════════════════════════
+//  STRONG FIX: TASK DETAIL BACK BUTTON MUST RETURN TO SOURCE PAGE
+// ══════════════════════════════════════════════════════
+window.__jwTaskDetailReturn = window.__jwTaskDetailReturn || {
+  page: '',
+  scrollY: 0,
+  taskId: ''
+};
+
+function jwCurrentVisiblePageName() {
+  const active = document.querySelector('.page.active');
+  const idPage = active?.id ? active.id.replace(/^page-/, '') : '';
+  if (idPage && idPage !== 'task-details') return idPage;
+  if (typeof _currentPage !== 'undefined' && _currentPage && _currentPage !== 'task-details') return _currentPage;
+  return '';
+}
+
+function jwDefaultReturnPageForRole() {
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) return 'admin-all-orders';
+  if (currentUser?.role === 'writer') return 'writer-tasks';
+  if (currentUser?.role === 'student') return 'student-dashboard';
+  if (currentUser?.role === 'employer') return 'emp-tasks';
+  return typeof getHomePage === 'function' ? getHomePage() : 'emp-dashboard';
+}
+
+function jwSaveTaskReturnPage(taskId, explicitPage) {
+  const page = explicitPage || jwCurrentVisiblePageName() || jwDefaultReturnPageForRole();
+  if (!page || page === 'task-details') return;
+
+  window.__jwTaskDetailReturn = {
+    page,
+    scrollY: window.scrollY || document.documentElement.scrollTop || 0,
+    taskId: taskId || ''
+  };
+
+  try {
+    sessionStorage.setItem('jw_task_detail_return_page', JSON.stringify(window.__jwTaskDetailReturn));
+  } catch {}
+}
+
+function jwGetTaskReturnPage() {
+  if (window.__jwTaskDetailReturn?.page && window.__jwTaskDetailReturn.page !== 'task-details') {
+    return window.__jwTaskDetailReturn;
+  }
+
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('jw_task_detail_return_page') || 'null');
+    if (saved?.page && saved.page !== 'task-details') return saved;
+  } catch {}
+
+  return {
+    page: jwDefaultReturnPageForRole(),
+    scrollY: 0,
+    taskId: ''
+  };
+}
+
+function returnFromTaskDetails(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+
+  const state = jwGetTaskReturnPage();
+  const target = state.page && state.page !== 'task-details' ? state.page : jwDefaultReturnPageForRole();
+
+  // Clean task hash so the app does not immediately reopen the task page.
+  try {
+    if (String(location.hash || '').startsWith('#task=')) {
+      history.replaceState(history.state || {}, document.title, location.pathname + location.search);
+    }
+  } catch {}
+
+  navigate(target, { replaceHistory: true, skipHistory: false });
+
+  setTimeout(() => {
+    try {
+      const top = Number(state.scrollY || 0);
+      if (top > 0) window.scrollTo({ top, behavior: 'smooth' });
+    } catch {}
+  }, 220);
+
+  return false;
+}
+
+// Make the older fallback function return the saved page, not the dashboard.
+taskDetailBackPage = function() {
+  const state = jwGetTaskReturnPage();
+  return state.page && state.page !== 'task-details' ? state.page : jwDefaultReturnPageForRole();
+};
+
+// Re-wrap task opening so the source page is saved before navigation.
+if (typeof openTaskDetailsPage === 'function' && !openTaskDetailsPage.__jwStrongBackFixed) {
+  const __jwPreviousOpenTaskDetailsPage = openTaskDetailsPage;
+  openTaskDetailsPage = function(taskId, options = {}) {
+    jwSaveTaskReturnPage(taskId, options.returnPage);
+    return __jwPreviousOpenTaskDetailsPage.call(this, taskId, options);
+  };
+  openTaskDetailsPage.__jwStrongBackFixed = true;
+}
+
+// Force the task actions to use the strong Back handler.
+taskDetailActionsHtml = function(t) {
+  const actions = [];
+  actions.push(`<button class="btn btn-outline" onclick="return returnFromTaskDetails(event)">← Back</button>`);
+
+  if (typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t)) {
+    actions.push(`<button class="btn btn-outline" onclick="openMessagesForTask('${escJS(t.id)}')">💬 Message</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && typeof taskForWriter === 'function' && taskForWriter(t, currentUser.email) && !['completed','cancelled','disputed'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-primary" onclick="openWriterSubmitForTask('${escJS(t.id)}')">📤 Submit Work</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending') {
+    actions.push(`<button class="btn btn-primary" onclick="document.getElementById('writer-bid-message')?.focus()">📝 Bid / Request</button>`);
+  }
+
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || (typeof isJwAdmin === 'function' && isJwAdmin())) && typeof canRequestReassign === 'function' && canRequestReassign(t)) {
+    actions.push(`<button class="btn btn-warn" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`);
+  }
+
+  if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
+  }
+
+  return actions.join('');
+};
+
+// Fix already-rendered task pages without waiting for a new render.
+function jwFixRenderedTaskBackButtons() {
+  document.querySelectorAll('#page-task-details button').forEach(btn => {
+    const txt = (btn.textContent || '').trim().toLowerCase();
+    if (txt === '← back' || txt === 'back' || txt.includes('back')) {
+      btn.setAttribute('onclick', 'return returnFromTaskDetails(event)');
+    }
+  });
+}
+
+document.addEventListener('click', function(e) {
+  const backBtn = e.target.closest('#page-task-details button');
+  if (!backBtn) return;
+  const txt = (backBtn.textContent || '').trim().toLowerCase();
+  if (txt === '← back' || txt === 'back' || txt.includes('back')) {
+    returnFromTaskDetails(e);
+  }
+}, true);
+
+setTimeout(jwFixRenderedTaskBackButtons, 200);
+setTimeout(jwFixRenderedTaskBackButtons, 1000);
+
+// Save source page when user clicks a task from any list before openTaskDetailsPage runs.
+document.addEventListener('pointerdown', function(e) {
+  if (!currentUser) return;
+  const active = jwCurrentVisiblePageName();
+  if (!active || active === 'task-details') return;
+  const clickedTask = e.target.closest('.order-link, .order-card, .bid-task-card, tr, .task-card, [data-task-id]');
+  if (clickedTask) jwSaveTaskReturnPage('', active);
+}, true);
+
 </script>
 </body>
 </html>
