@@ -5716,6 +5716,22 @@ body.jw-logout-transition .landing {
   transform: none !important;
 }
 
+
+/* ── REMOVE MOBILE REFRESH BUTTON + STABILIZE MOBILE LOADING ─────────────────── */
+#jw-mobile-data-refresh-btn {
+  display: none !important;
+}
+
+.jw-data-loading-overlay {
+  pointer-events: auto;
+}
+
+@media (max-width: 820px) {
+  .jw-data-loading-card {
+    width: min(340px, 90vw);
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -20222,6 +20238,289 @@ function jwFixLogoutVisualLeak() {
 }
 
 setInterval(jwFixLogoutVisualLeak, 1200);
+
+
+
+// ══════════════════════════════════════════════════════
+//  REMOVE REFRESH BUTTON + FIX MOBILE WRITER DATA + GOOGLE ROLE LOCK
+// ══════════════════════════════════════════════════════
+
+// 1) Remove the mobile Refresh button completely.
+function jwRemoveMobileRefreshButton() {
+  document.querySelectorAll('#jw-mobile-data-refresh-btn').forEach(btn => btn.remove());
+}
+
+jwAddMobileRefreshButton = function() {
+  jwRemoveMobileRefreshButton();
+};
+
+setInterval(jwRemoveMobileRefreshButton, 1200);
+setTimeout(jwRemoveMobileRefreshButton, 200);
+setTimeout(jwRemoveMobileRefreshButton, 1200);
+
+
+// 2) Safer role-aware task loading.
+// The previous mobile OR query could fail/stall on some mobile browsers/networks.
+// This version uses separate simple Supabase queries, then merges results.
+function jwMergeTaskRows(...groups) {
+  return dedupeTasks(groups.flat().filter(Boolean));
+}
+
+async function jwQueryTasksSimple(builder, label, ms = 22000) {
+  const result = await jwPromiseTimeout(builder, ms, label);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function jwFastGetTasks() {
+  if (!currentUser) return [];
+
+  const email = String(currentUser.email || '').toLowerCase();
+  const isAdmin = typeof isJwAdmin === 'function' && isJwAdmin();
+  const mobileLimit = jwIsMobileDeviceView() ? 300 : 1000;
+
+  if (isAdmin) {
+    return await jwQueryTasksSimple(
+      _sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(mobileLimit),
+      'Admin tasks loading',
+      jwIsMobileDeviceView() ? 24000 : 30000
+    );
+  }
+
+  if (currentUser.role === 'writer') {
+    const assignedPromise = jwQueryTasksSimple(
+      _sb.from('jw_tasks').select('*').ilike('taken_by', email).order('created_at', { ascending: false }).limit(mobileLimit),
+      'Writer assigned tasks loading',
+      jwIsMobileDeviceView() ? 22000 : 28000
+    );
+
+    const availablePromise = jwQueryTasksSimple(
+      _sb.from('jw_tasks').select('*').is('taken_by', null).eq('status', 'pending').order('created_at', { ascending: false }).limit(mobileLimit),
+      'Writer available tasks loading',
+      jwIsMobileDeviceView() ? 22000 : 28000
+    );
+
+    const [assigned, available] = await Promise.all([assignedPromise, availablePromise]);
+    return jwMergeTaskRows(assigned, available);
+  }
+
+  if (currentUser.role === 'employer' || currentUser.role === 'student') {
+    return await jwQueryTasksSimple(
+      _sb.from('jw_tasks').select('*').ilike('posted_by', email).order('created_at', { ascending: false }).limit(mobileLimit),
+      'User tasks loading',
+      jwIsMobileDeviceView() ? 22000 : 28000
+    );
+  }
+
+  return await jwQueryTasksSimple(
+    _sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(mobileLimit),
+    'Tasks loading',
+    jwIsMobileDeviceView() ? 22000 : 28000
+  );
+}
+
+dbGetTasks = async function() {
+  return await jwFastGetTasks();
+};
+
+refreshTasks = async function() {
+  tasks = dedupeTasks(await dbGetTasks());
+  updateBadges();
+
+  // Keep mobile first load light. Run heavy checks after the page has usable data.
+  if (jwIsMobileDeviceView()) {
+    setTimeout(() => { try { autoMarkLateTasks(true); } catch {} }, 3500);
+    setTimeout(() => { try { autoSendTaskReminders(true); } catch {} }, 6500);
+  } else {
+    try { await autoMarkLateTasks(true); } catch (err) { console.warn('Late check skipped:', err); }
+    try { await autoSendTaskReminders(true); } catch (err) { console.warn('Reminder check skipped:', err); }
+  }
+
+  return tasks;
+};
+
+async function jwRefreshDashboardAfterLogin(reason = 'login') {
+  if (!currentUser) {
+    jwHideDataOverlay();
+    return;
+  }
+
+  if (jwIsMobileDeviceView()) jwShowDataOverlay();
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await refreshTasks();
+
+      const page = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+      if (page && document.getElementById('page-' + page)) {
+        navigate(page, { skipHistory: true });
+      }
+
+      jwHideDataOverlay();
+      jwRemoveMobileRefreshButton();
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn('Dashboard refresh attempt failed:', attempt, err);
+      await new Promise(resolve => setTimeout(resolve, 900 * attempt));
+    }
+  }
+
+  // Do not leave users stuck behind the loading screen forever.
+  jwHideDataOverlay();
+  jwRemoveMobileRefreshButton();
+  notify('⚠️ Data did not load fully. Please check your connection, then reopen the page if needed.');
+  console.warn('Dashboard data failed after retries:', lastError);
+}
+
+
+// 3) Google role lock.
+// Existing users must keep the role saved in jw_users. A Google login should not
+// turn a writer into a student just because _selectedRole defaults to student.
+function jwCachedRoleForEmail(email) {
+  try {
+    const cached = JSON.parse(localStorage.getItem('jw_session') || 'null');
+    if (cached?.email && sameEmail(cached.email, email) && cached.role) {
+      return normalizePlatformRole(cached.role, 'employer');
+    }
+  } catch {}
+  return '';
+}
+
+function jwExplicitSignupRole() {
+  const intent = localStorage.getItem('jw_google_intent') || '';
+  const role = localStorage.getItem('jw_google_role') || '';
+  if (intent === 'signup' && role) return normalizePlatformRole(role, 'employer');
+  return '';
+}
+
+function jwSafeRoleForAuth(authUser, existing, options = {}) {
+  if (existing?.role) return normalizePlatformRole(existing.role, 'employer');
+
+  const cachedRole = jwCachedRoleForEmail(authUser.email);
+  if (cachedRole) return cachedRole;
+
+  const signupRole = jwExplicitSignupRole();
+  if (signupRole) return signupRole;
+
+  // Only use options.role for a real signup. For login, do not default to student.
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  if (intent === 'signup') {
+    return normalizePlatformRole(options.role || authUser.role || 'employer', 'employer');
+  }
+
+  return normalizePlatformRole(authUser.role || 'employer', 'employer');
+}
+
+// Override Google helpers so login defaults do not become student.
+googleProfileFromSession = function(session) {
+  const explicit = jwExplicitSignupRole();
+  return authProfileFromSession(session, explicit || 'employer');
+};
+
+finishGoogleLoginWithSession = async function(session) {
+  const intent = localStorage.getItem('jw_google_intent') || 'login';
+  const explicit = jwExplicitSignupRole();
+  return await finishSecureAuthSession(session, {
+    intent,
+    role: explicit || 'employer'
+  });
+};
+
+// Stronger finishSecureAuthSession: wait longer on mobile for jw_users lookup before launching.
+// This prevents wrong-role landing and zero dashboards after mobile login.
+finishSecureAuthSession = async function(session, options = {}) {
+  const authUser = authProfileFromSession(session, options.role || 'employer');
+
+  if (!authUser.email) {
+    notify('❌ No verified email was returned. Please try another sign-in method.');
+    return false;
+  }
+
+  if (authUser.provider === 'email' && !authUser.email_confirmed_at) {
+    notify('📨 Please verify your email before signing in.');
+    return false;
+  }
+
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  let existing = null;
+
+  showAuthCallbackLoading();
+
+  try {
+    // Mobile needs more time here; if this times out, the app can pick the wrong fallback role.
+    existing = await promiseWithTimeout(
+      dbGetUserByEmail(authUser.email),
+      jwIsMobileDeviceView() ? 12000 : 7000,
+      'Profile lookup'
+    );
+  } catch (err) {
+    console.warn('Profile lookup failed during login:', err);
+    existing = null;
+  }
+
+  const safeRole = jwSafeRoleForAuth(authUser, existing, { ...options, intent });
+
+  // If this is a login and no platform profile was found, avoid silently creating a student account.
+  if (!existing && intent === 'login' && !jwCachedRoleForEmail(authUser.email)) {
+    hideAuthCallbackLoading();
+    openAuthScreen('signup', safeRole);
+    notify('⚠️ This Google email is authenticated, but no platform profile was found. Please choose your correct role to finish account setup.');
+    return false;
+  }
+
+  const firstUser = existing
+    ? platformUserFromRecord(existing, authUser, safeRole)
+    : cachedPlatformUserForAuth(authUser, safeRole);
+
+  saveCurrentSessionUser(firstUser);
+
+  localStorage.removeItem('jw_google_intent');
+  localStorage.removeItem('jw_google_role');
+  localStorage.removeItem('jw_google_signup_profile');
+
+  cleanAuthReturnUrl();
+  hideAuthCallbackLoading();
+
+  const authScreen = document.getElementById('auth-screen');
+  if (authScreen) authScreen.style.display = 'none';
+
+  playSound('login');
+  launchApp();
+
+  (async () => {
+    let synced = existing;
+    if (!synced) {
+      synced = await createOrRecoverPlatformUser(authUser, safeRole, intent);
+    } else {
+      synced = await safeLinkExistingPlatformUser(synced, authUser, safeRole);
+    }
+
+    const finalRole = jwSafeRoleForAuth(authUser, synced, { ...options, intent });
+    const previousRole = currentUser?.role;
+    saveCurrentSessionUser(platformUserFromRecord(synced, authUser, finalRole));
+    refreshAppChromeAfterProfileUpdate(previousRole);
+    setTimeout(() => jwRefreshDashboardAfterLogin('profile-sync'), 250);
+  })().catch(err => {
+    console.warn('Background profile sync failed:', err);
+  });
+
+  return true;
+};
+
+// Also make the auth return handler default to login, not signup, when no explicit intent is stored.
+if (typeof handleSupabaseAuthReturn === 'function' && !handleSupabaseAuthReturn.__jwRoleLockPatched) {
+  const _jwOriginalHandleSupabaseAuthReturn = handleSupabaseAuthReturn;
+  handleSupabaseAuthReturn = async function() {
+    const hasExplicitIntent = !!localStorage.getItem('jw_google_intent');
+    if (!hasExplicitIntent) {
+      localStorage.setItem('jw_google_intent', 'login');
+    }
+    return await _jwOriginalHandleSupabaseAuthReturn.apply(this, arguments);
+  };
+  handleSupabaseAuthReturn.__jwRoleLockPatched = true;
+}
 
 </script>
 </body>
