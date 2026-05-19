@@ -19114,6 +19114,106 @@ setTimeout(() => {
   } catch {}
 }, 900);
 
+
+
+// ══════════════════════════════════════════════════════
+//  TASK DETAIL BACK BUTTON: RETURN TO EXACT PREVIOUS PAGE
+// ══════════════════════════════════════════════════════
+let _jwTaskDetailReturnState = {
+  page: '',
+  taskId: '',
+  scrollY: 0
+};
+
+function rememberTaskDetailReturnState(taskId) {
+  const current = _currentPage && _currentPage !== 'task-details' ? _currentPage : '';
+  const activePage = document.querySelector('.page.active');
+  const pageId = activePage?.id?.replace(/^page-/, '') || '';
+  const page = current || (pageId && pageId !== 'task-details' ? pageId : '') || taskDetailBackPage();
+
+  _jwTaskDetailReturnState = {
+    page,
+    taskId: taskId || _activeTaskDetailId || '',
+    scrollY: window.scrollY || document.documentElement.scrollTop || 0
+  };
+
+  try {
+    sessionStorage.setItem('jw_task_detail_return_state', JSON.stringify(_jwTaskDetailReturnState));
+  } catch {}
+}
+
+function getTaskDetailReturnState() {
+  if (_jwTaskDetailReturnState?.page) return _jwTaskDetailReturnState;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('jw_task_detail_return_state') || 'null');
+    if (saved?.page) return saved;
+  } catch {}
+  return { page: taskDetailBackPage(), taskId: '', scrollY: 0 };
+}
+
+function goBackFromTaskDetails() {
+  const state = getTaskDetailReturnState();
+  const fallback = taskDetailBackPage();
+  const target = state.page && state.page !== 'task-details' ? state.page : fallback;
+
+  navigate(target, { replaceHistory: true });
+
+  setTimeout(() => {
+    try {
+      if (Number.isFinite(Number(state.scrollY)) && Number(state.scrollY) > 0) {
+        window.scrollTo({ top: Number(state.scrollY), behavior: 'smooth' });
+      }
+    } catch {}
+  }, 180);
+}
+
+// Replace the earlier dashboard-based fallback with the remembered previous page.
+const _jwTaskBackOrigOpenTaskDetailsPage = openTaskDetailsPage;
+openTaskDetailsPage = function(taskId, options = {}) {
+  rememberTaskDetailReturnState(taskId);
+  return _jwTaskBackOrigOpenTaskDetailsPage(taskId, options);
+};
+
+// Rebuild task actions so the Back button uses the real previous page.
+taskDetailActionsHtml = function(t) {
+  const actions = [];
+  actions.push(`<button class="btn btn-outline" onclick="goBackFromTaskDetails()">← Back</button>`);
+
+  if (canCurrentUserSeeTask(t)) {
+    actions.push(`<button class="btn btn-outline" onclick="openMessagesForTask('${escJS(t.id)}')">💬 Message</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && taskForWriter(t, currentUser.email) && !['completed','cancelled','disputed'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-primary" onclick="openWriterSubmitForTask('${escJS(t.id)}')">📤 Submit Work</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending') {
+    actions.push(`<button class="btn btn-primary" onclick="document.getElementById('writer-bid-message')?.focus()">📝 Bid / Request</button>`);
+  }
+
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin()) && typeof canRequestReassign === 'function' && canRequestReassign(t)) {
+    actions.push(`<button class="btn btn-warn" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`);
+  }
+
+  if (typeof openDisputeModal === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
+  }
+
+  return actions.join('');
+};
+
+// Browser back from the task-detail URL should also behave naturally.
+window.addEventListener('popstate', () => {
+  if (_currentPage === 'task-details') {
+    setTimeout(() => {
+      const state = getTaskDetailReturnState();
+      if (state.page && state.page !== 'task-details') {
+        navigate(state.page, { replaceHistory: true });
+      }
+    }, 40);
+  }
+});
+
 </script>
 </body>
 </html>
