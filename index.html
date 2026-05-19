@@ -5312,6 +5312,254 @@ body.dark-mode #page-admin-student-messages .message-panel.jw-mobile-inline-mess
   border-color: rgba(142,228,214,.22) !important;
 }
 
+
+/* ── DEDICATED TASK DETAIL PAGE + BLINKING LOGO LOADER ─────────────────── */
+.jw-task-detail-loader {
+  min-height: calc(100vh - 170px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.jw-blink-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: jwLogoBlink 1.05s ease-in-out infinite;
+}
+
+.jw-blink-logo-mark {
+  width: 82px;
+  height: 82px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f1923, #123c3a);
+  color: #fff;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 50px;
+  font-weight: 900;
+  box-shadow: 0 22px 54px rgba(42,157,143,.24);
+}
+
+.jw-blink-logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.jw-blink-logo-text span {
+  color: var(--teal);
+  font-style: italic;
+}
+
+.jw-loader-caption {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+@keyframes jwLogoBlink {
+  0%, 100% { opacity: .38; transform: scale(.96); filter: blur(.1px); }
+  50% { opacity: 1; transform: scale(1.03); filter: blur(0); }
+}
+
+.task-detail-page-card {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 22px 58px rgba(15,25,35,.08);
+  overflow: hidden;
+}
+
+.task-detail-cover {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(82,196,184,.22), transparent 34%),
+    linear-gradient(135deg, #10202b, #174d49);
+  color: #fff;
+  padding: 30px;
+}
+
+.task-detail-cover-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.task-detail-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(82,196,184,.18);
+  color: #b9fff4;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.task-detail-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: .98;
+  font-weight: 900;
+  margin: 0;
+  max-width: 920px;
+}
+
+.task-detail-sub {
+  margin-top: 14px;
+  color: rgba(255,255,255,.82);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.task-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.task-detail-body {
+  padding: 26px 30px 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.task-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.task-detail-stat {
+  border: 1px solid rgba(42,157,143,.18);
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.task-detail-stat-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.task-detail-stat-value {
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.task-detail-section {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(247,252,251,.92));
+}
+
+.task-detail-section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.task-detail-text {
+  color: var(--charcoal);
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-detail-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.task-detail-danger-note {
+  border-left: 4px solid var(--rust);
+  background: rgba(231,111,81,.08);
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: var(--charcoal);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .task-detail-grid {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+  .task-detail-cover,
+  .task-detail-body {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .task-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .task-detail-actions .btn {
+    width: 100%;
+  }
+  .task-detail-cover,
+  .task-detail-body {
+    padding: 18px;
+  }
+  .jw-blink-logo-mark {
+    width: 68px;
+    height: 68px;
+    font-size: 42px;
+    border-radius: 20px;
+  }
+}
+
+body.dark-mode .task-detail-page-card,
+body.dark .task-detail-page-card,
+body.dark-mode .task-detail-section,
+body.dark .task-detail-section {
+  background: #14202b;
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .task-detail-stat,
+body.dark .task-detail-stat {
+  background: rgba(82,196,184,.07);
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .jw-blink-logo-text,
+body.dark .jw-blink-logo-text,
+body.dark-mode .task-detail-section-title,
+body.dark .task-detail-section-title,
+body.dark-mode .task-detail-stat-value,
+body.dark .task-detail-stat-value {
+  color: #f4fbfa;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -6767,6 +7015,21 @@ body.dark-mode #page-admin-student-messages .message-panel.jw-mobile-inline-mess
     </div>
   </div>
 
+
+
+
+  <!-- SHARED: DEDICATED TASK DETAILS PAGE -->
+  <div class="page content" id="page-task-details">
+    <div id="task-details-wrap">
+      <div class="jw-task-detail-loader">
+        <div class="jw-blink-logo">
+          <div class="jw-blink-logo-mark">J</div>
+          <div class="jw-blink-logo-text">Janelle <span>Writes!</span></div>
+        </div>
+        <div class="jw-loader-caption">Opening task details...</div>
+      </div>
+    </div>
+  </div>
 
 
   <!-- PROFILE PAGE -->
@@ -18573,6 +18836,283 @@ document.addEventListener('click', function(e) {
     setTimeout(() => jwPlaceMessagePanelBelowActiveCard('admin-student'), 90);
   }
 });
+
+
+
+// ══════════════════════════════════════════════════════
+//  DEDICATED TASK DETAIL PAGE WITH BLINKING LOGO LOADER
+// ══════════════════════════════════════════════════════
+let _activeTaskDetailId = '';
+
+function taskDetailLoaderHtml() {
+  return `<div class="jw-task-detail-loader">
+    <div class="jw-blink-logo">
+      <div class="jw-blink-logo-mark">J</div>
+      <div class="jw-blink-logo-text">Janelle <span>Writes!</span></div>
+    </div>
+    <div class="jw-loader-caption">Opening task details...</div>
+  </div>`;
+}
+
+function taskVisibleAmountText(t) {
+  if (!t) return '—';
+  if (currentUser?.role === 'writer' && isStudentOrder(t)) {
+    return typeof writerPayoutText === 'function'
+      ? writerPayoutText(t)
+      : 'KES ' + (Number(t.pages || 0) * 300).toLocaleString();
+  }
+  if (isStudentOrder(t) && currentUser?.role === 'writer') {
+    return 'KES ' + (Number(t.pages || 0) * 300).toLocaleString();
+  }
+  return 'KES ' + Number(t.total || 0).toLocaleString();
+}
+
+function taskDetailBackPage() {
+  if (!currentUser) return '';
+  if (currentUser.role === 'writer') return 'writer-dashboard';
+  if (currentUser.role === 'student') return 'student-dashboard';
+  if (isJwAdmin()) return 'admin-control';
+  return 'emp-dashboard';
+}
+
+function taskDetailCanShowBidPanel(t) {
+  if (!t || !currentUser) return false;
+  if (currentUser.role === 'writer' && !t.taken_by && t.status === 'pending') return true;
+  if (currentUser.role === 'employer' || currentUser.role === 'student' || isJwAdmin()) return true;
+  return false;
+}
+
+function taskDetailActionsHtml(t) {
+  const actions = [];
+  const back = taskDetailBackPage();
+  actions.push(`<button class="btn btn-outline" onclick="navigate('${escJS(back)}')">← Back</button>`);
+
+  if (canCurrentUserSeeTask(t)) {
+    actions.push(`<button class="btn btn-outline" onclick="openMessagesForTask('${escJS(t.id)}')">💬 Message</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && taskForWriter(t, currentUser.email) && !['completed','cancelled','disputed'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-primary" onclick="openWriterSubmitForTask('${escJS(t.id)}')">📤 Submit Work</button>`);
+  }
+
+  if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending') {
+    actions.push(`<button class="btn btn-primary" onclick="document.getElementById('writer-bid-message')?.focus()">📝 Bid / Request</button>`);
+  }
+
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin()) && typeof canRequestReassign === 'function' && canRequestReassign(t)) {
+    actions.push(`<button class="btn btn-warn" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`);
+  }
+
+  if (typeof openDisputeModal === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+    actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
+  }
+
+  return actions.join('');
+}
+
+function taskDetailPartnerHtml(t) {
+  try {
+    if (typeof partnerRatingPanelForTask === 'function') return partnerRatingPanelForTask(t);
+  } catch {}
+  return '';
+}
+
+function taskDetailFilesHtml(t) {
+  try {
+    if (typeof renderInstructionFiles === 'function') return renderInstructionFiles(t);
+  } catch {}
+  return '';
+}
+
+function taskDetailWorkflowHtml(t) {
+  const parts = [];
+
+  if (taskDetailCanShowBidPanel(t)) {
+    if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending' && typeof bidRequestPanelForWriter === 'function') {
+      parts.push(`<div class="task-detail-section"><div class="task-detail-section-title">Writer Request</div>${bidRequestPanelForWriter(t)}</div>`);
+    } else if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin()) && typeof renderEmployerBidPanel === 'function') {
+      parts.push(`<div class="task-detail-section"><div class="task-detail-section-title">Writer Requests / Bids</div>${renderEmployerBidPanel(t)}</div>`);
+    }
+  }
+
+  if (typeof renderReassignStatusPanel === 'function') {
+    const reassign = renderReassignStatusPanel(t);
+    if (reassign) parts.push(`<div class="task-detail-section">${reassign}</div>`);
+  }
+
+  if (typeof renderLatenessPanel === 'function') {
+    const late = renderLatenessPanel(t);
+    if (late) parts.push(`<div class="task-detail-section">${late}</div>`);
+  }
+
+  return parts.join('');
+}
+
+function renderTaskDetailsPage() {
+  const wrap = document.getElementById('task-details-wrap');
+  if (!wrap) return;
+  const t = getTaskById(_activeTaskDetailId);
+
+  if (!t) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Task not found.</p><button class="btn btn-primary" onclick="navigate('${escJS(taskDetailBackPage())}')">Go Back</button></div>`;
+    return;
+  }
+
+  if (!canCurrentUserSeeTask(t) && !(currentUser?.role === 'writer' && t.status === 'pending' && !t.taken_by)) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>You do not have permission to view this task.</p><button class="btn btn-primary" onclick="navigate('${escJS(taskDetailBackPage())}')">Go Back</button></div>`;
+    return;
+  }
+
+  const postedBy = t.posted_by_name || t.posted_by || '—';
+  const writer = t.taken_by_name || t.taken_by || 'Unassigned';
+  const safeTitle = `${esc(t.id)} — ${esc(t.subject || 'Task')}`;
+
+  wrap.innerHTML = `
+    <div class="task-detail-page-card">
+      <div class="task-detail-cover">
+        <div class="task-detail-cover-top">
+          <div>
+            <div class="task-detail-kicker">📌 Task Details</div>
+            <h1 class="task-detail-title">${safeTitle}</h1>
+            <div class="task-detail-sub">
+              ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.level || 'Level')} · ${esc(t.style || 'Style')} · Due ${fmtDate(t.deadline)}
+            </div>
+          </div>
+          <div class="task-detail-actions">${taskDetailActionsHtml(t)}</div>
+        </div>
+      </div>
+
+      <div class="task-detail-body">
+        <div class="task-detail-grid">
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Status</div><div class="task-detail-stat-value">${statusBadgeForTask(t)}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Payment</div><div class="task-detail-stat-value">${typeof payBadge === 'function' ? payBadge(t.payment) : esc(t.payment || '—')}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Visible Amount</div><div class="task-detail-stat-value">${esc(taskVisibleAmountText(t))}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Writer</div><div class="task-detail-stat-value">${esc(writer)}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Posted By</div><div class="task-detail-stat-value">${esc(postedBy)}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Pages</div><div class="task-detail-stat-value">${esc(t.pages || '—')}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Words</div><div class="task-detail-stat-value">${t.words ? Number(t.words).toLocaleString() : '—'}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Deadline</div><div class="task-detail-stat-value">${fmtDate(t.deadline)}</div></div>
+        </div>
+
+        ${taskDetailPartnerHtml(t)}
+
+        <div class="task-detail-section">
+          <div class="task-detail-section-title">Instructions / Description</div>
+          <div class="task-detail-text">${esc(t.description || t.instructions || 'No written instructions were provided.')}</div>
+        </div>
+
+        ${t.requirements ? `<div class="task-detail-section"><div class="task-detail-section-title">Special Requirements</div><div class="task-detail-text">${esc(t.requirements)}</div></div>` : ''}
+
+        ${taskDetailFilesHtml(t)}
+
+        ${taskDetailWorkflowHtml(t)}
+
+        <div class="task-detail-danger-note">
+          For safety, keep order communication, files, disputes, revisions, and approvals inside Janelle Writes so the platform can protect both sides.
+        </div>
+      </div>
+    </div>
+  `;
+
+  try {
+    document.getElementById('page-title').textContent = t.id;
+  } catch {}
+}
+
+function openTaskDetailsPage(taskId, options = {}) {
+  if (!taskId) return;
+  _activeTaskDetailId = String(taskId).trim();
+  const wrap = document.getElementById('task-details-wrap');
+  if (wrap) wrap.innerHTML = taskDetailLoaderHtml();
+  navigate('task-details', { skipHistory: options.skipHistory || false });
+  try {
+    history.replaceState(history.state, '', '#task=' + encodeURIComponent(_activeTaskDetailId));
+  } catch {}
+  setTimeout(renderTaskDetailsPage, options.fast ? 160 : 520);
+}
+
+function extractTaskIdFromClickedElement(el) {
+  if (!el) return '';
+  const fromData = el.getAttribute?.('data-task-id') || el.dataset?.taskId || '';
+  if (fromData && getTaskById(fromData)) return fromData;
+
+  const selectors = ['.order-link', '.order-card-id', '.bid-task-id', '.task-card-id', '[data-order-id]'];
+  for (const sel of selectors) {
+    const found = el.matches?.(sel) ? el : el.querySelector?.(sel);
+    const raw = found?.getAttribute?.('data-order-id') || found?.textContent || '';
+    const id = String(raw).trim();
+    if (id && getTaskById(id)) return id;
+  }
+
+  const text = String(el.textContent || '');
+  const match = text.match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/i);
+  if (match && getTaskById(match[0])) return match[0];
+
+  return '';
+}
+
+// Replace old modal task views with the dedicated task page.
+if (typeof empViewTask === 'function' && !empViewTask.__jwDedicatedTaskPage) {
+  window.__jwOriginalEmpViewTaskModal = empViewTask;
+  empViewTask = function(id) {
+    openTaskDetailsPage(id);
+  };
+  empViewTask.__jwDedicatedTaskPage = true;
+}
+
+if (typeof openTakeOrderModal === 'function' && !openTakeOrderModal.__jwDedicatedTaskPage) {
+  window.__jwOriginalOpenTakeOrderModal = openTakeOrderModal;
+  openTakeOrderModal = function(id) {
+    openTaskDetailsPage(id);
+  };
+  openTakeOrderModal.__jwDedicatedTaskPage = true;
+}
+
+const _jwTaskPageOrigNavigate = navigate;
+navigate = function(page, options = {}) {
+  const result = _jwTaskPageOrigNavigate.apply(this, arguments);
+  if (page === 'task-details') {
+    const wrap = document.getElementById('task-details-wrap');
+    if (wrap && !wrap.innerHTML.trim()) wrap.innerHTML = taskDetailLoaderHtml();
+    setTimeout(renderTaskDetailsPage, 160);
+  }
+  return result;
+};
+
+if (typeof pageTitles === 'object') {
+  pageTitles['task-details'] = 'Task Details';
+}
+
+// Catch task-card clicks that do not already call empViewTask/openTakeOrderModal.
+document.addEventListener('click', function(e) {
+  if (!currentUser) return;
+  if (e.target.closest('#page-messages, #page-admin-student-messages')) return;
+  if (e.target.closest('.modal-overlay')) return;
+  const interactive = e.target.closest('button, a, input, textarea, select, label');
+  const orderLink = e.target.closest('.order-link');
+  if (interactive && !orderLink) return;
+
+  const candidate = e.target.closest('.order-link, .order-card, .bid-task-card, tr, .task-card, [data-task-id]');
+  if (!candidate) return;
+  const id = extractTaskIdFromClickedElement(candidate);
+  if (!id) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  openTaskDetailsPage(id);
+}, true);
+
+// Optional: allow a refreshed URL like /#task=JW-...
+setTimeout(() => {
+  try {
+    const raw = String(location.hash || '');
+    const match = raw.match(/^#task=(.+)$/);
+    if (match && currentUser) {
+      const id = decodeURIComponent(match[1]);
+      if (getTaskById(id)) openTaskDetailsPage(id, { fast:true, skipHistory:true });
+    }
+  } catch {}
+}, 900);
 
 </script>
 </body>
