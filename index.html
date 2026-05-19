@@ -5106,50 +5106,6 @@ a[href*="wa.me"].support-footer-btn {
 }
 
 
-/* ── GLOBAL LOG OUT BUTTON FOR ALL LOGGED-IN USERS ─────────────────── */
-.jw-global-logout-btn {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 9px 14px;
-  border-radius: 14px;
-  border: 1.5px solid rgba(214,69,65,.28);
-  background: linear-gradient(135deg, rgba(214,69,65,.10), rgba(255,255,255,.94));
-  color: var(--danger);
-  font-weight: 900;
-  font-size: 12px;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(214,69,65,.10);
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-}
-.jw-global-logout-btn:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, #d64541, #b42318);
-  color: #fff;
-  box-shadow: 0 12px 28px rgba(214,69,65,.22);
-}
-.jw-sidebar-logout-wrap {
-  padding: 14px 18px 18px;
-  border-top: 1px solid rgba(255,255,255,.10);
-  margin-top: auto;
-}
-.jw-sidebar-logout-wrap .jw-global-logout-btn {
-  width: 100%;
-}
-@media (max-width: 820px) {
-  .jw-global-logout-btn {
-    min-height: 40px;
-    padding: 9px 12px;
-    font-size: 12px;
-  }
-}
-body.dark-mode .jw-global-logout-btn {
-  background: rgba(214,69,65,.12);
-  border-color: rgba(255,150,145,.28);
-}
-
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -17947,82 +17903,20 @@ renderStudentDashboard = function() {
 
 
 
-// ══════════════════════════════════════════════════════
-//  GLOBAL LOG OUT BUTTON FOR ALL LOGGED-IN USERS
-// ══════════════════════════════════════════════════════
-function jwSafeLogout() {
-  try {
-    if (typeof doLogout === 'function') return doLogout();
-    if (typeof logout === 'function') return logout();
-  } catch (err) {
-    console.warn('Normal logout failed; falling back to local logout.', err);
+
+
+// ── Cleanup duplicate logout buttons added by previous patch. Keeps the original Sign Out button.
+(function cleanupDuplicateLogoutButtons() {
+  function run() {
+    document.querySelectorAll('.jw-global-logout-btn, .jw-sidebar-logout-wrap, [data-global-logout-btn], [data-sidebar-logout-wrap], [data-profile-logout-btn]').forEach(el => {
+      el.remove();
+    });
   }
-
-  try { _sb?.auth?.signOut?.(); } catch {}
-  try {
-    localStorage.removeItem('jw_session');
-    sessionStorage.clear();
-  } catch {}
-  currentUser = null;
-  try { location.href = window.location.origin + window.location.pathname; }
-  catch { location.reload(); }
-}
-
-function addGlobalLogoutButton() {
-  if (!currentUser) return;
-
-  // Topbar button: appears beside Messages / Submit Work / Dark.
-  const topbar = document.querySelector('.topbar-actions, .header-actions, #topbar-actions, .dashboard-actions');
-  if (topbar && !topbar.querySelector('[data-global-logout-btn]')) {
-    topbar.insertAdjacentHTML(
-      'beforeend',
-      `<button class="jw-global-logout-btn" data-global-logout-btn="1" onclick="jwSafeLogout()">↪ Log Out</button>`
-    );
-  }
-
-  // Sidebar fallback: ensures all users have a logout button even when topbar layout changes.
-  const sidebar = document.querySelector('#sidebar, .sidebar, .side-nav, .dashboard-sidebar');
-  if (sidebar && !sidebar.querySelector('[data-sidebar-logout-wrap]')) {
-    sidebar.insertAdjacentHTML(
-      'beforeend',
-      `<div class="jw-sidebar-logout-wrap" data-sidebar-logout-wrap="1">
-        <button class="jw-global-logout-btn" data-global-logout-btn="1" onclick="jwSafeLogout()">↪ Log Out</button>
-      </div>`
-    );
-  }
-
-  // If profile block exists, add a compact logout button there too.
-  const profileArea = document.querySelector('.profile-card, .sidebar-user, .user-card, #sidebar-user');
-  if (profileArea && !profileArea.querySelector('[data-profile-logout-btn]')) {
-    profileArea.insertAdjacentHTML(
-      'beforeend',
-      `<button class="jw-global-logout-btn" data-profile-logout-btn="1" style="margin-top:10px;width:100%;" onclick="jwSafeLogout()">↪ Log Out</button>`
-    );
-  }
-}
-
-const _jwLogoutBtnOrigLaunchApp = launchApp;
-launchApp = function(options = {}) {
-  _jwLogoutBtnOrigLaunchApp(options);
-  setTimeout(addGlobalLogoutButton, 80);
-  setTimeout(addGlobalLogoutButton, 700);
-};
-
-const _jwLogoutBtnOrigBuildSidebar = buildSidebar;
-buildSidebar = function() {
-  _jwLogoutBtnOrigBuildSidebar();
-  addGlobalLogoutButton();
-};
-
-const _jwLogoutBtnOrigUpdateBadges = updateBadges;
-updateBadges = function() {
-  _jwLogoutBtnOrigUpdateBadges();
-  addGlobalLogoutButton();
-};
-
-// Safety: if the app renders late, keep checking briefly.
-setTimeout(addGlobalLogoutButton, 1000);
-setTimeout(addGlobalLogoutButton, 2500);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  setTimeout(run, 250);
+  setTimeout(run, 1000);
+})();
 
 </script>
 </body>
