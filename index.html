@@ -5161,6 +5161,157 @@ img.sidebar-avatar {
   border-radius: 50% !important;
 }
 
+
+/* ── MOBILE BID/TASK DETAILS OPEN DIRECTLY BELOW SELECTED CARD ─────────────────── */
+.mobile-inline-bid-detail {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .bid-requests-layout {
+    display: block !important;
+  }
+
+  .bid-task-list {
+    display: grid !important;
+    gap: 14px !important;
+  }
+
+  .bid-request-detail-card#selected-bid-detail {
+    display: none !important;
+  }
+
+  .mobile-inline-bid-detail {
+    display: block;
+    margin: -4px 0 18px 0;
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(42,157,143,.24);
+    background: linear-gradient(135deg, rgba(82,196,184,.10), rgba(255,255,255,.98));
+    box-shadow: 0 16px 34px rgba(15,25,35,.07);
+    animation: mobileInlineOpen .22s ease both;
+  }
+
+  .mobile-inline-bid-detail .bid-request-detail-head {
+    margin-bottom: 12px;
+  }
+
+  .mobile-inline-bid-detail .bid-request-detail-title {
+    font-size: 25px;
+    line-height: 1.1;
+  }
+
+  .bid-task-card.active {
+    margin-bottom: 0 !important;
+    border-color: rgba(42,157,143,.55) !important;
+    box-shadow: 0 14px 32px rgba(42,157,143,.12) !important;
+  }
+
+  @keyframes mobileInlineOpen {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+body.dark-mode .mobile-inline-bid-detail {
+  background: linear-gradient(135deg, rgba(82,196,184,.10), #14202b);
+  border-color: rgba(142,228,214,.22);
+}
+
+
+/* ── MOBILE MESSAGES: OPEN THREAD DIRECTLY BELOW SELECTED MESSAGE CARD ─────────────────── */
+@media (max-width: 800px) {
+  #page-messages .message-shell,
+  #page-admin-student-messages .message-shell,
+  #page-messages .message-shell.mobile-thread-open,
+  #page-admin-student-messages .message-shell.mobile-thread-open {
+    display: block !important;
+  }
+
+  #page-messages .message-shell.mobile-thread-open .message-sidebar,
+  #page-admin-student-messages .message-shell.mobile-thread-open .message-sidebar {
+    display: block !important;
+  }
+
+  #page-messages .message-conversation-list.jw-mobile-inline-message-active,
+  #page-admin-student-messages .message-conversation-list.jw-mobile-inline-message-active {
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  #page-messages .message-panel,
+  #page-admin-student-messages .message-panel {
+    display: none;
+  }
+
+  #page-messages .message-panel.jw-mobile-inline-message-panel,
+  #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel {
+    display: block !important;
+    width: 100% !important;
+    min-height: auto !important;
+    margin: -2px 0 18px 0 !important;
+    padding: 16px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(42,157,143,.24) !important;
+    background: linear-gradient(135deg, rgba(82,196,184,.10), rgba(255,255,255,.98)) !important;
+    box-shadow: 0 16px 34px rgba(15,25,35,.07) !important;
+    animation: jwMobileMessageInlineOpen .22s ease both;
+  }
+
+  #page-messages .message-panel.jw-mobile-inline-message-panel .mobile-thread-back,
+  #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel .mobile-thread-back {
+    display: none !important;
+  }
+
+  #page-messages .message-panel.jw-mobile-inline-message-panel .message-thread,
+  #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel .message-thread {
+    min-height: 260px !important;
+    max-height: 55vh !important;
+  }
+
+  #page-messages .message-panel.jw-mobile-inline-message-panel .message-composer,
+  #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel .message-composer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #page-messages .message-panel.jw-mobile-inline-message-panel .message-composer .btn,
+  #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel .message-composer .btn {
+    width: 100%;
+  }
+
+  #page-messages .message-conversation-card.active,
+  #page-admin-student-messages .message-conversation-card.active {
+    margin-bottom: 0 !important;
+    border-color: rgba(42,157,143,.55) !important;
+    box-shadow: 0 14px 32px rgba(42,157,143,.12) !important;
+  }
+
+  @keyframes jwMobileMessageInlineOpen {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+body.dark-mode #page-messages .message-panel.jw-mobile-inline-message-panel,
+body.dark-mode #page-admin-student-messages .message-panel.jw-mobile-inline-message-panel {
+  background: linear-gradient(135deg, rgba(82,196,184,.10), #14202b) !important;
+  border-color: rgba(142,228,214,.22) !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -18159,6 +18310,269 @@ renderStudentDashboard = function() {
   setTimeout(boot, 1200);
   setInterval(applyAvatarFill, 2500);
 })();
+
+
+
+// ══════════════════════════════════════════════════════
+//  MOBILE: OPEN SELECTED BID/TASK DETAILS DIRECTLY BELOW CARD
+// ══════════════════════════════════════════════════════
+function isJwMobileView() {
+  return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+}
+
+function mobileInlineBidDetailHtml(t) {
+  if (!t) return '';
+  const bidCount = bidCountForTask(t);
+  return `
+    <div class="mobile-inline-bid-detail" data-mobile-inline-bid-detail="${esc(t.id)}">
+      <div class="bid-request-detail-head">
+        <div>
+          <div class="bid-request-detail-title">${esc(t.id)} — ${esc(t.subject || 'Order')}</div>
+          <div class="text-muted" style="font-size:13px;line-height:1.55;margin-top:4px;">
+            ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.level || '')} · ${esc(t.style || '')} · Due ${fmtDate(t.deadline)}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${bidCountBadgeHtml(t)}
+          <button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(t.id)}')">Open Full Task</button>
+        </div>
+      </div>
+      ${renderEmployerBidPanel(t)}
+      ${bidCount === 0 ? `<div class="empty-state" style="padding:22px;"><div class="empty-icon">⌛</div><p>No writer has submitted a bid for this task yet.</p></div>` : ''}
+    </div>
+  `;
+}
+
+function placeMobileBidDetailsUnderSelectedTask() {
+  const wrap = document.getElementById('bid-requests-wrap');
+  if (!wrap || !isJwMobileView()) return;
+
+  wrap.querySelectorAll('.mobile-inline-bid-detail').forEach(el => el.remove());
+
+  const selected = getTaskById(_bidRequestsActiveTaskId);
+  if (!selected) return;
+
+  const activeCard = wrap.querySelector('.bid-task-card.active');
+  if (!activeCard) return;
+
+  activeCard.insertAdjacentHTML('afterend', mobileInlineBidDetailHtml(selected));
+
+  setTimeout(() => {
+    try {
+      activeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {}
+  }, 60);
+}
+
+if (typeof renderBidRequestsPage === 'function') {
+  const _jwMobileInlineOrigRenderBidRequestsPage = renderBidRequestsPage;
+  renderBidRequestsPage = function() {
+    _jwMobileInlineOrigRenderBidRequestsPage();
+    placeMobileBidDetailsUnderSelectedTask();
+  };
+}
+
+if (typeof selectBidRequestTask === 'function') {
+  const _jwMobileInlineOrigSelectBidRequestTask = selectBidRequestTask;
+  selectBidRequestTask = function(taskId) {
+    _bidRequestsActiveTaskId = taskId;
+    renderBidRequestsPage();
+    placeMobileBidDetailsUnderSelectedTask();
+  };
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('page-bid-requests')?.classList.contains('active')) {
+    renderBidRequestsPage();
+  }
+});
+
+
+
+// ══════════════════════════════════════════════════════
+//  MOBILE: OPEN MESSAGE THREAD DIRECTLY BELOW SELECTED CARD
+// ══════════════════════════════════════════════════════
+const _jwMessageInlineState = {};
+
+function jwIsMobileMessageInlineView() {
+  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
+}
+
+function jwMessageInlineConfig(kind) {
+  if (kind === 'admin-student') {
+    return {
+      key: 'adminStudent',
+      page: '#page-admin-student-messages',
+      list: '#admin-student-msg-list',
+      panel: '.message-panel'
+    };
+  }
+  return {
+    key: 'standard',
+    page: '#page-messages',
+    list: '#msg-conversation-list',
+    panel: '.message-panel'
+  };
+}
+
+function jwEnsureMessagePanelHome(kind) {
+  const cfg = jwMessageInlineConfig(kind);
+  const page = document.querySelector(cfg.page);
+  if (!page) return null;
+
+  let panel = _jwMessageInlineState[cfg.key]?.panel || page.querySelector(cfg.panel);
+  if (!panel) return null;
+
+  let home = _jwMessageInlineState[cfg.key]?.home;
+  if (!home || !home.isConnected) {
+    home = document.createComment('jw-message-panel-home-' + cfg.key);
+    panel.parentNode.insertBefore(home, panel);
+    _jwMessageInlineState[cfg.key] = { panel, home };
+  }
+
+  return _jwMessageInlineState[cfg.key];
+}
+
+function jwRestoreMessagePanelHome(kind) {
+  const cfg = jwMessageInlineConfig(kind);
+  const state = jwEnsureMessagePanelHome(kind);
+  if (!state?.panel || !state?.home?.parentNode) return;
+
+  const panel = state.panel;
+  const home = state.home;
+  panel.classList.remove('jw-mobile-inline-message-panel');
+  const list = document.querySelector(cfg.page + ' .message-conversation-list');
+  if (list) list.classList.remove('jw-mobile-inline-message-active');
+
+  if (panel.parentNode !== home.parentNode || panel.previousSibling !== home) {
+    home.parentNode.insertBefore(panel, home.nextSibling);
+  }
+
+  const shell = document.querySelector(cfg.page + ' .message-shell');
+  if (shell) shell.classList.remove('mobile-thread-open');
+}
+
+function jwPlaceMessagePanelBelowActiveCard(kind) {
+  const cfg = jwMessageInlineConfig(kind);
+  const page = document.querySelector(cfg.page);
+  if (!page) return;
+  if (!jwIsMobileMessageInlineView()) {
+    jwRestoreMessagePanelHome(kind);
+    return;
+  }
+
+  const state = jwEnsureMessagePanelHome(kind);
+  if (!state?.panel) return;
+
+  const list = page.querySelector(cfg.list);
+  const active = list?.querySelector('.message-conversation-card.active');
+  if (!list || !active) {
+    jwRestoreMessagePanelHome(kind);
+    return;
+  }
+
+  state.panel.classList.add('jw-mobile-inline-message-panel');
+  list.classList.add('jw-mobile-inline-message-active');
+  active.insertAdjacentElement('afterend', state.panel);
+
+  const shell = page.querySelector('.message-shell');
+  if (shell) shell.classList.remove('mobile-thread-open');
+
+  setTimeout(() => {
+    try {
+      active.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {}
+  }, 70);
+}
+
+function jwPlaceAllOpenMobileMessagePanels() {
+  if (document.getElementById('page-messages')?.classList.contains('active')) {
+    jwPlaceMessagePanelBelowActiveCard('standard');
+  }
+  if (document.getElementById('page-admin-student-messages')?.classList.contains('active')) {
+    jwPlaceMessagePanelBelowActiveCard('admin-student');
+  }
+}
+
+// Patch standard messages.
+if (typeof loadMessageThread === 'function' && !loadMessageThread.__jwMobileInlinePatched) {
+  const _jwInlineOrigLoadMessageThread = loadMessageThread;
+  loadMessageThread = function() {
+    jwRestoreMessagePanelHome('standard');
+    const result = _jwInlineOrigLoadMessageThread.apply(this, arguments);
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('standard'), 60);
+    return result;
+  };
+  loadMessageThread.__jwMobileInlinePatched = true;
+}
+
+if (typeof selectMessageThread === 'function' && !selectMessageThread.__jwMobileInlinePatched) {
+  const _jwInlineOrigSelectMessageThread = selectMessageThread;
+  selectMessageThread = function(id) {
+    jwRestoreMessagePanelHome('standard');
+    const result = _jwInlineOrigSelectMessageThread.apply(this, arguments);
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('standard'), 70);
+    return result;
+  };
+  selectMessageThread.__jwMobileInlinePatched = true;
+}
+
+// Override older "full thread" mobile behavior so it now opens inline below the selected card.
+if (typeof openMobileMessageThreadView === 'function') {
+  openMobileMessageThreadView = function() {
+    jwPlaceMessagePanelBelowActiveCard('standard');
+  };
+}
+
+if (typeof closeMobileMessageThreadView === 'function') {
+  closeMobileMessageThreadView = function() {
+    jwRestoreMessagePanelHome('standard');
+  };
+}
+
+// Patch admin student messages.
+if (typeof renderAdminStudentMessagesPage === 'function' && !renderAdminStudentMessagesPage.__jwMobileInlinePatched) {
+  const _jwInlineOrigRenderAdminStudentMessagesPage = renderAdminStudentMessagesPage;
+  renderAdminStudentMessagesPage = function() {
+    jwRestoreMessagePanelHome('admin-student');
+    const result = _jwInlineOrigRenderAdminStudentMessagesPage.apply(this, arguments);
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('admin-student'), 70);
+    return result;
+  };
+  renderAdminStudentMessagesPage.__jwMobileInlinePatched = true;
+}
+
+if (typeof adminSelectStudentMessageThread === 'function' && !adminSelectStudentMessageThread.__jwMobileInlinePatched) {
+  const _jwInlineOrigAdminSelectStudentMessageThread = adminSelectStudentMessageThread;
+  adminSelectStudentMessageThread = function(id) {
+    jwRestoreMessagePanelHome('admin-student');
+    const result = _jwInlineOrigAdminSelectStudentMessageThread.apply(this, arguments);
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('admin-student'), 70);
+    return result;
+  };
+  adminSelectStudentMessageThread.__jwMobileInlinePatched = true;
+}
+
+window.addEventListener('resize', () => {
+  if (!jwIsMobileMessageInlineView()) {
+    jwRestoreMessagePanelHome('standard');
+    jwRestoreMessagePanelHome('admin-student');
+  } else {
+    setTimeout(jwPlaceAllOpenMobileMessagePanels, 80);
+  }
+});
+
+document.addEventListener('click', function(e) {
+  const standardCard = e.target.closest('#page-messages .message-conversation-card');
+  if (standardCard && jwIsMobileMessageInlineView()) {
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('standard'), 90);
+  }
+
+  const adminCard = e.target.closest('#page-admin-student-messages .message-conversation-card');
+  if (adminCard && jwIsMobileMessageInlineView()) {
+    setTimeout(() => jwPlaceMessagePanelBelowActiveCard('admin-student'), 90);
+  }
+});
 
 </script>
 </body>
