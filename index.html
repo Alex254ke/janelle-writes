@@ -5732,6 +5732,363 @@ body.jw-logout-transition .landing {
   }
 }
 
+
+/* ══════════════════════════════════════════════════════
+   RESTORED IMPROVEMENTS: GLOBAL LOADER, TASK PAGE, SUPPORT CLEANUP
+   ══════════════════════════════════════════════════════ */
+
+/* Keep only the floating support bubble; hide footer/card WhatsApp support buttons. */
+.support-footer .btn,
+.support-desk .btn,
+.footer-support .btn,
+.support-card .btn,
+#support-footer .btn,
+#support-desk .btn,
+.support-footer a[href*="wa.me"],
+.support-desk a[href*="wa.me"],
+.footer-support a[href*="wa.me"],
+.support-card a[href*="wa.me"],
+#support-footer a[href*="wa.me"],
+#support-desk a[href*="wa.me"] {
+  display: none !important;
+}
+
+/* Do not hide the floating support bubble. */
+.floating-support-widget,
+.floating-support-widget *,
+#floating-support,
+#floating-support *,
+.live-support-float,
+.live-support-float *,
+.whatsapp-floating,
+.whatsapp-floating * {
+  display: revert-layer;
+}
+
+/* Global blinking loading overlay. */
+.jw-global-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(247,252,251,.88);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+
+.jw-global-loading-overlay.open {
+  display: flex;
+}
+
+.jw-global-loading-card,
+.jw-global-loading-inline {
+  width: min(390px, 92vw);
+  border: 1px solid rgba(42,157,143,.22);
+  border-radius: 26px;
+  padding: 28px 22px;
+  text-align: center;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 26px 72px rgba(15,25,35,.14);
+}
+
+.jw-global-loading-inline {
+  margin: min(18vh, 120px) auto;
+  box-shadow: none;
+  background: transparent;
+  border-color: transparent;
+}
+
+.jw-global-blink-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: jwGlobalLogoBlink 1.05s ease-in-out infinite;
+}
+
+.jw-global-blink-logo-mark {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto;
+  border-radius: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f1923, #123c3a);
+  color: #fff;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 900;
+  box-shadow: 0 22px 54px rgba(42,157,143,.25);
+}
+
+.jw-global-blink-logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.jw-global-blink-logo-text span {
+  color: var(--teal);
+  font-style: italic;
+}
+
+.jw-global-loader-caption {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+@keyframes jwGlobalLogoBlink {
+  0%, 100% { opacity: .38; transform: scale(.96); filter: blur(.1px); }
+  50% { opacity: 1; transform: scale(1.035); filter: blur(0); }
+}
+
+/* Dedicated task detail page. */
+.task-detail-page-card {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 22px 58px rgba(15,25,35,.08);
+  overflow: hidden;
+}
+
+.task-detail-cover {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(82,196,184,.22), transparent 34%),
+    linear-gradient(135deg, #10202b, #174d49);
+  color: #fff;
+  padding: 30px;
+}
+
+.task-detail-cover-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.task-detail-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(82,196,184,.18);
+  color: #b9fff4;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.task-detail-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: .98;
+  font-weight: 900;
+  margin: 0;
+  max-width: 920px;
+}
+
+.task-detail-sub {
+  margin-top: 14px;
+  color: rgba(255,255,255,.82);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.task-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.task-detail-body {
+  padding: 26px 30px 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.task-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.task-detail-stat {
+  border: 1px solid rgba(42,157,143,.18);
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.task-detail-stat-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.task-detail-stat-value {
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.task-detail-section {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(247,252,251,.92));
+}
+
+.task-detail-section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.task-detail-text {
+  color: var(--charcoal);
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-detail-danger-note {
+  border-left: 4px solid var(--rust);
+  background: rgba(231,111,81,.08);
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: var(--charcoal);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .task-detail-grid {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+  .task-detail-cover,
+  .task-detail-body {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .task-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .task-detail-actions .btn {
+    width: 100%;
+  }
+  .task-detail-cover,
+  .task-detail-body {
+    padding: 18px;
+  }
+  .jw-global-blink-logo-mark {
+    width: 68px;
+    height: 68px;
+    font-size: 42px;
+    border-radius: 20px;
+  }
+}
+
+/* Remove the mobile refresh button permanently. */
+#jw-mobile-data-refresh-btn {
+  display: none !important;
+}
+
+/* Profile images stay filled in circular avatars. */
+.profile-avatar img,
+.profile-photo img,
+.profile-image img,
+.avatar img,
+.user-avatar img,
+.sidebar-avatar img,
+.profile-preview img,
+.profile-image-preview img,
+#profile-avatar img,
+#profile-photo img,
+#profile-image img,
+#profile-preview img,
+img.profile-avatar,
+img.profile-photo,
+img.profile-image,
+img.user-avatar,
+img.sidebar-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  background: transparent !important;
+}
+
+.profile-avatar,
+.profile-photo,
+.profile-image,
+.avatar,
+.user-avatar,
+.sidebar-avatar,
+.profile-preview,
+.profile-image-preview,
+#profile-avatar,
+#profile-photo,
+#profile-image,
+#profile-preview {
+  overflow: hidden !important;
+  border-radius: 50% !important;
+}
+
+body.dark-mode .jw-global-loading-overlay,
+body.dark .jw-global-loading-overlay {
+  background: rgba(8,14,20,.86);
+}
+
+body.dark-mode .jw-global-loading-card,
+body.dark .jw-global-loading-card,
+body.dark-mode .task-detail-page-card,
+body.dark .task-detail-page-card,
+body.dark-mode .task-detail-section,
+body.dark .task-detail-section {
+  background: #14202b;
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .jw-global-blink-logo-text,
+body.dark .jw-global-blink-logo-text,
+body.dark-mode .task-detail-section-title,
+body.dark .task-detail-section-title,
+body.dark-mode .task-detail-stat-value,
+body.dark .task-detail-stat-value {
+  color: #f4fbfa;
+}
+
+body.dark-mode .task-detail-stat,
+body.dark .task-detail-stat {
+  background: rgba(82,196,184,.07);
+  border-color: rgba(142,228,214,.18);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -20521,6 +20878,777 @@ if (typeof handleSupabaseAuthReturn === 'function' && !handleSupabaseAuthReturn.
   };
   handleSupabaseAuthReturn.__jwRoleLockPatched = true;
 }
+
+
+
+// ══════════════════════════════════════════════════════
+//  RESTORED IMPROVEMENTS: TASK PAGE, GLOBAL LOADER, SUPPORT CLEANUP, ROLE SAFETY
+// ══════════════════════════════════════════════════════
+
+/* ---------- Global loader ---------- */
+function jwEnsureGlobalLoader() {
+  let overlay = document.getElementById('jw-global-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jw-global-loading-overlay';
+    overlay.className = 'jw-global-loading-overlay';
+    overlay.innerHTML = `
+      <div class="jw-global-loading-card">
+        <div class="jw-global-blink-logo">
+          <div class="jw-global-blink-logo-mark">J</div>
+          <div class="jw-global-blink-logo-text">Janelle <span>Writes!</span></div>
+        </div>
+        <div class="jw-global-loader-caption" id="jw-global-loader-caption">Loading...</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  return overlay;
+}
+
+function jwShowGlobalLoader(message = 'Loading...') {
+  const overlay = jwEnsureGlobalLoader();
+  const caption = document.getElementById('jw-global-loader-caption');
+  if (caption) caption.textContent = message;
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+}
+
+function jwHideGlobalLoader() {
+  const overlay = document.getElementById('jw-global-loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+}
+
+function jwGlobalLoadingInline(message = 'Loading...') {
+  return `<div class="jw-global-loading-inline">
+    <div class="jw-global-blink-logo">
+      <div class="jw-global-blink-logo-mark">J</div>
+      <div class="jw-global-blink-logo-text">Janelle <span>Writes!</span></div>
+    </div>
+    <div class="jw-global-loader-caption">${esc(message)}</div>
+  </div>`;
+}
+
+/* ---------- Remove footer WhatsApp support; keep floating support ---------- */
+function jwRemoveFooterSupportButtons() {
+  document.querySelectorAll('a, button').forEach(el => {
+    const text = String(el.textContent || '').toLowerCase();
+    const href = String(el.getAttribute('href') || '').toLowerCase();
+    const isWhatsApp = text.includes('whatsapp support') || href.includes('wa.me') || href.includes('api.whatsapp.com');
+    if (!isWhatsApp) return;
+    const isFloating = !!el.closest('.floating-support-widget, #floating-support, .live-support-float, .whatsapp-floating');
+    const isFooterish = !!el.closest('.support-footer, .support-desk, .footer-support, .support-card, #support-footer, #support-desk, footer');
+    if (isFooterish && !isFloating) {
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+setTimeout(jwRemoveFooterSupportButtons, 100);
+setTimeout(jwRemoveFooterSupportButtons, 800);
+setInterval(jwRemoveFooterSupportButtons, 2500);
+
+/* ---------- Dedicated task detail page ---------- */
+let _activeTaskDetailId = window._activeTaskDetailId || '';
+window.__jwTaskDetailReturn = window.__jwTaskDetailReturn || { page: '', scrollY: 0, taskId: '' };
+
+function jwCurrentVisiblePageName() {
+  const active = document.querySelector('.page.active');
+  const idPage = active?.id ? active.id.replace(/^page-/, '') : '';
+  if (idPage && idPage !== 'task-details') return idPage;
+  if (typeof _currentPage !== 'undefined' && _currentPage && _currentPage !== 'task-details') return _currentPage;
+  return '';
+}
+
+function jwDefaultReturnPageForRole() {
+  try {
+    if (typeof isJwAdmin === 'function' && isJwAdmin()) return 'admin-control';
+    if (currentUser?.role === 'writer') return 'writer-tasks';
+    if (currentUser?.role === 'student') return 'student-dashboard';
+    if (currentUser?.role === 'employer') return 'emp-tasks';
+  } catch {}
+  return typeof getHomePage === 'function' ? getHomePage() : 'emp-dashboard';
+}
+
+function jwSaveTaskReturnPage(taskId, explicitPage) {
+  const page = explicitPage || jwCurrentVisiblePageName() || jwDefaultReturnPageForRole();
+  if (!page || page === 'task-details') return;
+  window.__jwTaskDetailReturn = {
+    page,
+    scrollY: window.scrollY || document.documentElement.scrollTop || 0,
+    taskId: taskId || ''
+  };
+  try { sessionStorage.setItem('jw_task_detail_return_page', JSON.stringify(window.__jwTaskDetailReturn)); } catch {}
+}
+
+function jwGetTaskReturnPage() {
+  if (window.__jwTaskDetailReturn?.page && window.__jwTaskDetailReturn.page !== 'task-details') return window.__jwTaskDetailReturn;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('jw_task_detail_return_page') || 'null');
+    if (saved?.page && saved.page !== 'task-details') return saved;
+  } catch {}
+  return { page: jwDefaultReturnPageForRole(), scrollY: 0, taskId: '' };
+}
+
+function returnFromTaskDetails(event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+
+  const state = jwGetTaskReturnPage();
+  const target = state.page && state.page !== 'task-details' ? state.page : jwDefaultReturnPageForRole();
+
+  try {
+    if (String(location.hash || '').startsWith('#task=')) {
+      history.replaceState(history.state || {}, document.title, location.pathname + location.search);
+    }
+  } catch {}
+
+  navigate(target, { replaceHistory: true });
+
+  setTimeout(() => {
+    try {
+      const top = Number(state.scrollY || 0);
+      if (top > 0) window.scrollTo({ top, behavior: 'smooth' });
+    } catch {}
+  }, 180);
+
+  return false;
+}
+
+function taskVisibleAmountText(t) {
+  if (!t) return '—';
+  try {
+    if (currentUser?.role === 'writer' && typeof isStudentOrder === 'function' && isStudentOrder(t)) {
+      return 'KES ' + (Number(t.pages || 0) * 300).toLocaleString();
+    }
+    if (currentUser?.role === 'writer' && typeof writerPayoutText === 'function') return writerPayoutText(t);
+  } catch {}
+  return 'KES ' + Number(t.total || 0).toLocaleString();
+}
+
+function taskDetailActionsHtml(t) {
+  const actions = [];
+  actions.push(`<button class="btn btn-outline" onclick="return returnFromTaskDetails(event)">← Back</button>`);
+
+  try {
+    if (typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t)) {
+      actions.push(`<button class="btn btn-outline" onclick="openMessagesForTask('${escJS(t.id)}')">💬 Message</button>`);
+    }
+  } catch {}
+
+  try {
+    if (currentUser?.role === 'writer' && typeof taskForWriter === 'function' && taskForWriter(t, currentUser.email) && !['completed','cancelled','disputed'].includes(String(t.status || '').toLowerCase())) {
+      actions.push(`<button class="btn btn-primary" onclick="openWriterSubmitForTask('${escJS(t.id)}')">📤 Submit Work</button>`);
+    }
+  } catch {}
+
+  if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending') {
+    actions.push(`<button class="btn btn-primary" onclick="document.getElementById('writer-bid-message')?.focus()">📝 Bid / Request</button>`);
+  }
+
+  try {
+    if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || (typeof isJwAdmin === 'function' && isJwAdmin())) && typeof canRequestReassign === 'function' && canRequestReassign(t)) {
+      actions.push(`<button class="btn btn-warn" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`);
+    }
+  } catch {}
+
+  try {
+    if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+      actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
+    }
+  } catch {}
+
+  return actions.join('');
+}
+
+function taskDetailPartnerHtml(t) {
+  try { if (typeof partnerRatingPanelForTask === 'function') return partnerRatingPanelForTask(t); } catch {}
+  return '';
+}
+
+function taskDetailFilesHtml(t) {
+  try { if (typeof renderInstructionFiles === 'function') return renderInstructionFiles(t); } catch {}
+  return '';
+}
+
+function taskDetailWorkflowHtml(t) {
+  const parts = [];
+  try {
+    if (currentUser?.role === 'writer' && !t.taken_by && t.status === 'pending' && typeof bidRequestPanelForWriter === 'function') {
+      parts.push(`<div class="task-detail-section"><div class="task-detail-section-title">Writer Request</div>${bidRequestPanelForWriter(t)}</div>`);
+    } else if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || (typeof isJwAdmin === 'function' && isJwAdmin())) && typeof renderEmployerBidPanel === 'function') {
+      parts.push(`<div class="task-detail-section"><div class="task-detail-section-title">Writer Requests / Bids</div>${renderEmployerBidPanel(t)}</div>`);
+    }
+  } catch {}
+  try {
+    if (typeof renderReassignStatusPanel === 'function') {
+      const reassign = renderReassignStatusPanel(t);
+      if (reassign) parts.push(`<div class="task-detail-section">${reassign}</div>`);
+    }
+  } catch {}
+  try {
+    if (typeof renderLatenessPanel === 'function') {
+      const late = renderLatenessPanel(t);
+      if (late) parts.push(`<div class="task-detail-section">${late}</div>`);
+    }
+  } catch {}
+  return parts.join('');
+}
+
+function renderTaskDetailsPage() {
+  const wrap = document.getElementById('task-details-wrap');
+  if (!wrap) return;
+
+  const t = typeof getTaskById === 'function' ? getTaskById(_activeTaskDetailId) : null;
+  if (!t) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Task not found.</p><button class="btn btn-primary" onclick="returnFromTaskDetails(event)">Go Back</button></div>`;
+    return;
+  }
+
+  try {
+    const canSee = (typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t)) || (currentUser?.role === 'writer' && t.status === 'pending' && !t.taken_by);
+    if (!canSee) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>You do not have permission to view this task.</p><button class="btn btn-primary" onclick="returnFromTaskDetails(event)">Go Back</button></div>`;
+      return;
+    }
+  } catch {}
+
+  const postedBy = t.posted_by_name || t.posted_by || '—';
+  const writer = t.taken_by_name || t.taken_by || 'Unassigned';
+  const safeTitle = `${esc(t.id)} — ${esc(t.subject || 'Task')}`;
+
+  wrap.innerHTML = `
+    <div class="task-detail-page-card">
+      <div class="task-detail-cover">
+        <div class="task-detail-cover-top">
+          <div>
+            <div class="task-detail-kicker">📌 Task Details</div>
+            <h1 class="task-detail-title">${safeTitle}</h1>
+            <div class="task-detail-sub">
+              ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.level || 'Level')} · ${esc(t.style || 'Style')} · Due ${fmtDate(t.deadline)}
+            </div>
+          </div>
+          <div class="task-detail-actions">${taskDetailActionsHtml(t)}</div>
+        </div>
+      </div>
+
+      <div class="task-detail-body">
+        <div class="task-detail-grid">
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Status</div><div class="task-detail-stat-value">${typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || '—')}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Payment</div><div class="task-detail-stat-value">${typeof payBadge === 'function' ? payBadge(t.payment) : esc(t.payment || '—')}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Visible Amount</div><div class="task-detail-stat-value">${esc(taskVisibleAmountText(t))}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Writer</div><div class="task-detail-stat-value">${esc(writer)}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Posted By</div><div class="task-detail-stat-value">${esc(postedBy)}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Pages</div><div class="task-detail-stat-value">${esc(t.pages || '—')}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Words</div><div class="task-detail-stat-value">${t.words ? Number(t.words).toLocaleString() : '—'}</div></div>
+          <div class="task-detail-stat"><div class="task-detail-stat-label">Deadline</div><div class="task-detail-stat-value">${fmtDate(t.deadline)}</div></div>
+        </div>
+
+        ${taskDetailPartnerHtml(t)}
+
+        <div class="task-detail-section">
+          <div class="task-detail-section-title">Instructions / Description</div>
+          <div class="task-detail-text">${esc(t.description || t.instructions || 'No written instructions were provided.')}</div>
+        </div>
+
+        ${t.requirements ? `<div class="task-detail-section"><div class="task-detail-section-title">Special Requirements</div><div class="task-detail-text">${esc(t.requirements)}</div></div>` : ''}
+
+        ${taskDetailFilesHtml(t)}
+
+        ${taskDetailWorkflowHtml(t)}
+
+        <div class="task-detail-danger-note">
+          Keep order communication, files, disputes, revisions, and approvals inside Janelle Writes so the platform can protect both sides.
+        </div>
+      </div>
+    </div>
+  `;
+
+  try { document.getElementById('page-title').textContent = t.id; } catch {}
+}
+
+function openTaskDetailsPage(taskId, options = {}) {
+  if (!taskId) return;
+  _activeTaskDetailId = String(taskId).trim();
+  jwSaveTaskReturnPage(_activeTaskDetailId, options.returnPage);
+
+  const wrap = document.getElementById('task-details-wrap');
+  if (wrap) wrap.innerHTML = jwGlobalLoadingInline('Opening task details...');
+
+  jwShowGlobalLoader('Opening task details...');
+  navigate('task-details', { skipHistory: options.skipHistory || false });
+
+  try { history.replaceState(history.state, '', '#task=' + encodeURIComponent(_activeTaskDetailId)); } catch {}
+
+  setTimeout(() => {
+    renderTaskDetailsPage();
+    jwHideGlobalLoader();
+  }, options.fast ? 120 : 420);
+}
+
+function extractTaskIdFromClickedElement(el) {
+  if (!el) return '';
+  const fromData = el.getAttribute?.('data-task-id') || el.dataset?.taskId || el.getAttribute?.('data-order-id') || '';
+  if (fromData && typeof getTaskById === 'function' && getTaskById(fromData)) return fromData;
+
+  const selectors = ['.order-link', '.order-card-id', '.bid-task-id', '.task-card-id', '[data-order-id]'];
+  for (const sel of selectors) {
+    const found = el.matches?.(sel) ? el : el.querySelector?.(sel);
+    const raw = found?.getAttribute?.('data-order-id') || found?.textContent || '';
+    const id = String(raw).trim();
+    if (id && typeof getTaskById === 'function' && getTaskById(id)) return id;
+  }
+
+  const text = String(el.textContent || '');
+  const match = text.match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/i);
+  if (match && typeof getTaskById === 'function' && getTaskById(match[0])) return match[0];
+
+  return '';
+}
+
+/* Replace old modal task views with full-page details. */
+window.__jwOriginalEmpViewTaskModal = window.__jwOriginalEmpViewTaskModal || (typeof empViewTask === 'function' ? empViewTask : null);
+empViewTask = function(id) { openTaskDetailsPage(id); };
+
+window.__jwOriginalOpenTakeOrderModal = window.__jwOriginalOpenTakeOrderModal || (typeof openTakeOrderModal === 'function' ? openTakeOrderModal : null);
+openTakeOrderModal = function(id) { openTaskDetailsPage(id); };
+
+if (typeof pageTitles === 'object') pageTitles['task-details'] = 'Task Details';
+
+if (typeof navigate === 'function' && !navigate.__jwTaskDetailsRestored) {
+  const _jwRestoreOrigNavigate = navigate;
+  navigate = function(page, options = {}) {
+    const result = _jwRestoreOrigNavigate.apply(this, arguments);
+    if (page === 'task-details') {
+      const wrap = document.getElementById('task-details-wrap');
+      if (wrap && !wrap.innerHTML.trim()) wrap.innerHTML = jwGlobalLoadingInline('Opening task details...');
+      setTimeout(renderTaskDetailsPage, 120);
+    }
+    setTimeout(jwRemoveFooterSupportButtons, 100);
+    setTimeout(jwRemoveMobileRefreshButton, 100);
+    return result;
+  };
+  navigate.__jwTaskDetailsRestored = true;
+}
+
+document.addEventListener('pointerdown', function(e) {
+  if (!currentUser) return;
+  const active = jwCurrentVisiblePageName();
+  if (!active || active === 'task-details') return;
+  const clickedTask = e.target.closest?.('.order-link, .order-card, .bid-task-card, tr, .task-card, [data-task-id], [data-order-id]');
+  if (clickedTask) jwSaveTaskReturnPage('', active);
+}, true);
+
+document.addEventListener('click', function(e) {
+  if (!currentUser) return;
+  if (e.target.closest('#page-messages, #page-admin-student-messages')) return;
+  if (e.target.closest('.modal-overlay')) return;
+
+  const interactive = e.target.closest('button, a, input, textarea, select, label');
+  const orderLink = e.target.closest('.order-link, [data-task-id], [data-order-id]');
+  if (interactive && !orderLink) return;
+
+  const candidate = e.target.closest('.order-link, .order-card, .bid-task-card, tr, .task-card, [data-task-id], [data-order-id]');
+  if (!candidate) return;
+
+  const id = extractTaskIdFromClickedElement(candidate);
+  if (!id) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  openTaskDetailsPage(id);
+}, true);
+
+document.addEventListener('click', function(e) {
+  const backBtn = e.target.closest('#page-task-details button');
+  if (!backBtn) return;
+  const txt = (backBtn.textContent || '').trim().toLowerCase();
+  if (txt === '← back' || txt === 'back' || txt.includes('back')) returnFromTaskDetails(e);
+}, true);
+
+/* ---------- Mobile data loading and Google role protection ---------- */
+function jwRemoveMobileRefreshButton() {
+  document.querySelectorAll('#jw-mobile-data-refresh-btn').forEach(btn => btn.remove());
+}
+jwAddMobileRefreshButton = function() { jwRemoveMobileRefreshButton(); };
+setInterval(jwRemoveMobileRefreshButton, 1200);
+
+function jwIsMobileDeviceView() {
+  return window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
+}
+
+function jwPromiseTimeout(promise, ms, label = 'Request') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timed out')), ms))
+  ]);
+}
+
+function jwMergeTaskRows(...groups) {
+  return dedupeTasks(groups.flat().filter(Boolean));
+}
+
+async function jwQueryTasksSimple(builder, label, ms = 22000) {
+  const result = await jwPromiseTimeout(builder, ms, label);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function jwFastGetTasks() {
+  if (!currentUser) return [];
+  const email = String(currentUser.email || '').toLowerCase();
+  const isAdmin = typeof isJwAdmin === 'function' && isJwAdmin();
+  const limit = jwIsMobileDeviceView() ? 300 : 1000;
+
+  if (isAdmin) {
+    return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(limit), 'Admin tasks loading', 26000);
+  }
+
+  if (currentUser.role === 'writer') {
+    const [assigned, available] = await Promise.all([
+      jwQueryTasksSimple(_sb.from('jw_tasks').select('*').ilike('taken_by', email).order('created_at', { ascending: false }).limit(limit), 'Writer assigned tasks loading', 24000),
+      jwQueryTasksSimple(_sb.from('jw_tasks').select('*').is('taken_by', null).eq('status', 'pending').order('created_at', { ascending: false }).limit(limit), 'Writer available tasks loading', 24000)
+    ]);
+    return jwMergeTaskRows(assigned, available);
+  }
+
+  if (currentUser.role === 'employer' || currentUser.role === 'student') {
+    return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').ilike('posted_by', email).order('created_at', { ascending: false }).limit(limit), 'User tasks loading', 24000);
+  }
+
+  return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(limit), 'Tasks loading', 24000);
+}
+
+dbGetTasks = async function() { return await jwFastGetTasks(); };
+
+refreshTasks = async function() {
+  tasks = dedupeTasks(await dbGetTasks());
+  updateBadges();
+
+  if (jwIsMobileDeviceView()) {
+    setTimeout(() => { try { autoMarkLateTasks(true); } catch {} }, 3500);
+    setTimeout(() => { try { autoSendTaskReminders(true); } catch {} }, 6500);
+  } else {
+    try { await autoMarkLateTasks(true); } catch (err) { console.warn('Late check skipped:', err); }
+    try { await autoSendTaskReminders(true); } catch (err) { console.warn('Reminder check skipped:', err); }
+  }
+  return tasks;
+};
+
+async function jwRefreshDashboardAfterLogin(reason = 'login') {
+  if (!currentUser) { jwHideGlobalLoader(); return; }
+  if (jwIsMobileDeviceView()) jwShowGlobalLoader('Loading your workspace...');
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await refreshTasks();
+      const page = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+      if (page && document.getElementById('page-' + page)) navigate(page, { skipHistory: true });
+      jwHideGlobalLoader();
+      jwRemoveMobileRefreshButton();
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn('Dashboard refresh attempt failed:', attempt, err);
+      await new Promise(resolve => setTimeout(resolve, 900 * attempt));
+    }
+  }
+
+  jwHideGlobalLoader();
+  jwRemoveMobileRefreshButton();
+  notify('⚠️ Data did not load fully. Please check your connection, then reopen the page if needed.');
+  console.warn('Dashboard data failed after retries:', lastError);
+}
+
+if (typeof launchApp === 'function' && !launchApp.__jwRestoredGlobalLoader) {
+  const _jwRestoreOrigLaunchApp = launchApp;
+  launchApp = function(options = {}) {
+    if (jwIsMobileDeviceView()) jwShowGlobalLoader('Loading your workspace...');
+    const result = _jwRestoreOrigLaunchApp.apply(this, arguments);
+    setTimeout(() => jwRefreshDashboardAfterLogin('launch'), jwIsMobileDeviceView() ? 80 : 300);
+    setTimeout(jwRemoveFooterSupportButtons, 800);
+    return result;
+  };
+  launchApp.__jwRestoredGlobalLoader = true;
+}
+
+/* Google role lock: existing jw_users.role wins over Google fallback. */
+function jwCachedRoleForEmail(email) {
+  try {
+    const cached = JSON.parse(localStorage.getItem('jw_session') || 'null');
+    if (cached?.email && sameEmail(cached.email, email) && cached.role) return normalizePlatformRole(cached.role, 'employer');
+  } catch {}
+  return '';
+}
+
+function jwExplicitSignupRole() {
+  const intent = localStorage.getItem('jw_google_intent') || '';
+  const role = localStorage.getItem('jw_google_role') || '';
+  if (intent === 'signup' && role) return normalizePlatformRole(role, 'employer');
+  return '';
+}
+
+function jwSafeRoleForAuth(authUser, existing, options = {}) {
+  if (existing?.role) return normalizePlatformRole(existing.role, 'employer');
+  const cachedRole = jwCachedRoleForEmail(authUser.email);
+  if (cachedRole) return cachedRole;
+  const signupRole = jwExplicitSignupRole();
+  if (signupRole) return signupRole;
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  if (intent === 'signup') return normalizePlatformRole(options.role || authUser.role || 'employer', 'employer');
+  return normalizePlatformRole(authUser.role || 'employer', 'employer');
+}
+
+googleProfileFromSession = function(session) {
+  const explicit = jwExplicitSignupRole();
+  return authProfileFromSession(session, explicit || 'employer');
+};
+
+finishGoogleLoginWithSession = async function(session) {
+  const intent = localStorage.getItem('jw_google_intent') || 'login';
+  const explicit = jwExplicitSignupRole();
+  return await finishSecureAuthSession(session, { intent, role: explicit || 'employer' });
+};
+
+finishSecureAuthSession = async function(session, options = {}) {
+  const authUser = authProfileFromSession(session, options.role || 'employer');
+
+  if (!authUser.email) {
+    notify('❌ No verified email was returned. Please try another sign-in method.');
+    return false;
+  }
+
+  if (authUser.provider === 'email' && !authUser.email_confirmed_at) {
+    notify('📨 Please verify your email before signing in.');
+    return false;
+  }
+
+  const intent = options.intent || localStorage.getItem('jw_google_intent') || 'login';
+  let existing = null;
+
+  jwShowGlobalLoader('Signing you in...');
+
+  try {
+    existing = await promiseWithTimeout(dbGetUserByEmail(authUser.email), jwIsMobileDeviceView() ? 12000 : 7000, 'Profile lookup');
+  } catch (err) {
+    console.warn('Profile lookup failed during login:', err);
+    existing = null;
+  }
+
+  const safeRole = jwSafeRoleForAuth(authUser, existing, { ...options, intent });
+
+  if (!existing && intent === 'login' && !jwCachedRoleForEmail(authUser.email)) {
+    jwHideGlobalLoader();
+    hideAuthCallbackLoading?.();
+    openAuthScreen('signup', safeRole);
+    notify('⚠️ This Google email is authenticated, but no platform profile was found. Please choose your correct role to finish account setup.');
+    return false;
+  }
+
+  const firstUser = existing ? platformUserFromRecord(existing, authUser, safeRole) : cachedPlatformUserForAuth(authUser, safeRole);
+  saveCurrentSessionUser(firstUser);
+
+  localStorage.removeItem('jw_google_intent');
+  localStorage.removeItem('jw_google_role');
+  localStorage.removeItem('jw_google_signup_profile');
+
+  cleanAuthReturnUrl();
+  try { hideAuthCallbackLoading(); } catch {}
+
+  const authScreen = document.getElementById('auth-screen');
+  if (authScreen) authScreen.style.display = 'none';
+
+  playSound('login');
+  launchApp();
+
+  (async () => {
+    let synced = existing;
+    if (!synced) synced = await createOrRecoverPlatformUser(authUser, safeRole, intent);
+    else synced = await safeLinkExistingPlatformUser(synced, authUser, safeRole);
+
+    const finalRole = jwSafeRoleForAuth(authUser, synced, { ...options, intent });
+    const previousRole = currentUser?.role;
+    saveCurrentSessionUser(platformUserFromRecord(synced, authUser, finalRole));
+    refreshAppChromeAfterProfileUpdate(previousRole);
+    setTimeout(() => jwRefreshDashboardAfterLogin('profile-sync'), 250);
+  })().catch(err => console.warn('Background profile sync failed:', err));
+
+  return true;
+};
+
+if (typeof handleSupabaseAuthReturn === 'function' && !handleSupabaseAuthReturn.__jwRoleLockRestored) {
+  const _jwOriginalHandleSupabaseAuthReturn = handleSupabaseAuthReturn;
+  handleSupabaseAuthReturn = async function() {
+    if (!localStorage.getItem('jw_google_intent')) localStorage.setItem('jw_google_intent', 'login');
+    return await _jwOriginalHandleSupabaseAuthReturn.apply(this, arguments);
+  };
+  handleSupabaseAuthReturn.__jwRoleLockRestored = true;
+}
+
+/* ---------- Logout remains instant and never leaves sidebar over landing ---------- */
+let __jwLogoutBusyRestored = false;
+
+function jwBeginInstantLogoutUiRestored() {
+  try { jwHideGlobalLoader(); } catch {}
+  try { if (typeof jwHideDataOverlay === 'function') jwHideDataOverlay(); } catch {}
+  try { if (typeof closeMobileMenu === 'function') closeMobileMenu(); } catch {}
+  try { if (typeof closeLandingMenu === 'function') closeLandingMenu(); } catch {}
+  try { if (typeof hideSessionModal === 'function') hideSessionModal(); } catch {}
+  try { if (typeof hideAuthCallbackLoading === 'function') hideAuthCallbackLoading(); } catch {}
+
+  document.body.classList.add('jw-logout-transition', 'jw-logged-out-safe');
+  document.body.classList.remove('nav-open', 'modal-open', 'sidebar-open', 'menu-open');
+  document.body.style.overflow = '';
+  document.body.style.pointerEvents = '';
+  document.documentElement.style.overflow = '';
+
+  const app = document.getElementById('app-shell');
+  const sidebar = document.getElementById('sidebar');
+  const auth = document.getElementById('auth-screen');
+  const landing = document.getElementById('landing-page');
+  const overlay = document.getElementById('mobile-overlay');
+  const menu = document.getElementById('landing-mobile-menu');
+
+  if (overlay) overlay.classList.remove('open');
+  if (sidebar) sidebar.classList.remove('open');
+  if (menu) menu.classList.remove('open');
+
+  if (app) {
+    app.style.display = 'none';
+    app.style.visibility = 'hidden';
+    app.setAttribute('aria-hidden', 'true');
+  }
+  if (auth) {
+    auth.style.display = 'none';
+    auth.setAttribute('aria-hidden', 'true');
+  }
+  if (landing) {
+    landing.style.display = 'block';
+    landing.style.visibility = 'visible';
+    landing.style.opacity = '1';
+    landing.style.pointerEvents = 'auto';
+    landing.removeAttribute('aria-hidden');
+  }
+
+  document.querySelectorAll('.modal-overlay, .session-modal, .modal, .drawer, .offcanvas').forEach(el => {
+    el.classList.remove('open', 'active', 'show');
+    el.setAttribute('aria-hidden', 'true');
+    if (el.classList.contains('modal-overlay') || el.classList.contains('session-modal')) el.style.display = 'none';
+  });
+
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { window.scrollTo(0, 0); }
+}
+
+function jwFinalizeInstantLogoutUiRestored() {
+  const landing = document.getElementById('landing-page');
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-shell');
+
+  if (landing) {
+    landing.style.display = 'block';
+    landing.style.visibility = 'visible';
+    landing.style.opacity = '1';
+    landing.style.pointerEvents = 'auto';
+    landing.removeAttribute('aria-hidden');
+  }
+  if (auth) auth.style.display = 'none';
+  if (app) app.style.display = 'none';
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+  try { history.replaceState({ jwApp: false, page: 'landing' }, '', window.location.pathname + window.location.search); } catch {}
+
+  setTimeout(() => {
+    document.body.classList.remove('jw-logout-transition', 'jw-logged-out-safe');
+    document.body.classList.remove('nav-open', 'modal-open', 'sidebar-open', 'menu-open');
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    if (landing) landing.style.pointerEvents = 'auto';
+  }, 650);
+}
+
+doLogout = async function() {
+  if (__jwLogoutBusyRestored) return false;
+  __jwLogoutBusyRestored = true;
+  jwBeginInstantLogoutUiRestored();
+
+  try { if (typeof stopSessionGuard === 'function') stopSessionGuard(); } catch {}
+
+  try {
+    currentUser = null;
+    tasks = [];
+    _currentPage = null;
+    _activeTaskDetailId = '';
+    _backLogoutArmed = false;
+    _appHistoryReady = false;
+    _preselectMessageTaskId = null;
+  } catch {}
+
+  try {
+    if (typeof _realtimeSub !== 'undefined' && _realtimeSub) {
+      _realtimeSub.unsubscribe();
+      _realtimeSub = null;
+    }
+  } catch {}
+
+  try {
+    localStorage.removeItem('jw_session');
+    localStorage.removeItem('jw_google_intent');
+    localStorage.removeItem('jw_google_role');
+    localStorage.removeItem('jw_google_signup_profile');
+    localStorage.removeItem('jw_password_recovery_pending');
+    localStorage.removeItem('jw_password_recovery_email');
+  } catch {}
+
+  try {
+    sessionStorage.removeItem('jw_task_detail_return_page');
+    sessionStorage.removeItem('jw_password_recovery_email');
+  } catch {}
+
+  await Promise.race([
+    (async () => { try { await _sb?.auth?.signOut?.(); } catch (err) { console.warn('Supabase sign-out warning:', err); } })(),
+    new Promise(resolve => setTimeout(resolve, 1800))
+  ]);
+
+  jwFinalizeInstantLogoutUiRestored();
+  try { notify('👋 Signed out successfully'); } catch {}
+  setTimeout(() => { __jwLogoutBusyRestored = false; }, 900);
+  return false;
+};
+
+['pointerdown', 'touchstart', 'click'].forEach(eventName => {
+  document.addEventListener(eventName, function(e) {
+    const el = e.target.closest?.('.btn-logout, [onclick*="doLogout"]');
+    if (!el) return;
+    const text = String(el.textContent || '').toLowerCase();
+    const action = String(el.getAttribute?.('onclick') || '').toLowerCase();
+    if (text.includes('sign out') || text.includes('log out') || action.includes('dologout')) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      doLogout();
+      return false;
+    }
+  }, true);
+});
+
+/* ---------- Boot safety ---------- */
+setTimeout(() => {
+  jwRemoveFooterSupportButtons();
+  jwRemoveMobileRefreshButton();
+  try {
+    const raw = String(location.hash || '');
+    const match = raw.match(/^#task=(.+)$/);
+    if (match && currentUser) {
+      const id = decodeURIComponent(match[1]);
+      if (typeof getTaskById === 'function' && getTaskById(id)) openTaskDetailsPage(id, { fast: true, skipHistory: true });
+    }
+  } catch {}
+}, 900);
 
 </script>
 </body>
