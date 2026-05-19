@@ -5106,6 +5106,61 @@ a[href*="wa.me"].support-footer-btn {
 }
 
 
+
+/* ── PROFILE IMAGE CIRCLE FILL FIX ─────────────────── */
+.profile-avatar img,
+.profile-photo img,
+.profile-image img,
+.avatar img,
+.user-avatar img,
+.sidebar-avatar img,
+.profile-preview img,
+.profile-image-preview img,
+#profile-avatar img,
+#profile-photo img,
+#profile-image img,
+#profile-preview img,
+img.profile-avatar,
+img.profile-photo,
+img.profile-image,
+img.user-avatar,
+img.sidebar-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 50% !important;
+  display: block !important;
+  background: transparent !important;
+}
+
+/* Force all common avatar containers to crop overflowing parts into a true circle. */
+.profile-avatar,
+.profile-photo,
+.profile-image,
+.avatar,
+.user-avatar,
+.sidebar-avatar,
+.profile-preview,
+.profile-image-preview,
+#profile-avatar,
+#profile-photo,
+#profile-image,
+#profile-preview {
+  overflow: hidden !important;
+  border-radius: 50% !important;
+}
+
+/* Fix small preview beside Upload Image. */
+.profile-image-row img,
+.form-profile-image img,
+.profile-upload-preview img,
+#profile-image-preview img {
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 50% !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -17916,6 +17971,193 @@ renderStudentDashboard = function() {
   else run();
   setTimeout(run, 250);
   setTimeout(run, 1000);
+})();
+
+
+
+// ── Profile image circle fill and square-crop automation.
+(function profileImageCircleFillFix() {
+  function applyAvatarFill() {
+    const selectors = [
+      '.profile-avatar img',
+      '.profile-photo img',
+      '.profile-image img',
+      '.avatar img',
+      '.user-avatar img',
+      '.sidebar-avatar img',
+      '.profile-preview img',
+      '.profile-image-preview img',
+      '#profile-avatar img',
+      '#profile-photo img',
+      '#profile-image img',
+      '#profile-preview img',
+      'img.profile-avatar',
+      'img.profile-photo',
+      'img.profile-image',
+      'img.user-avatar',
+      'img.sidebar-avatar'
+    ];
+
+    document.querySelectorAll(selectors.join(',')).forEach(img => {
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.objectPosition = 'center center';
+      img.style.borderRadius = '50%';
+      img.style.display = 'block';
+      img.style.background = 'transparent';
+    });
+
+    document.querySelectorAll('.profile-avatar,.profile-photo,.profile-image,.avatar,.user-avatar,.sidebar-avatar,.profile-preview,.profile-image-preview,#profile-avatar,#profile-photo,#profile-image,#profile-preview').forEach(box => {
+      box.style.overflow = 'hidden';
+      box.style.borderRadius = '50%';
+    });
+  }
+
+  async function squareCropImageFile(file, size = 480, quality = 0.86) {
+    if (!file || !file.type || !file.type.startsWith('image/')) return null;
+
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = dataUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const side = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+    const sx = ((img.naturalWidth || img.width) - side) / 2;
+    const sy = ((img.naturalHeight || img.height) - side) / 2;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  function setProfileImageEverywhere(dataUrl) {
+    if (!dataUrl) return;
+    document.querySelectorAll('.profile-avatar img,.profile-photo img,.profile-image img,.avatar img,.user-avatar img,.sidebar-avatar img,.profile-preview img,.profile-image-preview img,#profile-avatar img,#profile-photo img,#profile-image img,#profile-preview img').forEach(img => {
+      img.src = dataUrl;
+    });
+    applyAvatarFill();
+  }
+
+  function interceptProfileImageUploads() {
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+      const id = (input.id || '').toLowerCase();
+      const name = (input.name || '').toLowerCase();
+      const accept = (input.getAttribute('accept') || '').toLowerCase();
+      const labelText = (input.closest('.form-group')?.textContent || input.parentElement?.textContent || '').toLowerCase();
+      const looksLikeProfileImage =
+        id.includes('profile') ||
+        id.includes('avatar') ||
+        name.includes('profile') ||
+        name.includes('avatar') ||
+        (accept.includes('image') && labelText.includes('profile'));
+
+      if (!looksLikeProfileImage || input.dataset.avatarCropFixed === '1') return;
+      input.dataset.avatarCropFixed = '1';
+
+      input.addEventListener('change', async () => {
+        const file = input.files && input.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        try {
+          const cropped = await squareCropImageFile(file);
+          if (!cropped) return;
+
+          // Store for existing save-profile functions to pick up if they use globals/local profile fields.
+          window.__jwLatestProfileImageData = cropped;
+          try {
+            if (currentUser) {
+              currentUser.profile_image = cropped;
+              currentUser.avatar = cropped;
+              currentUser.profile = {
+                ...(currentUser.profile || {}),
+                profile_image: cropped,
+                avatar: cropped
+              };
+            }
+          } catch {}
+
+          setProfileImageEverywhere(cropped);
+        } catch (err) {
+          console.warn('Profile image square crop failed, using CSS cover only.', err);
+          applyAvatarFill();
+        }
+      });
+    });
+  }
+
+  function patchProfileSavePayloads() {
+    if (typeof saveProfile === 'function' && !saveProfile.__jwAvatarPatch) {
+      const original = saveProfile;
+      saveProfile = async function() {
+        if (window.__jwLatestProfileImageData && currentUser) {
+          currentUser.profile_image = window.__jwLatestProfileImageData;
+          currentUser.avatar = window.__jwLatestProfileImageData;
+          currentUser.profile = {
+            ...(currentUser.profile || {}),
+            profile_image: window.__jwLatestProfileImageData,
+            avatar: window.__jwLatestProfileImageData
+          };
+        }
+        const result = await original.apply(this, arguments);
+        applyAvatarFill();
+        return result;
+      };
+      saveProfile.__jwAvatarPatch = true;
+    }
+
+    if (typeof saveUserProfile === 'function' && !saveUserProfile.__jwAvatarPatch) {
+      const original = saveUserProfile;
+      saveUserProfile = async function() {
+        if (window.__jwLatestProfileImageData && currentUser) {
+          currentUser.profile_image = window.__jwLatestProfileImageData;
+          currentUser.avatar = window.__jwLatestProfileImageData;
+          currentUser.profile = {
+            ...(currentUser.profile || {}),
+            profile_image: window.__jwLatestProfileImageData,
+            avatar: window.__jwLatestProfileImageData
+          };
+        }
+        const result = await original.apply(this, arguments);
+        applyAvatarFill();
+        return result;
+      };
+      saveUserProfile.__jwAvatarPatch = true;
+    }
+  }
+
+  function boot() {
+    applyAvatarFill();
+    interceptProfileImageUploads();
+    patchProfileSavePayloads();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  document.addEventListener('change', e => {
+    if (e.target && e.target.matches && e.target.matches('input[type="file"]')) {
+      setTimeout(boot, 80);
+    }
+  });
+
+  setTimeout(boot, 400);
+  setTimeout(boot, 1200);
+  setInterval(applyAvatarFill, 2500);
 })();
 
 </script>
