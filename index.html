@@ -5581,6 +5581,98 @@ body.jw-logged-out-safe .session-modal.open {
   pointer-events: none;
 }
 
+
+/* ── MOBILE RELIABILITY + DATA LOADING OVERLAY ─────────────────── */
+.jw-data-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(247,252,251,.86);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.jw-data-loading-overlay.open {
+  display: flex;
+}
+
+.jw-data-loading-card {
+  width: min(360px, 92vw);
+  border: 1px solid rgba(42,157,143,.22);
+  border-radius: 24px;
+  padding: 26px 22px;
+  text-align: center;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 26px 72px rgba(15,25,35,.14);
+}
+
+.jw-data-loading-logo {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f1923, #123c3a);
+  color: #fff;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px;
+  font-weight: 900;
+  animation: jwDataPulse 1.05s ease-in-out infinite;
+}
+
+.jw-data-loading-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.jw-data-loading-text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@keyframes jwDataPulse {
+  0%, 100% { opacity: .45; transform: scale(.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+body.dark-mode .jw-data-loading-overlay,
+body.dark .jw-data-loading-overlay {
+  background: rgba(8,14,20,.84);
+}
+
+body.dark-mode .jw-data-loading-card,
+body.dark .jw-data-loading-card {
+  background: #14202b;
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .jw-data-loading-title,
+body.dark .jw-data-loading-title {
+  color: #f4fbfa;
+}
+
+/* make the real mobile sign-out target easier to tap */
+@media (max-width: 820px) {
+  .btn-logout {
+    min-height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -19613,6 +19705,268 @@ setInterval(() => {
     }
   } catch {}
 }, 2000);
+
+
+
+// ══════════════════════════════════════════════════════
+//  MOBILE LOGOUT + DATA LOADING RELIABILITY FIX
+// ══════════════════════════════════════════════════════
+function jwIsMobileDeviceView() {
+  return window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
+}
+
+function jwEnsureDataOverlay() {
+  let overlay = document.getElementById('jw-data-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jw-data-loading-overlay';
+    overlay.className = 'jw-data-loading-overlay';
+    overlay.innerHTML = `
+      <div class="jw-data-loading-card">
+        <div class="jw-data-loading-logo">J</div>
+        <div class="jw-data-loading-title">Loading your workspace</div>
+        <div class="jw-data-loading-text">Please wait while Janelle Writes retrieves your orders, messages, bids, and dashboard counts.</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  return overlay;
+}
+
+function jwShowDataOverlay() {
+  const overlay = jwEnsureDataOverlay();
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+}
+
+function jwHideDataOverlay() {
+  const overlay = document.getElementById('jw-data-loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+}
+
+function jwPromiseTimeout(promise, ms, label = 'Request') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timed out. Please check your connection.')), ms))
+  ]);
+}
+
+function jwTaskFilterQueryForCurrentUser(baseQuery) {
+  const email = String(currentUser?.email || '').toLowerCase();
+  if (!email || !baseQuery) return baseQuery;
+
+  // Admin needs full platform visibility.
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) {
+    return baseQuery;
+  }
+
+  // Reduce data load for normal users. RLS still protects the rows.
+  if (currentUser?.role === 'writer') {
+    return baseQuery.or(`taken_by.ilike.${email},and(taken_by.is.null,status.eq.pending)`);
+  }
+
+  // Employer and student only need their own orders for dashboards/messages.
+  if (currentUser?.role === 'employer' || currentUser?.role === 'student') {
+    return baseQuery.or(`posted_by.ilike.${email},taken_by.ilike.${email}`);
+  }
+
+  return baseQuery;
+}
+
+async function jwFastGetTasks() {
+  if (!currentUser) return [];
+
+  let q = _sb
+    .from('jw_tasks')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  q = jwTaskFilterQueryForCurrentUser(q);
+
+  // On mobile, avoid very heavy first loads. Admin still gets all recent rows.
+  if (jwIsMobileDeviceView() && !(typeof isJwAdmin === 'function' && isJwAdmin())) {
+    q = q.limit(250);
+  }
+
+  const { data, error } = await jwPromiseTimeout(q, jwIsMobileDeviceView() ? 18000 : 24000, 'Tasks loading');
+  if (error) throw error;
+  return data || [];
+}
+
+async function jwRefreshTasksLightweight() {
+  const rows = await jwFastGetTasks();
+  tasks = dedupeTasks(rows || []);
+  updateBadges();
+
+  // Keep expensive reminder/late checks out of the first mobile render.
+  if (!jwIsMobileDeviceView()) {
+    try { await autoMarkLateTasks(true); } catch (err) { console.warn('Late auto-check skipped:', err); }
+    try { await autoSendTaskReminders(true); } catch (err) { console.warn('Reminder auto-check skipped:', err); }
+  } else {
+    setTimeout(() => { try { autoMarkLateTasks(true); } catch {} }, 4000);
+    setTimeout(() => { try { autoSendTaskReminders(true); } catch {} }, 8000);
+  }
+
+  return tasks;
+}
+
+// Patch dbGetTasks and refreshTasks to use the lighter role-aware query.
+if (typeof dbGetTasks === 'function' && !dbGetTasks.__jwMobileFastPatched) {
+  const _jwOriginalDbGetTasks = dbGetTasks;
+  dbGetTasks = async function() {
+    try {
+      return await jwFastGetTasks();
+    } catch (err) {
+      console.warn('Fast task load failed; falling back once:', err);
+      const { data, error } = await jwPromiseTimeout(
+        _sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(jwIsMobileDeviceView() ? 250 : 1000),
+        jwIsMobileDeviceView() ? 20000 : 26000,
+        'Fallback task loading'
+      );
+      if (error) throw error;
+      return data || [];
+    }
+  };
+  dbGetTasks.__jwMobileFastPatched = true;
+}
+
+if (typeof refreshTasks === 'function' && !refreshTasks.__jwMobileFastPatched) {
+  refreshTasks = async function() {
+    return await jwRefreshTasksLightweight();
+  };
+  refreshTasks.__jwMobileFastPatched = true;
+}
+
+async function jwRefreshDashboardAfterLogin(reason = 'login') {
+  if (!currentUser) {
+    jwHideDataOverlay();
+    return;
+  }
+
+  jwShowDataOverlay();
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await jwRefreshTasksLightweight();
+
+      const page = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+      if (page && document.getElementById('page-' + page)) {
+        navigate(page, { skipHistory: true });
+      }
+
+      jwHideDataOverlay();
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn('Dashboard refresh attempt failed:', attempt, err);
+      await new Promise(resolve => setTimeout(resolve, 850 * attempt));
+    }
+  }
+
+  jwHideDataOverlay();
+  notify('⚠️ Some dashboard data could not load. Please check connection and tap refresh if needed.');
+  console.warn('Dashboard data failed after retries:', lastError);
+}
+
+// Replace the original background loader with a retrying one.
+if (typeof refreshDashboardDataInBackground === 'function' && !refreshDashboardDataInBackground.__jwMobileFastPatched) {
+  refreshDashboardDataInBackground = function(options = {}) {
+    if (_dashboardDataRefreshRunning) return;
+    _dashboardDataRefreshRunning = true;
+    jwRefreshDashboardAfterLogin('background')
+      .catch(err => console.warn('Background dashboard refresh failed:', err))
+      .finally(() => { _dashboardDataRefreshRunning = false; });
+  };
+  refreshDashboardDataInBackground.__jwMobileFastPatched = true;
+}
+
+// Cover the zero-count dashboard while mobile data loads after login/refresh.
+if (typeof launchApp === 'function' && !launchApp.__jwMobileFastPatched) {
+  const _jwOriginalLaunchApp = launchApp;
+  launchApp = function(options = {}) {
+    if (jwIsMobileDeviceView()) jwShowDataOverlay();
+    const result = _jwOriginalLaunchApp.apply(this, arguments);
+    setTimeout(() => jwRefreshDashboardAfterLogin('launch'), jwIsMobileDeviceView() ? 80 : 300);
+    return result;
+  };
+  launchApp.__jwMobileFastPatched = true;
+}
+
+// Make mobile logout work even if the sidebar overlay captures the normal onclick.
+function jwLooksLikeLogoutElement(el) {
+  if (!el) return false;
+  const text = String(el.textContent || '').trim().toLowerCase();
+  const onclick = String(el.getAttribute?.('onclick') || '').toLowerCase();
+  return (
+    el.classList?.contains('btn-logout') ||
+    onclick.includes('dologout') ||
+    text === 'sign out' ||
+    text.includes('sign out') ||
+    text.includes('log out') ||
+    text.includes('logout')
+  );
+}
+
+async function jwForceMobileLogout(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+  }
+
+  try { if (typeof closeMobileMenu === 'function') closeMobileMenu(); } catch {}
+  try { if (typeof jwCloseAllBlockingUi === 'function') jwCloseAllBlockingUi(); } catch {}
+
+  if (typeof doLogout === 'function') {
+    await doLogout();
+  } else {
+    try { await _sb?.auth?.signOut?.(); } catch {}
+    try { localStorage.removeItem('jw_session'); } catch {}
+    location.href = window.location.origin + window.location.pathname;
+  }
+  return false;
+}
+
+['click', 'touchend', 'pointerup'].forEach(eventName => {
+  document.addEventListener(eventName, function(e) {
+    const el = e.target.closest?.('.btn-logout, [onclick*="doLogout"], button, div, a');
+    if (!el || !jwLooksLikeLogoutElement(el)) return;
+    jwForceMobileLogout(e);
+  }, true);
+});
+
+// Add a data refresh button to topbar on mobile if data is empty or delayed.
+function jwAddMobileRefreshButton() {
+  if (!currentUser || !jwIsMobileDeviceView()) return;
+  const actions = document.getElementById('topbar-actions');
+  if (!actions || document.getElementById('jw-mobile-data-refresh-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'jw-mobile-data-refresh-btn';
+  btn.type = 'button';
+  btn.className = 'btn btn-outline btn-sm';
+  btn.style.minHeight = '38px';
+  btn.innerHTML = '↻ Refresh';
+  btn.onclick = () => jwRefreshDashboardAfterLogin('manual');
+  actions.insertBefore(btn, actions.firstChild);
+}
+
+setInterval(() => {
+  try {
+    if (currentUser && jwIsMobileDeviceView()) {
+      jwAddMobileRefreshButton();
+      const zeroish = Array.isArray(tasks) && tasks.length === 0;
+      if (zeroish && !_dashboardDataRefreshRunning) {
+        // one quiet retry when mobile wakes up from poor network
+        _dashboardDataRefreshRunning = true;
+        jwRefreshDashboardAfterLogin('zero-retry').finally(() => { _dashboardDataRefreshRunning = false; });
+      }
+    }
+  } catch {}
+}, 6000);
 
 </script>
 </body>
