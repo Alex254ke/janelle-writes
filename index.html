@@ -6288,6 +6288,26 @@ body.dark .jw-support-classic-text {
   color: #f4fbfa;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   STRICT WORKSPACE BOOT: DASHBOARD WAITS FOR REAL DATA
+   ══════════════════════════════════════════════════════ */
+body.jw-workspace-booting #app-shell {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+body.jw-workspace-booting #auth-screen,
+body.jw-workspace-booting #landing-page {
+  display: none !important;
+}
+body.jw-workspace-ready #app-shell {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.jw-global-loading-overlay.open {
+  display: flex !important;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -22387,6 +22407,254 @@ jwShowWorkspaceLoader = function(message = 'Preparing your workspace...') {
   const overlay = document.getElementById('jw-global-loading-overlay');
   if (overlay) overlay.dataset.openedAt = String(Date.now());
 };
+
+
+
+// ══════════════════════════════════════════════════════
+//  STRICT WORKSPACE BOOT FLOW
+//  Login → loader → profile → tasks → bid/message counts → badges → dashboard
+// ══════════════════════════════════════════════════════
+let __jwStrictWorkspaceBootRunning = false;
+let __jwStrictWorkspaceBootCompleted = false;
+
+function jwStrictShowWorkspaceLoader(message = 'Preparing your workspace...') {
+  document.body.classList.add('jw-workspace-booting');
+  document.body.classList.remove('jw-workspace-ready');
+
+  try {
+    if (typeof jwShowWorkspaceLoader === 'function') {
+      jwShowWorkspaceLoader(message);
+      return;
+    }
+  } catch {}
+  try {
+    if (typeof jwShowGlobalLoader === 'function') {
+      jwShowGlobalLoader(message);
+      return;
+    }
+  } catch {}
+
+  let overlay = document.getElementById('jw-global-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jw-global-loading-overlay';
+    overlay.className = 'jw-global-loading-overlay open';
+    overlay.innerHTML = `
+      <div class="jw-global-loading-card">
+        <div class="jw-global-blink-logo">
+          <div class="jw-global-blink-logo-mark">J</div>
+          <div class="jw-global-blink-logo-text">Janelle <span>Writes!</span></div>
+        </div>
+        <div class="jw-global-loader-caption" id="jw-global-loader-caption">${message}</div>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  const caption = document.getElementById('jw-global-loader-caption');
+  if (caption) caption.textContent = message;
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+}
+
+function jwStrictHideWorkspaceLoader() {
+  document.body.classList.remove('jw-workspace-booting');
+  document.body.classList.add('jw-workspace-ready');
+  try {
+    if (typeof jwHideWorkspaceLoader === 'function') return jwHideWorkspaceLoader(0);
+    if (typeof jwHideGlobalLoader === 'function') return jwHideGlobalLoader();
+  } catch {}
+  const overlay = document.getElementById('jw-global-loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+}
+
+function jwStrictTimeout(promise, ms, label = 'Request') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timed out')), ms))
+  ]);
+}
+
+async function jwStrictLoadProfile() {
+  if (!currentUser?.email || typeof dbGetUserByEmail !== 'function') return null;
+  jwStrictShowWorkspaceLoader('Loading your profile...');
+  try {
+    const profile = await jwStrictTimeout(dbGetUserByEmail(currentUser.email), 12000, 'Profile loading');
+    if (profile?.email) {
+      const previousRole = currentUser?.role;
+      const authUser = { email: currentUser.email, name: currentUser.name, role: currentUser.role, provider: currentUser.provider || 'email' };
+      if (typeof platformUserFromRecord === 'function') {
+        saveCurrentSessionUser(platformUserFromRecord(profile, authUser, profile.role || currentUser.role));
+      } else {
+        currentUser = { ...currentUser, ...profile, role: profile.role || currentUser.role };
+        localStorage.setItem('jw_session', JSON.stringify(currentUser));
+      }
+      try { refreshAppChromeAfterProfileUpdate(previousRole); } catch {}
+      return profile;
+    }
+  } catch (err) {
+    console.warn('Profile load delayed/skipped during strict boot:', err);
+  }
+  return null;
+}
+
+async function jwStrictLoadTasks() {
+  jwStrictShowWorkspaceLoader('Loading orders and tasks...');
+  let loaded = [];
+  try {
+    loaded = await jwStrictTimeout(dbGetTasks(), 18000, 'Task loading');
+  } catch (err) {
+    console.warn('Role-aware task load failed during strict boot:', err);
+    try {
+      const result = await jwStrictTimeout(
+        _sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(500),
+        18000,
+        'Fallback task loading'
+      );
+      if (result.error) throw result.error;
+      loaded = result.data || [];
+    } catch (fallbackErr) {
+      console.warn('Fallback task load failed during strict boot:', fallbackErr);
+      loaded = Array.isArray(tasks) ? tasks : [];
+    }
+  }
+  tasks = typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []);
+  return tasks;
+}
+
+function jwStrictUpdateCountsAndRender() {
+  jwStrictShowWorkspaceLoader('Updating messages and bids...');
+  try { updateBadges(); } catch (err) { console.warn('Badge update failed:', err); }
+  try {
+    const target = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+    if (target && document.getElementById('page-' + target)) {
+      navigate(target, { skipHistory: true });
+    }
+  } catch (err) {
+    console.warn('Render after strict boot failed:', err);
+  }
+  try { updateBadges(); } catch {}
+}
+
+function jwStrictRunDelayedNonUrgentWork() {
+  setTimeout(() => { try { autoMarkLateTasks(true); } catch (err) { console.warn('Late check delayed/skipped:', err); } }, 2500);
+  setTimeout(() => { try { autoSendTaskReminders(true); } catch (err) { console.warn('Reminder check delayed/skipped:', err); } }, 4500);
+  setTimeout(() => {
+    try { if (typeof refreshWalletRequests === 'function') refreshWalletRequests(); } catch (err) { console.warn('Wallet refresh delayed/skipped:', err); }
+    try { if (typeof renderAdminWalletRequests === 'function' && typeof isJwAdmin === 'function' && isJwAdmin()) renderAdminWalletRequests(); } catch {}
+  }, 6500);
+  setTimeout(() => { try { if (typeof renderAdminControl === 'function' && typeof isJwAdmin === 'function' && isJwAdmin()) renderAdminControl(); } catch (err) { console.warn('Admin summary delayed/skipped:', err); } }, 8500);
+}
+
+async function jwStrictWorkspaceBoot(reason = 'login') {
+  if (!currentUser || __jwStrictWorkspaceBootRunning) return;
+  __jwStrictWorkspaceBootRunning = true;
+  __jwStrictWorkspaceBootCompleted = false;
+  try {
+    jwStrictShowWorkspaceLoader('Preparing your workspace...');
+    await jwStrictLoadProfile();
+    await jwStrictLoadTasks();
+    jwStrictUpdateCountsAndRender();
+    __jwStrictWorkspaceBootCompleted = true;
+    jwStrictHideWorkspaceLoader();
+    jwStrictRunDelayedNonUrgentWork();
+  } catch (err) {
+    console.warn('Strict workspace boot failed:', err);
+    try { updateBadges(); } catch {}
+    __jwStrictWorkspaceBootCompleted = true;
+    jwStrictHideWorkspaceLoader();
+    try { notify('⚠️ Some workspace data is still loading. Please wait a moment.'); } catch {}
+    jwStrictRunDelayedNonUrgentWork();
+  } finally {
+    __jwStrictWorkspaceBootRunning = false;
+  }
+}
+
+const __jwStrictOriginalHideWorkspaceLoader = typeof jwHideWorkspaceLoader === 'function' ? jwHideWorkspaceLoader : null;
+jwHideWorkspaceLoader = function(delay = 0) {
+  if (__jwStrictWorkspaceBootRunning && !__jwStrictWorkspaceBootCompleted) return;
+  if (__jwStrictOriginalHideWorkspaceLoader) return __jwStrictOriginalHideWorkspaceLoader(delay);
+  setTimeout(() => {
+    const overlay = document.getElementById('jw-global-loading-overlay');
+    if (overlay) {
+      overlay.classList.remove('open');
+      overlay.style.display = 'none';
+    }
+  }, delay || 0);
+};
+
+const __jwStrictOriginalHideGlobalLoader = typeof jwHideGlobalLoader === 'function' ? jwHideGlobalLoader : null;
+jwHideGlobalLoader = function() {
+  if (__jwStrictWorkspaceBootRunning && !__jwStrictWorkspaceBootCompleted) return;
+  if (__jwStrictOriginalHideGlobalLoader) return __jwStrictOriginalHideGlobalLoader();
+  const overlay = document.getElementById('jw-global-loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
+};
+
+if (typeof launchApp === 'function' && !launchApp.__jwStrictWorkspaceBootPatched) {
+  const __jwStrictOriginalLaunchApp = launchApp;
+  launchApp = function() {
+    jwStrictShowWorkspaceLoader('Preparing your workspace...');
+    const result = __jwStrictOriginalLaunchApp.apply(this, arguments);
+    setTimeout(() => jwStrictWorkspaceBoot('launch'), 40);
+    return result;
+  };
+  launchApp.__jwStrictWorkspaceBootPatched = true;
+}
+
+if (typeof finishSecureAuthSession === 'function' && !finishSecureAuthSession.__jwStrictWorkspaceBootPatched) {
+  const __jwStrictOriginalFinishSecureAuthSession = finishSecureAuthSession;
+  finishSecureAuthSession = async function(session, options = {}) {
+    jwStrictShowWorkspaceLoader('Signing you in...');
+    try {
+      const result = await __jwStrictOriginalFinishSecureAuthSession.apply(this, arguments);
+      if (result !== false && currentUser) {
+        jwStrictShowWorkspaceLoader('Preparing your workspace...');
+        setTimeout(() => jwStrictWorkspaceBoot('auth'), 60);
+      } else {
+        __jwStrictWorkspaceBootCompleted = true;
+        jwStrictHideWorkspaceLoader();
+      }
+      return result;
+    } catch (err) {
+      __jwStrictWorkspaceBootCompleted = true;
+      jwStrictHideWorkspaceLoader();
+      throw err;
+    }
+  };
+  finishSecureAuthSession.__jwStrictWorkspaceBootPatched = true;
+}
+
+if (typeof refreshTasks === 'function' && !refreshTasks.__jwStrictImmediateBadgesPatched) {
+  refreshTasks = async function() {
+    jwStrictShowWorkspaceLoader('Loading tasks...');
+    try {
+      const loaded = typeof dbGetTasks === 'function' ? await dbGetTasks() : [];
+      tasks = typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []);
+      try { updateBadges(); } catch {}
+      try {
+        const active = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+        if (active && document.getElementById('page-' + active)) navigate(active, { skipHistory: true });
+      } catch {}
+      setTimeout(() => { try { autoMarkLateTasks(true); } catch {} }, 2500);
+      setTimeout(() => { try { autoSendTaskReminders(true); } catch {} }, 4500);
+      return tasks;
+    } finally {
+      if (!__jwStrictWorkspaceBootRunning) jwStrictHideWorkspaceLoader();
+    }
+  };
+  refreshTasks.__jwStrictImmediateBadgesPatched = true;
+}
+
+setTimeout(() => {
+  try {
+    if (currentUser && !__jwStrictWorkspaceBootCompleted && !__jwStrictWorkspaceBootRunning) jwStrictWorkspaceBoot('existing-session');
+  } catch {}
+}, 900);
 
 </script>
 
