@@ -6308,6 +6308,124 @@ body.jw-workspace-ready #app-shell {
   display: flex !important;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   TASK DETAIL: SUBMITTED WORK / MATERIALS SECTION
+   ══════════════════════════════════════════════════════ */
+.task-submission-section {
+  border: 1px solid rgba(42,157,143,.24);
+  border-radius: 20px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(82,196,184,.12), transparent 34%),
+    linear-gradient(135deg, rgba(224,245,243,.72), rgba(255,255,255,.96));
+  box-shadow: 0 14px 34px rgba(15,25,35,.06);
+}
+
+.task-submission-section .task-detail-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.task-submission-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(42,157,143,.12);
+  color: var(--teal-dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+.task-submission-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.task-submission-box {
+  border: 1px solid rgba(205,224,221,.9);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255,255,255,.82);
+}
+
+.task-submission-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.task-submission-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--charcoal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-submission-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(42,157,143,.24);
+  border-radius: 12px;
+  color: var(--teal-dark);
+  background: rgba(224,245,243,.55);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.task-submission-link:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.task-submission-empty {
+  border: 1px dashed rgba(205,224,221,.95);
+  border-radius: 16px;
+  padding: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+  background: rgba(255,255,255,.62);
+}
+
+body.dark-mode .task-submission-section,
+body.dark .task-submission-section {
+  background:
+    radial-gradient(circle at 95% 10%, rgba(82,196,184,.12), transparent 34%),
+    linear-gradient(135deg, rgba(42,157,143,.10), #14202b);
+  border-color: rgba(142,228,214,.22);
+}
+
+body.dark-mode .task-submission-box,
+body.dark .task-submission-box,
+body.dark-mode .task-submission-empty,
+body.dark .task-submission-empty {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .task-submission-text,
+body.dark .task-submission-text {
+  color: #edf8f7;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -22655,6 +22773,179 @@ setTimeout(() => {
     if (currentUser && !__jwStrictWorkspaceBootCompleted && !__jwStrictWorkspaceBootRunning) jwStrictWorkspaceBoot('existing-session');
   } catch {}
 }, 900);
+
+
+
+// ══════════════════════════════════════════════════════
+//  TASK DETAIL: SHOW SUBMITTED WORK / MATERIALS INSIDE FULL TASK PAGE
+// ══════════════════════════════════════════════════════
+
+function jwSubmittedFilesArray(t) {
+  try {
+    if (typeof parseSubmittedFiles === 'function') return parseSubmittedFiles(t?.submitted_files || []);
+  } catch {}
+  const raw = t?.submitted_files;
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function jwHasSubmittedMaterials(t) {
+  return !!(
+    (t?.submitted_link && String(t.submitted_link).trim()) ||
+    (t?.submitted_text && String(t.submitted_text).trim()) ||
+    (t?.submitted_notes && String(t.submitted_notes).trim()) ||
+    jwSubmittedFilesArray(t).length
+  );
+}
+
+function jwTaskSubmissionTimestamp(t) {
+  try {
+    const timing = typeof taskTiming === 'function' ? taskTiming(t) : {};
+    return timing?.submitted_at || t?.submitted_at || t?.updated_at || '';
+  } catch {
+    return t?.submitted_at || t?.updated_at || '';
+  }
+}
+
+function jwSafeExternalLink(url) {
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return 'https://' + raw;
+}
+
+function renderTaskSubmittedMaterials(t) {
+  if (!t) return '';
+
+  const status = String(t.status || '').toLowerCase();
+  const shouldShow = jwHasSubmittedMaterials(t) || ['completed', 'revision', 'disputed'].includes(status);
+
+  if (!shouldShow) return '';
+
+  const submittedAt = jwTaskSubmissionTimestamp(t);
+  const hasMaterials = jwHasSubmittedMaterials(t);
+
+  if (!hasMaterials) {
+    return `
+      <div class="task-submission-section">
+        <div class="task-detail-section-title">
+          <span>Submitted Work / Materials</span>
+          <span class="task-submission-pill">No files shown yet</span>
+        </div>
+        <div class="task-submission-empty">
+          This task is marked as ${esc(t.status || 'completed')}, but no submitted file, link, or pasted work is attached to the task record yet.
+          If the writer submitted outside the current file system, ask them to resubmit through the platform so the employer can download it here.
+        </div>
+      </div>
+    `;
+  }
+
+  let filesHtml = '';
+  try {
+    if (typeof renderSubmittedFiles === 'function') {
+      filesHtml = renderSubmittedFiles(t);
+    }
+  } catch (err) {
+    console.warn('Could not render submitted files with native helper:', err);
+  }
+
+  if (!filesHtml) {
+    const files = jwSubmittedFilesArray(t);
+    if (files.length) {
+      filesHtml = `
+        <div class="task-submission-box">
+          <div class="task-submission-label">Submitted Files (${files.length})</div>
+          <div class="submission-files">
+            ${files.map((f, i) => {
+              const name = esc(f.name || f.filename || ('Submitted file ' + (i + 1)));
+              const size = f.size && typeof formatSize === 'function' ? ' · ' + formatSize(Number(f.size)) : '';
+              const icon = typeof fileIcon === 'function' ? fileIcon(f.name || f.filename || '') : '📎';
+              const hasDownloader = typeof downloadSubmittedFile === 'function';
+              return `<div class="submission-file-card">
+                <span style="font-size:24px;flex-shrink:0;">${icon}</span>
+                <div class="submission-file-main">
+                  <div class="submission-file-name">${name}</div>
+                  <div class="submission-file-meta">${esc(f.type || 'File')}${size}</div>
+                </div>
+                <div class="submission-file-actions">
+                  ${hasDownloader ? `<button class="btn btn-primary btn-sm" onclick="downloadSubmittedFile('${escJS(t.id)}',${i})">Download</button>` : ''}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  const linkHtml = t.submitted_link && String(t.submitted_link).trim()
+    ? `<div class="task-submission-box">
+        <div class="task-submission-label">Submitted Link</div>
+        <a class="task-submission-link" href="${esc(jwSafeExternalLink(t.submitted_link))}" target="_blank" rel="noopener noreferrer">🔗 Open submitted document/link</a>
+        <div class="task-submission-text" style="margin-top:8px;">${esc(t.submitted_link)}</div>
+      </div>`
+    : '';
+
+  const textHtml = t.submitted_text && String(t.submitted_text).trim()
+    ? `<div class="task-submission-box">
+        <div class="task-submission-label">Pasted / Inline Submission</div>
+        <div class="task-submission-text">${esc(t.submitted_text)}</div>
+      </div>`
+    : '';
+
+  const notesHtml = t.submitted_notes && String(t.submitted_notes).trim()
+    ? `<div class="task-submission-box">
+        <div class="task-submission-label">Writer Notes</div>
+        <div class="task-submission-text">${esc(t.submitted_notes)}</div>
+      </div>`
+    : '';
+
+  return `
+    <div class="task-submission-section">
+      <div class="task-detail-section-title">
+        <span>Submitted Work / Materials</span>
+        <span class="task-submission-pill">${submittedAt ? 'Submitted ' + esc(fmtDate(submittedAt)) : 'Submitted'}</span>
+      </div>
+      <div class="task-submission-grid">
+        ${filesHtml || ''}
+        ${linkHtml}
+        ${textHtml}
+        ${notesHtml}
+      </div>
+    </div>
+  `;
+}
+
+// Extend the existing task-detail workflow function so submitted work appears in the same task window.
+if (typeof taskDetailWorkflowHtml === 'function' && !taskDetailWorkflowHtml.__jwSubmittedMaterialsPatched) {
+  const __jwOriginalTaskDetailWorkflowHtml = taskDetailWorkflowHtml;
+
+  taskDetailWorkflowHtml = function(t) {
+    const submitted = renderTaskSubmittedMaterials(t);
+    const original = __jwOriginalTaskDetailWorkflowHtml.apply(this, arguments);
+    return `${submitted}${original}`;
+  };
+
+  taskDetailWorkflowHtml.__jwSubmittedMaterialsPatched = true;
+}
+
+// If a task-detail page is already open, re-render it with the submitted work section.
+setTimeout(() => {
+  try {
+    if (document.getElementById('page-task-details')?.classList.contains('active') && typeof renderTaskDetailsPage === 'function') {
+      renderTaskDetailsPage();
+    }
+  } catch {}
+}, 500);
 
 </script>
 
