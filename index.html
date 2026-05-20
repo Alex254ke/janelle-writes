@@ -6918,6 +6918,34 @@ body.dark .jw-submission-text {
   color: #edf8f7;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   WRITER WORKFLOW MOVEMENT + ROLE-SPECIFIC NOTIFICATIONS
+   ══════════════════════════════════════════════════════ */
+.writer-bid-moved-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(42,157,143,.08);
+  border: 1px solid rgba(42,157,143,.18);
+  color: var(--teal-dark);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.writer-task-completed-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(42,157,143,.10);
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -25195,6 +25223,439 @@ setInterval(() => {
     }
   } catch {}
 }, 4000);
+
+
+
+// ══════════════════════════════════════════════════════
+//  WRITER WORKFLOW MOVEMENT + ROLE-SPECIFIC NOTIFICATIONS
+//  - Assigned bids leave My Bids and appear in My Tasks.
+//  - Submitted work appears under Completed.
+//  - Employer/student gets "Task submitted" notification.
+// ══════════════════════════════════════════════════════
+
+function jwSameEmailWorkflow(a, b) {
+  try {
+    if (typeof sameEmail === 'function') return sameEmail(a, b);
+  } catch {}
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+function jwTaskForWriterWorkflow(t, email = currentUser?.email) {
+  if (!t || !email) return false;
+  try {
+    if (typeof taskForWriter === 'function' && taskForWriter(t, email)) return true;
+  } catch {}
+  return jwSameEmailWorkflow(t.taken_by, email);
+}
+
+function jwTaskWasSubmittedWorkflow(t) {
+  try {
+    if (typeof hasSubmittedWork === 'function' && hasSubmittedWork(t)) return true;
+  } catch {}
+  return !!(
+    t?.submitted_link ||
+    t?.submitted_text ||
+    t?.submitted_notes ||
+    (Array.isArray(t?.submitted_files) && t.submitted_files.length) ||
+    (typeof jwTaskHasSubmittedMaterials === 'function' && jwTaskHasSubmittedMaterials(t))
+  );
+}
+
+function jwWriterTaskStatusGroup(t) {
+  const status = String(t?.status || '').toLowerCase();
+
+  if (status === 'completed' || status === 'submitted' || jwTaskWasSubmittedWorkflow(t)) return 'completed';
+  if (status === 'revision') return 'revision';
+  if (status === 'late' || (typeof taskIsLate === 'function' && taskIsLate(t))) return 'late';
+  if (status === 'disputed' || (typeof hasOpenDispute === 'function' && hasOpenDispute(t))) return 'disputed';
+  return 'progress';
+}
+
+function jwWriterAssignedTasks() {
+  if (!currentUser || currentUser.role !== 'writer') return [];
+  return (Array.isArray(tasks) ? tasks : [])
+    .filter(t => jwTaskForWriterWorkflow(t, currentUser.email))
+    .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+}
+
+// My Bids should only show bid/request records that are not already assigned to this writer.
+// Once assigned, the task belongs in My Tasks.
+writerBidsList = function() {
+  if (!currentUser || currentUser.role !== 'writer') return [];
+
+  return (Array.isArray(tasks) ? tasks : [])
+    .map(t => ({ task: t, bid: writerBidForTask(t, currentUser.email) }))
+    .filter(x => !!x.bid)
+    .filter(({ task:t }) => !jwTaskForWriterWorkflow(t, currentUser.email))
+    .sort((a,b) => new Date(b.bid.at || b.task.created_at || 0) - new Date(a.bid.at || a.task.created_at || 0));
+};
+
+writerBidCounts = function() {
+  const list = writerBidsList();
+  return {
+    total: list.length,
+    pending: list.filter(x => String(x.bid.status || 'pending').toLowerCase() === 'pending' && !x.task.taken_by).length,
+    selected: 0,
+    declined: list.filter(x => String(x.bid.status || '').toLowerCase() === 'declined' || (x.task.taken_by && !jwSameEmailWorkflow(x.task.taken_by, currentUser.email))).length
+  };
+};
+
+const __jwWorkflowOriginalRenderWriterBidsPage = typeof renderWriterBidsPage === 'function' ? renderWriterBidsPage : null;
+renderWriterBidsPage = function() {
+  const wrap = document.getElementById('writer-bids-wrap');
+  if (!wrap) return;
+
+  if (currentUser?.role !== 'writer') {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><p>This page is only for writer accounts.</p></div>`;
+    return;
+  }
+
+  const list = writerBidsList();
+  const counts = writerBidCounts();
+  const assigned = jwWriterAssignedTasks();
+
+  if (!list.length) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <p>You do not have pending bids right now.</p>
+        <p class="text-muted">When an employer/student assigns one of your bids, it automatically moves to <strong>My Tasks</strong>.</p>
+        ${assigned.length ? `<button class="btn btn-primary" onclick="navigate('writer-tasks')">Open My Tasks (${assigned.length})</button>` : `<button class="btn btn-outline" onclick="navigate('writer-available')">Browse Available Orders</button>`}
+      </div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="admin-control-grid" style="margin-bottom:18px;">
+      <div class="admin-control-card"><strong>${counts.total}</strong><span>Active Bid Records</span></div>
+      <div class="admin-control-card"><strong>${counts.pending}</strong><span>Pending</span></div>
+      <div class="admin-control-card"><strong>${assigned.length}</strong><span>Moved to My Tasks</span></div>
+      <div class="admin-control-card"><strong>${counts.declined}</strong><span>Not Selected / Closed</span></div>
+    </div>
+    <div class="writer-bids-grid">
+      ${list.map(({ task:t, bid:b }) => {
+        const assignedElsewhere = !!t.taken_by && !jwSameEmailWorkflow(t.taken_by, currentUser.email);
+        const stillOpen = !t.taken_by && String(t.status || '').toLowerCase() === 'pending';
+        const status = assignedElsewhere ? 'declined' : (b.status || 'pending');
+
+        return `<div class="writer-bid-card">
+          <div class="writer-bid-card-top">
+            <div>
+              <div class="writer-bid-title">${esc(t.id)} — ${esc(t.subject || 'Untitled')}</div>
+              <div class="writer-bid-meta">
+                Employer/Student: ${esc(t.posted_by_name || t.posted_by || '—')} · ${Number(t.pages || 0)} page${Number(t.pages || 0) === 1 ? '' : 's'} · ${esc(t.style || '')} · Due ${fmtDate(t.deadline)}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              ${bidStatusHtml(status)}
+              ${typeof bidCountInlineHtml === 'function' ? bidCountInlineHtml(t) : ''}
+            </div>
+          </div>
+          <div class="writer-bid-meta">Bid submitted: ${b.at ? fmtDate(b.at) : 'Recently'} · Task status: ${typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || 'pending')}</div>
+          <div class="writer-bid-message-box">${esc(b.message || 'No bid message saved.')}</div>
+          <div class="writer-bid-next">${esc(assignedElsewhere ? 'This task was assigned to another writer, so it no longer needs action from you.' : 'Your bid is pending. If selected, the task will move automatically to My Tasks.')}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <button class="btn btn-outline btn-sm" onclick="empViewTask('${escJS(t.id)}')">View Task</button>
+            ${stillOpen ? `<button class="btn btn-outline btn-sm" onclick="openTakeOrderModal('${escJS(t.id)}')">View My Request</button>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+};
+
+function jwWriterTaskRow(t) {
+  const group = jwWriterTaskStatusGroup(t);
+  const completedNote = group === 'completed'
+    ? `<span class="writer-task-completed-note">✓ Submitted / Completed</span>`
+    : '';
+
+  const canSubmit = group !== 'completed' && !['cancelled'].includes(String(t.status || '').toLowerCase());
+  const amount = currentUser?.role === 'writer' && typeof isStudentOrder === 'function' && isStudentOrder(t)
+    ? Number(t.pages || 0) * 300
+    : Number(t.writer_payout || t.total || 0);
+
+  return `
+    <tr data-task-id="${escJS(t.id)}" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'writer-tasks' })" style="cursor:pointer;">
+      <td><button class="order-link" onclick="event.stopPropagation();openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'writer-tasks' })">${esc(t.id)}</button></td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        ${esc(t.subject || '')}
+        <span class="public-rating-mini">Employer/Student: ${esc(t.posted_by_name || t.posted_by || '—')} ${typeof ratingChipForUser === 'function' ? '· ' + ratingChipForUser(t.posted_by, 'employer') : ''}</span>
+        ${completedNote}
+      </td>
+      <td><span class="badge badge-style">${esc(t.style || '')}</span></td>
+      <td>${esc(t.pages || '—')}</td>
+      <td style="color:var(--rust);white-space:nowrap;">${fmtDate(t.deadline)}</td>
+      <td>${typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || 'progress')}</td>
+      <td style="font-weight:600;">KES ${Number(amount || 0).toLocaleString()}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'writer-tasks' })">View</button>
+          ${canSubmit ? `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openWriterSubmitForTask('${escJS(t.id)}')">Submit</button>` : ''}
+          ${!hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();openDisputeModal('${escJS(t.id)}')">Dispute</button>` : `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();navigate('disputes')">Dispute Open</button>`}
+        </div>
+      </td>
+    </tr>`;
+}
+
+// My Tasks must use assigned tasks, not strict email equality.
+// Completed filter must include tasks with submitted work even if older status labels differ.
+renderWriterTasks = function() {
+  let list = jwWriterAssignedTasks();
+
+  if (_writerTaskFilter && _writerTaskFilter !== 'all') {
+    list = list.filter(t => {
+      const group = jwWriterTaskStatusGroup(t);
+      if (_writerTaskFilter === 'completed') return group === 'completed';
+      if (_writerTaskFilter === 'progress') return group === 'progress';
+      if (_writerTaskFilter === 'late') return group === 'late';
+      if (_writerTaskFilter === 'disputed') return group === 'disputed';
+      return group === _writerTaskFilter;
+    });
+  }
+
+  const tbody = document.getElementById('writer-tasks-table');
+  if (!tbody) return;
+
+  if (!list.length) {
+    const message = _writerTaskFilter === 'completed'
+      ? 'No completed submissions yet. After you submit work, it will appear here.'
+      : 'No assigned tasks in this section yet. When a bid is selected, it moves here from My Bids.';
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>${message}</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(jwWriterTaskRow).join('');
+};
+
+// Badge counts should reflect the new workflow.
+if (typeof currentBadgeCounts === 'function' && !currentBadgeCounts.__jwWriterWorkflowPatched) {
+  const __jwOriginalCurrentBadgeCountsWorkflow = currentBadgeCounts;
+  currentBadgeCounts = function() {
+    const c = __jwOriginalCurrentBadgeCountsWorkflow.apply(this, arguments);
+    if (currentUser?.role === 'writer' && c) {
+      const assigned = jwWriterAssignedTasks();
+      c.totalTasks = assigned.length;
+      c.revisions = assigned.filter(t => String(t.status || '').toLowerCase() === 'revision' || t.revision_notes).length;
+      c.late = assigned.filter(t => jwWriterTaskStatusGroup(t) === 'late').length;
+      c.disputes = assigned.filter(t => typeof hasOpenDispute === 'function' && hasOpenDispute(t)).length;
+      c.completed = assigned.filter(t => jwWriterTaskStatusGroup(t) === 'completed').length;
+    }
+    return c;
+  };
+  currentBadgeCounts.__jwWriterWorkflowPatched = true;
+}
+
+function jwCreatePersistentNotificationForRecipient({ userEmail, type, title, body, taskId, key, metadata = {} }) {
+  if (!userEmail || !key) return;
+
+  // Show only if this browser belongs to the recipient; still create persistent row for the real recipient.
+  const isRecipientHere = jwSameEmailWorkflow(userEmail, currentUser?.email);
+
+  if (typeof jwAddNotification === 'function') {
+    jwAddNotification({
+      key,
+      type,
+      title,
+      body,
+      taskId,
+      userEmail: String(userEmail).toLowerCase(),
+      metadata,
+      sound: isRecipientHere,
+      popup: isRecipientHere
+    });
+    return;
+  }
+
+  if (typeof _sb !== 'undefined' && _sb?.rpc) {
+    _sb.rpc('jw_create_notification', {
+      p_user_email: String(userEmail).toLowerCase(),
+      p_type: type,
+      p_title: title,
+      p_body: body || '',
+      p_task_id: taskId || null,
+      p_event_key: key,
+      p_metadata: metadata || {}
+    }).catch(err => console.warn('Notification creation failed:', err));
+  }
+}
+
+// Create a proper employer/student notification when the writer submits.
+function jwNotifyOwnerTaskSubmitted(t) {
+  if (!t?.posted_by) return;
+  const subject = t.subject || 'Task';
+  const stamp = jwSubmittedAtForTask ? jwSubmittedAtForTask(t) : (t.updated_at || new Date().toISOString());
+  jwCreatePersistentNotificationForRecipient({
+    userEmail: t.posted_by,
+    type: 'submitted',
+    title: 'Task submitted',
+    body: `${t.id} — ${subject} has been submitted by the writer and is ready for review.`,
+    taskId: t.id,
+    key: `owner-submitted:${t.id}:${stamp || 'submitted'}`,
+    metadata: {
+      audience: 'employer_student',
+      role_message: 'Task submitted by writer',
+      writer_email: t.taken_by || currentUser?.email || ''
+    }
+  });
+}
+
+// Create a proper writer notification when assigned.
+function jwNotifyWriterAssigned(t) {
+  if (!t?.taken_by) return;
+  const subject = t.subject || 'Task';
+  jwCreatePersistentNotificationForRecipient({
+    userEmail: t.taken_by,
+    type: 'assigned',
+    title: 'Task assigned to you',
+    body: `${t.id} — ${subject} has been assigned to you. It is now available in My Tasks.`,
+    taskId: t.id,
+    key: `writer-assigned:${t.id}:${t.taken_by}:${t.updated_at || t.created_at || ''}`,
+    metadata: {
+      audience: 'writer',
+      role_message: 'Task assigned to writer'
+    }
+  });
+}
+
+// Patch assignment flow to refresh writer workflow and notify writer.
+if (typeof assignTaskToBidder === 'function' && !assignTaskToBidder.__jwWriterWorkflowPatched) {
+  const __jwOriginalAssignTaskToBidderWorkflow = assignTaskToBidder;
+  assignTaskToBidder = async function(taskId, writerEmail) {
+    const result = await __jwOriginalAssignTaskToBidderWorkflow.apply(this, arguments);
+    const t = typeof getTaskById === 'function' ? getTaskById(taskId) : null;
+    if (t?.taken_by) {
+      jwNotifyWriterAssigned(t);
+      try { renderWriterBidsPage?.(); } catch {}
+      try { renderWriterTasks?.(); } catch {}
+      try { updateBadges?.(); } catch {}
+    }
+    return result;
+  };
+  assignTaskToBidder.__jwWriterWorkflowPatched = true;
+}
+
+// Patch writer submission: after submitting, refresh task row, show under Completed, notify owner.
+if (typeof writerSubmitWork === 'function' && !writerSubmitWork.__jwWorkflowSubmitNotifyPatched) {
+  const __jwOriginalWriterSubmitWorkWorkflow = writerSubmitWork;
+  writerSubmitWork = async function() {
+    const selectedId = document.getElementById('writer-submit-select')?.value || '';
+    const result = await __jwOriginalWriterSubmitWorkWorkflow.apply(this, arguments);
+
+    if (selectedId) {
+      setTimeout(async () => {
+        try {
+          if (typeof jwRefreshSubmittedTaskEverywhere === 'function') {
+            await jwRefreshSubmittedTaskEverywhere(selectedId);
+          }
+          const t = typeof getTaskById === 'function' ? getTaskById(selectedId) : null;
+          if (t) {
+            // Ensure local status is completed if older submit flow did not update fast enough.
+            if (jwTaskWasSubmittedWorkflow(t) && String(t.status || '').toLowerCase() !== 'completed') {
+              t.status = 'completed';
+            }
+
+            jwNotifyOwnerTaskSubmitted(t);
+            try { renderWriterTasks(); } catch {}
+            try { updateBadges(); } catch {}
+            try {
+              const completedTab = [...document.querySelectorAll('#page-writer-tasks .tab')]
+                .find(el => String(el.textContent || '').toLowerCase().includes('completed'));
+              if (completedTab && document.getElementById('page-writer-tasks')?.classList.contains('active')) {
+                writerSwitchTab(completedTab, 'completed');
+              }
+            } catch {}
+          }
+        } catch (err) {
+          console.warn('Post-submission workflow refresh failed:', err);
+        }
+      }, 900);
+    }
+
+    return result;
+  };
+  writerSubmitWork.__jwWorkflowSubmitNotifyPatched = true;
+}
+
+// Role-specific scan messages; employer/student see "Task submitted", writer sees assigned/revision/paid.
+if (typeof jwScanTaskNotifications === 'function' && !jwScanTaskNotifications.__jwRoleSpecificWorkflowPatched) {
+  const __jwOriginalScanTaskNotificationsWorkflow = jwScanTaskNotifications;
+  jwScanTaskNotifications = function(options = {}) {
+    const result = __jwOriginalScanTaskNotificationsWorkflow.apply(this, arguments);
+
+    try {
+      const list = options.onlyTask ? [options.onlyTask] : (Array.isArray(tasks) ? tasks : []);
+      list.forEach(t => {
+        if (!t?.id) return;
+
+        if (jwTaskWasSubmittedWorkflow(t) && t.posted_by) {
+          jwNotifyOwnerTaskSubmitted(t);
+        }
+
+        if (t.taken_by) {
+          jwNotifyWriterAssigned(t);
+        }
+
+        if ((String(t.status || '').toLowerCase() === 'revision' || t.revision_notes) && t.taken_by) {
+          jwCreatePersistentNotificationForRecipient({
+            userEmail: t.taken_by,
+            type: 'revision',
+            title: 'Revision requested',
+            body: `${t.id} — ${t.subject || 'Task'} has been sent back for revision. Please check My Tasks/Revisions.`,
+            taskId: t.id,
+            key: `writer-revision:${t.id}:${t.revision_at || t.revision_notes || t.updated_at || ''}`,
+            metadata: { audience: 'writer', role_message: 'Revision requested' }
+          });
+        }
+
+        if (String(t.payment || '').toLowerCase() === 'paid' && t.taken_by) {
+          jwCreatePersistentNotificationForRecipient({
+            userEmail: t.taken_by,
+            type: 'paid',
+            title: 'Payment confirmed',
+            body: `${t.id} — ${t.subject || 'Task'} has been marked paid.`,
+            taskId: t.id,
+            key: `writer-paid:${t.id}:${t.paid_at || t.updated_at || ''}`,
+            metadata: { audience: 'writer', role_message: 'Payment confirmed for writer' }
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('Role-specific workflow notification scan failed:', err);
+    }
+
+    return result;
+  };
+  jwScanTaskNotifications.__jwRoleSpecificWorkflowPatched = true;
+}
+
+// Keep pages fresh after realtime/local task changes.
+if (typeof upsertLocalTask === 'function' && !upsertLocalTask.__jwWriterWorkflowPatched) {
+  const __jwOriginalUpsertLocalTaskWorkflow = upsertLocalTask;
+  upsertLocalTask = function(row, atStart = true) {
+    const result = __jwOriginalUpsertLocalTaskWorkflow.apply(this, arguments);
+    try {
+      if (currentUser?.role === 'writer') {
+        if (document.getElementById('page-writer-bids')?.classList.contains('active')) renderWriterBidsPage();
+        if (document.getElementById('page-writer-tasks')?.classList.contains('active')) renderWriterTasks();
+      }
+      updateBadges?.();
+    } catch {}
+    return result;
+  };
+  upsertLocalTask.__jwWriterWorkflowPatched = true;
+}
+
+// Boot safety.
+setTimeout(() => {
+  try {
+    if (currentUser?.role === 'writer') {
+      updateWriterBidBadge?.();
+      if (document.getElementById('page-writer-bids')?.classList.contains('active')) renderWriterBidsPage();
+      if (document.getElementById('page-writer-tasks')?.classList.contains('active')) renderWriterTasks();
+    }
+  } catch {}
+}, 1200);
 
 </script>
 
