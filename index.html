@@ -26235,6 +26235,538 @@ setInterval(() => {
   } catch {}
 }, 5000);
 
+
+
+// ══════════════════════════════════════════════════════
+//  NOTIFICATION SYSTEM REPAIR + MESSAGE ALERT TEST
+//  Fixes:
+//  - Empty Supabase notification rows no longer fall back to old local unread rows.
+//  - Realtime listens more reliably to jw_notifications.
+//  - Sending a message creates persistent "New message" notifications for recipients.
+//  - Adds jwTestNotificationSystem() and a panel Test button.
+// ══════════════════════════════════════════════════════
+
+let _jwNotificationRowsLoaded = false;
+let _jwNotificationRepairSub = null;
+let _jwNotificationLastLoadAt = 0;
+
+function jwNotificationCurrentEmail() {
+  return String(currentUser?.email || '').trim().toLowerCase();
+}
+
+function jwNotificationIsMine(row) {
+  const rowEmail = String(row?.user_email || row?.userEmail || '').trim().toLowerCase();
+  if (!rowEmail) return true;
+  return rowEmail === jwNotificationCurrentEmail();
+}
+
+function jwNormalizeNotificationRepair(row) {
+  if (!row) return null;
+  if (!jwNotificationIsMine(row)) return null;
+
+  const read = !!row.read_at || row.unread === false || (typeof jwIsNotificationKnownRead === 'function' && jwIsNotificationKnownRead(row));
+
+  return {
+    id: row.id || ('local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)),
+    key: row.event_key || row.key || row.id || '',
+    type: row.type || 'general',
+    title: row.title || 'Notification',
+    body: row.body || '',
+    taskId: row.task_id || row.taskId || '',
+    page: row.metadata?.page || row.page || '',
+    unread: !read,
+    at: row.created_at || row.at || new Date().toISOString(),
+    created_at: row.created_at || row.at || new Date().toISOString(),
+    read_at: row.read_at || (read ? new Date().toISOString() : null),
+    metadata: row.metadata || {},
+    actor_email: row.actor_email || '',
+    user_email: row.user_email || currentUser?.email || ''
+  };
+}
+
+function jwMergeNotificationRowsRepair(dbRows = [], localRows = []) {
+  const map = new Map();
+
+  [...dbRows, ...localRows].forEach(raw => {
+    const n = jwNormalizeNotificationRepair(raw);
+    if (!n) return;
+
+    const key = n.key || n.id;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, n);
+      return;
+    }
+
+    const chosen = String(existing.id || '').startsWith('local-') && !String(n.id || '').startsWith('local-') ? n : existing;
+    const eitherRead = existing.unread === false || n.unread === false || existing.read_at || n.read_at;
+    chosen.unread = !eitherRead;
+    if (eitherRead && typeof jwRememberNotificationRead === 'function') jwRememberNotificationRead(chosen);
+    map.set(key, chosen);
+  });
+
+  return [...map.values()]
+    .sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0))
+    .slice(0, 100);
+}
+
+// Strong override: once Supabase was loaded, use its rows even when empty.
+jwReadNotifications = function() {
+  if (_jwNotificationRowsLoaded) return Array.isArray(_jwNotificationRows) ? _jwNotificationRows : [];
+
+  try {
+    const list = JSON.parse(localStorage.getItem(jwNotificationsKey()) || '[]');
+    return Array.isArray(list)
+      ? list.map(jwNormalizeNotificationRepair).filter(Boolean)
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+jwUnreadNotificationCount = function() {
+  return jwReadNotifications().filter(n => n.unread !== false).length;
+};
+
+async function jwLoadNotificationsFromSupabaseRepair() {
+  if (!currentUser?.email || typeof _sb === 'undefined') return [];
+
+  const { data, error } = await _sb
+    .from('jw_notifications')
+    .select('id,user_email,actor_email,task_id,type,title,body,event_key,metadata,read_at,created_at')
+    .eq('user_email', jwNotificationCurrentEmail())
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+  return (data || []).map(jwNormalizeNotificationRepair).filter(Boolean);
+}
+
+jwLoadNotifications = async function() {
+  if (!currentUser) {
+    _jwNotificationRowsLoaded = false;
+    _jwNotificationRows = [];
+    return [];
+  }
+
+  if (_jwNotificationLoadRunning) return _jwNotificationRows || [];
+  _jwNotificationLoadRunning = true;
+
+  try {
+    let dbRows = [];
+    try {
+      dbRows = await jwLoadNotificationsFromSupabaseRepair();
+      _jwNotificationTableReady = true;
+      _jwNotificationRowsLoaded = true;
+      _jwNotificationLastLoadAt = Date.now();
+    } catch (err) {
+      _jwNotificationTableReady = false;
+      console.warn('Supabase notification load failed; using local fallback:', err);
+      if (!_jwNotificationRowsLoaded) {
+        const local = (() => {
+          try { return JSON.parse(localStorage.getItem(jwNotificationsKey()) || '[]'); } catch { return []; }
+        })();
+        _jwNotificationRows = jwMergeNotificationRowsRepair([], local);
+        return _jwNotificationRows;
+      }
+    }
+
+    // If Supabase succeeds, do not revive old local unread copies.
+    _jwNotificationRows = jwMergeNotificationRowsRepair(dbRows, []);
+    _jwNotificationRows.filter(n => n.unread === false && typeof jwRememberNotificationRead === 'function').forEach(jwRememberNotificationRead);
+
+    try { localStorage.setItem(jwNotificationsKey(), JSON.stringify(_jwNotificationRows)); } catch {}
+
+    return _jwNotificationRows;
+  } finally {
+    _jwNotificationLoadRunning = false;
+  }
+};
+
+function jwUpdateNotificationButtonCount() {
+  const count = jwUnreadNotificationCount();
+  document.querySelectorAll('#jw-notification-count, #jw-notification-count-mobile').forEach(el => {
+    el.textContent = count > 99 ? '99+' : String(count);
+    el.classList.toggle('show', count > 0);
+  });
+}
+
+if (typeof jwRenderNotifications === 'function' && !jwRenderNotifications.__jwRepairPatched) {
+  const __jwOriginalRenderNotificationsRepair = jwRenderNotifications;
+
+  jwRenderNotifications = function() {
+    const result = __jwOriginalRenderNotificationsRepair.apply(this, arguments);
+    jwUpdateNotificationButtonCount();
+    return result;
+  };
+
+  jwRenderNotifications.__jwRepairPatched = true;
+}
+
+function jwHandleNotificationRowChange(payload) {
+  const row = payload?.new || payload?.old;
+  if (!row || !jwNotificationIsMine(row)) return;
+
+  if (payload.eventType === 'DELETE') {
+    _jwNotificationRows = jwReadNotifications().filter(n => String(n.id) !== String(row.id));
+  } else {
+    const n = jwNormalizeNotificationRepair(row);
+    if (!n) return;
+
+    const before = jwReadNotifications();
+    const alreadyHad = before.some(x => String(x.id) === String(n.id) || (x.key && n.key && x.key === n.key));
+    _jwNotificationRows = jwMergeNotificationRowsRepair([n], before);
+    _jwNotificationRowsLoaded = true;
+
+    if (payload.eventType === 'INSERT' && !alreadyHad && n.unread !== false) {
+      try {
+        if (typeof jwPlayNotificationSound === 'function') jwPlayNotificationSound(n.type || 'message');
+        else if (typeof playSound === 'function') playSound(n.type === 'message' ? 'message' : 'notification');
+      } catch {}
+
+      try { notify('🔔 ' + (n.title || 'New notification')); } catch {}
+
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const bn = new Notification(n.title || 'New notification', {
+            body: n.body || '',
+            icon: '/favicon.ico',
+            tag: n.key || n.id || 'jw-notification'
+          });
+          bn.onclick = () => {
+            window.focus();
+            if (n.taskId) openTaskDetailsPage(n.taskId);
+          };
+        }
+      } catch {}
+    }
+  }
+
+  try { localStorage.setItem(jwNotificationsKey(), JSON.stringify(_jwNotificationRows)); } catch {}
+  jwRenderNotifications();
+}
+
+function jwStartNotificationsTableRealtimeRepair() {
+  if (!currentUser?.email || typeof _sb === 'undefined' || !_sb?.channel) return;
+
+  try {
+    if (_jwNotificationRepairSub) {
+      _sb.removeChannel?.(_jwNotificationRepairSub);
+      _jwNotificationRepairSub = null;
+    }
+
+    // No filter here. Filtering happens in JS. This avoids email filter edge cases in realtime.
+    _jwNotificationRepairSub = _sb
+      .channel('jw-notifications-repair-' + jwNotificationCurrentEmail())
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'jw_notifications' },
+        jwHandleNotificationRowChange
+      )
+      .subscribe(status => {
+        console.log('jw_notifications realtime status:', status);
+      });
+  } catch (err) {
+    console.warn('Could not start repaired notification realtime:', err);
+  }
+}
+
+function jwStopNotificationsTableRealtimeRepair() {
+  try {
+    if (_jwNotificationRepairSub && typeof _sb !== 'undefined') {
+      _sb.removeChannel?.(_jwNotificationRepairSub);
+      _jwNotificationRepairSub = null;
+    }
+  } catch {}
+}
+
+jwCreateNotificationInSupabase = async function(n) {
+  if (!currentUser?.email || typeof _sb === 'undefined') throw new Error('Not signed in or Supabase unavailable.');
+
+  const payload = {
+    p_user_email: String(n.user_email || n.userEmail || '').toLowerCase(),
+    p_type: n.type || 'general',
+    p_title: n.title || 'Notification',
+    p_body: n.body || '',
+    p_task_id: n.taskId || n.task_id || null,
+    p_event_key: n.key || n.event_key || null,
+    p_metadata: n.metadata || {}
+  };
+
+  if (!payload.p_user_email) throw new Error('Notification recipient missing.');
+
+  const { data, error } = await _sb.rpc('jw_create_notification', payload);
+  if (error) throw error;
+  return data;
+};
+
+jwAddNotification = function({ key, type = 'general', title, body, taskId = '', page = '', userEmail = '', sound = true, popup = true, metadata = {} }) {
+  if (!currentUser || !key) return;
+
+  const targetEmail = String(userEmail || currentUser.email || '').trim().toLowerCase();
+  if (!targetEmail) return;
+
+  const shape = {
+    id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    key,
+    event_key: key,
+    type,
+    title: title || 'New notification',
+    body: body || '',
+    taskId,
+    task_id: taskId,
+    page,
+    unread: true,
+    at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    metadata: { ...metadata, page },
+    user_email: targetEmail
+  };
+
+  // If already read, never revive as unread.
+  if (typeof jwIsNotificationKnownRead === 'function' && jwIsNotificationKnownRead(shape)) return;
+
+  const isMine = targetEmail === jwNotificationCurrentEmail();
+
+  // Persist for the real recipient.
+  jwCreateNotificationInSupabase(shape)
+    .then(() => {
+      if (isMine) {
+        jwLoadNotifications().then(() => jwRenderNotifications()).catch(() => {});
+      }
+    })
+    .catch(err => {
+      console.warn('Persistent notification create failed:', err);
+      if (isMine) {
+        _jwNotificationRows = jwMergeNotificationRowsRepair([shape], jwReadNotifications());
+        _jwNotificationRowsLoaded = true;
+        try { localStorage.setItem(jwNotificationsKey(), JSON.stringify(_jwNotificationRows)); } catch {}
+        jwRenderNotifications();
+      }
+    });
+
+  // Only current recipient sees immediate local alert.
+  if (isMine) {
+    _jwNotificationRows = jwMergeNotificationRowsRepair([shape], jwReadNotifications());
+    _jwNotificationRowsLoaded = true;
+    try { localStorage.setItem(jwNotificationsKey(), JSON.stringify(_jwNotificationRows)); } catch {}
+    jwRenderNotifications();
+
+    if (sound) {
+      try {
+        if (typeof jwPlayNotificationSound === 'function') jwPlayNotificationSound(type);
+        else if (typeof playSound === 'function') playSound(type === 'message' ? 'message' : 'notification');
+      } catch {}
+    }
+    if (popup) {
+      try { notify('🔔 ' + shape.title); } catch {}
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const bn = new Notification(shape.title, { body: shape.body || '', icon: '/favicon.ico', tag: key });
+          bn.onclick = () => { window.focus(); if (taskId) openTaskDetailsPage(taskId); };
+        } else if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {});
+        }
+      } catch {}
+    }
+  }
+};
+
+// Better panel: add Test button if notification panel exists.
+function jwAddNotificationTestButton() {
+  const actions = document.querySelector('#jw-notification-panel .jw-notification-actions');
+  if (!actions || document.getElementById('jw-notification-test-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'jw-notification-test-btn';
+  btn.type = 'button';
+  btn.className = 'btn btn-outline btn-sm';
+  btn.textContent = 'Test';
+  btn.onclick = () => jwTestNotificationSystem();
+  actions.insertBefore(btn, actions.firstChild);
+}
+
+// Built-in test: creates a real notification row for current user and tests sound/popup.
+window.jwTestNotificationSystem = async function() {
+  if (!currentUser?.email) {
+    try { notify('⚠️ Login first before testing notifications.'); } catch {}
+    return false;
+  }
+
+  try {
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission().catch(() => {});
+    }
+
+    const key = 'test:' + currentUser.email.toLowerCase() + ':' + Date.now();
+
+    await jwCreateNotificationInSupabase({
+      user_email: currentUser.email.toLowerCase(),
+      type: 'general',
+      title: 'Notification test',
+      body: 'If you can see this, in-app notifications are connected.',
+      key,
+      event_key: key,
+      metadata: { source: 'manual_test' }
+    });
+
+    await jwLoadNotifications();
+    jwRenderNotifications();
+
+    try {
+      if (typeof jwPlayNotificationSound === 'function') jwPlayNotificationSound('general');
+      else if (typeof playSound === 'function') playSound('message');
+    } catch {}
+
+    try { notify('✅ Notification test created. Check the bell panel.'); } catch {}
+    console.log('Janelle Writes notification test passed.');
+    return true;
+  } catch (err) {
+    console.error('Janelle Writes notification test failed:', err);
+    try { notify('❌ Notification test failed: ' + (err?.message || err)); } catch {}
+    return false;
+  }
+};
+
+// Persistent New Message notifications when a message is sent.
+function jwMessageRecipientsForTask(t, senderEmail = currentUser?.email) {
+  const set = new Set();
+  const sender = String(senderEmail || '').toLowerCase();
+
+  if (t?.posted_by && String(t.posted_by).toLowerCase() !== sender) set.add(String(t.posted_by).toLowerCase());
+  if (t?.taken_by && String(t.taken_by).toLowerCase() !== sender) set.add(String(t.taken_by).toLowerCase());
+
+  // For student orders, admin will still see all messages by opening admin student messages; direct persistent admin notification can be added later if desired.
+  return [...set].filter(Boolean);
+}
+
+function jwCreateMessageNotificationsForTask(t, msg) {
+  if (!t || !msg) return;
+
+  jwMessageRecipientsForTask(t, msg.sender_email).forEach(email => {
+    jwAddNotification({
+      key: `message:${t.id}:${msg.id || msg.at || Date.now()}:${email}`,
+      type: 'message',
+      title: 'New message',
+      body: `${msg.sender_name || msg.sender_role || 'Someone'} sent a message on ${t.id}.`,
+      taskId: t.id,
+      userEmail: email,
+      sound: email === jwNotificationCurrentEmail(),
+      popup: email === jwNotificationCurrentEmail(),
+      metadata: {
+        message_id: msg.id || '',
+        sender_email: msg.sender_email || '',
+        sender_role: msg.sender_role || ''
+      }
+    });
+  });
+}
+
+if (typeof sendTaskMessage === 'function' && !sendTaskMessage.__jwPersistentMessageNotifyPatched) {
+  const __jwOriginalSendTaskMessageRepair = sendTaskMessage;
+
+  sendTaskMessage = function() {
+    const id = document.getElementById('msg-order-select')?.value || '';
+    const tBefore = typeof getTaskById === 'function' ? getTaskById(id) : null;
+    const prevMsgs = tBefore ? getTaskMessages(tBefore) : [];
+    const result = __jwOriginalSendTaskMessageRepair.apply(this, arguments);
+
+    setTimeout(() => {
+      try {
+        const tAfter = typeof getTaskById === 'function' ? getTaskById(id) : null;
+        if (!tAfter) return;
+        const nextMsgs = getTaskMessages(tAfter);
+        if (nextMsgs.length <= prevMsgs.length) return;
+        const msg = nextMsgs[nextMsgs.length - 1];
+        if (!msg || String(msg.sender_email || '').toLowerCase() !== jwNotificationCurrentEmail()) return;
+        jwCreateMessageNotificationsForTask(tAfter, msg);
+      } catch (err) {
+        console.warn('Persistent message notification failed:', err);
+      }
+    }, 180);
+
+    return result;
+  };
+
+  sendTaskMessage.__jwPersistentMessageNotifyPatched = true;
+}
+
+// Improve incoming message alert text and sound.
+notifyIncomingMessage = function(task, lastMessage) {
+  const orderId = task?.id || 'this order';
+  try {
+    if (typeof playSound === 'function') playSound('message');
+    else if (typeof jwPlayNotificationSound === 'function') jwPlayNotificationSound('message');
+  } catch {}
+
+  try {
+    notify('💬 New message', 'message', {
+      title: 'New message',
+      body: `New message on ${orderId}.`,
+      onClick: () => openMessagesForTask(orderId)
+    });
+  } catch {
+    try { notify('💬 New message'); } catch {}
+  }
+
+  try {
+    sendRealtimeNotification('New message', `New message on ${orderId}.`, {
+      tag: 'jw-message-' + orderId,
+      taskId: orderId,
+      renotify: true
+    });
+  } catch {}
+};
+
+// Start/stop repaired realtime with app.
+if (typeof launchApp === 'function' && !launchApp.__jwNotificationRepairPatched) {
+  const __jwOriginalLaunchAppNotifyRepair = launchApp;
+  launchApp = function() {
+    const result = __jwOriginalLaunchAppNotifyRepair.apply(this, arguments);
+    setTimeout(() => {
+      jwLoadNotifications().then(() => {
+        jwRenderNotifications();
+        jwAddNotificationTestButton();
+      }).catch(err => console.warn('Notification load repair failed:', err));
+      jwStartNotificationsTableRealtimeRepair();
+    }, 900);
+    return result;
+  };
+  launchApp.__jwNotificationRepairPatched = true;
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwNotificationRepairPatched) {
+  const __jwOriginalDoLogoutNotifyRepair = doLogout;
+  doLogout = async function() {
+    jwStopNotificationsTableRealtimeRepair();
+    _jwNotificationRowsLoaded = false;
+    _jwNotificationRows = [];
+    return await __jwOriginalDoLogoutNotifyRepair.apply(this, arguments);
+  };
+  doLogout.__jwNotificationRepairPatched = true;
+}
+
+// Poll fallback for rows and panel test button.
+setInterval(() => {
+  try {
+    if (!currentUser) return;
+    if (Date.now() - _jwNotificationLastLoadAt > 12000) {
+      jwLoadNotifications().then(() => jwRenderNotifications()).catch(() => {});
+    }
+    jwAddNotificationTestButton();
+  } catch {}
+}, 6000);
+
+setTimeout(() => {
+  try {
+    if (currentUser) {
+      jwLoadNotifications().then(() => jwRenderNotifications()).catch(() => {});
+      jwStartNotificationsTableRealtimeRepair();
+      jwAddNotificationTestButton();
+    }
+  } catch {}
+}, 1500);
+
 </script>
 
 </body>
