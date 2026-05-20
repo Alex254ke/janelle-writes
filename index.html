@@ -6711,6 +6711,213 @@ body.dark .jw-notification-item.unread {
   border-color: rgba(142,228,214,.18);
 }
 
+
+/* ══════════════════════════════════════════════════════
+   ROBUST SUBMITTED WORK DISPLAY FOR ALL TASK VIEWERS
+   ══════════════════════════════════════════════════════ */
+
+.jw-submission-mounted {
+  border: 1px solid rgba(42,157,143,.26);
+  border-radius: 20px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(82,196,184,.14), transparent 36%),
+    linear-gradient(135deg, rgba(224,245,243,.78), rgba(255,255,255,.98));
+  box-shadow: 0 16px 38px rgba(15,25,35,.07);
+}
+
+.jw-submission-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.jw-submission-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 25px;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.jw-submission-subtitle {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.jw-submission-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(42,157,143,.13);
+  color: var(--teal-dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+.jw-submission-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.jw-submission-box {
+  border: 1px solid rgba(205,224,221,.9);
+  border-radius: 15px;
+  padding: 14px;
+  background: rgba(255,255,255,.84);
+}
+
+.jw-submission-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.jw-submission-text {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--charcoal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jw-submission-file-list {
+  display: grid;
+  gap: 10px;
+}
+
+.jw-submission-file {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(42,157,143,.18);
+  border-radius: 14px;
+  padding: 11px;
+  background: rgba(255,255,255,.78);
+}
+
+.jw-submission-file-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10202b;
+  color: #f4d58d;
+  font-size: 18px;
+}
+
+.jw-submission-file-name {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.jw-submission-file-meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.jw-submission-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.jw-submission-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(42,157,143,.24);
+  border-radius: 12px;
+  color: var(--teal-dark);
+  background: rgba(224,245,243,.55);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.jw-submission-link:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.jw-submission-empty {
+  border: 1px dashed rgba(205,224,221,.95);
+  border-radius: 16px;
+  padding: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+  background: rgba(255,255,255,.62);
+}
+
+@media (max-width: 640px) {
+  .jw-submission-file {
+    grid-template-columns: 34px 1fr;
+  }
+
+  .jw-submission-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .jw-submission-actions .btn {
+    width: 100%;
+  }
+}
+
+body.dark-mode .jw-submission-mounted,
+body.dark .jw-submission-mounted {
+  background:
+    radial-gradient(circle at 96% 8%, rgba(82,196,184,.12), transparent 36%),
+    linear-gradient(135deg, rgba(42,157,143,.10), #14202b);
+  border-color: rgba(142,228,214,.22);
+}
+
+body.dark-mode .jw-submission-box,
+body.dark .jw-submission-box,
+body.dark-mode .jw-submission-file,
+body.dark .jw-submission-file,
+body.dark-mode .jw-submission-empty,
+body.dark .jw-submission-empty {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .jw-submission-title,
+body.dark .jw-submission-title,
+body.dark-mode .jw-submission-file-name,
+body.dark .jw-submission-file-name,
+body.dark-mode .jw-submission-text,
+body.dark .jw-submission-text {
+  color: #edf8f7;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -23886,6 +24093,1108 @@ setTimeout(() => {
     jwStartNotificationRealtime();
   } catch {}
 }, 1200);
+
+
+
+// ══════════════════════════════════════════════════════
+//  SUPABASE PERSISTENT NOTIFICATIONS TABLE INTEGRATION
+//  Uses public.jw_notifications with local fallback.
+// ══════════════════════════════════════════════════════
+
+let _jwNotificationRows = [];
+let _jwNotificationTableSub = null;
+let _jwNotificationLoadRunning = false;
+let _jwNotificationTableReady = true;
+
+function jwNormalizeNotificationRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id || ('local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)),
+    key: row.event_key || row.key || row.id || '',
+    type: row.type || 'general',
+    title: row.title || 'Notification',
+    body: row.body || '',
+    taskId: row.task_id || row.taskId || '',
+    page: row.metadata?.page || row.page || '',
+    unread: row.read_at ? false : (row.unread !== false),
+    at: row.created_at || row.at || new Date().toISOString(),
+    metadata: row.metadata || {},
+    actor_email: row.actor_email || ''
+  };
+}
+
+function jwMergeNotificationRows(dbRows = [], localRows = []) {
+  const map = new Map();
+  [...dbRows, ...localRows].forEach(raw => {
+    const n = jwNormalizeNotificationRow(raw);
+    if (!n) return;
+    const key = n.key || n.id;
+    if (!map.has(key)) map.set(key, n);
+  });
+  return [...map.values()].sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0)).slice(0, 100);
+}
+
+async function jwLoadNotificationsFromSupabase() {
+  if (!currentUser?.email || typeof _sb === 'undefined') return [];
+
+  const { data, error } = await _sb
+    .from('jw_notifications')
+    .select('id,user_email,actor_email,task_id,type,title,body,event_key,metadata,read_at,created_at')
+    .eq('user_email', currentUser.email.toLowerCase())
+    .order('created_at', { ascending: false })
+    .limit(80);
+
+  if (error) throw error;
+  return (data || []).map(jwNormalizeNotificationRow).filter(Boolean);
+}
+
+async function jwLoadNotifications() {
+  if (!currentUser) return [];
+
+  if (_jwNotificationLoadRunning) return _jwNotificationRows;
+  _jwNotificationLoadRunning = true;
+
+  try {
+    const local = jwReadNotifications();
+    let dbRows = [];
+
+    try {
+      dbRows = await jwLoadNotificationsFromSupabase();
+      _jwNotificationTableReady = true;
+    } catch (err) {
+      _jwNotificationTableReady = false;
+      console.warn('Supabase notification load failed; using local fallback:', err);
+    }
+
+    _jwNotificationRows = jwMergeNotificationRows(dbRows, local);
+    jwWriteNotifications(_jwNotificationRows);
+    return _jwNotificationRows;
+  } finally {
+    _jwNotificationLoadRunning = false;
+  }
+}
+
+async function jwCreateNotificationInSupabase(n) {
+  if (!currentUser?.email || typeof _sb === 'undefined') return null;
+
+  const payload = {
+    p_user_email: n.user_email || n.userEmail || '',
+    p_type: n.type || 'general',
+    p_title: n.title || 'Notification',
+    p_body: n.body || '',
+    p_task_id: n.taskId || n.task_id || null,
+    p_event_key: n.key || n.event_key || null,
+    p_metadata: n.metadata || {}
+  };
+
+  // Try secure RPC first.
+  let rpc = await _sb.rpc('jw_create_notification', payload);
+  if (!rpc.error) return rpc.data;
+
+  console.warn('jw_create_notification RPC failed, trying direct insert fallback:', rpc.error);
+
+  // Fallback only works if you later add an insert policy; otherwise safe failure.
+  const { data, error } = await _sb
+    .from('jw_notifications')
+    .insert({
+      user_email: String(payload.p_user_email || '').toLowerCase(),
+      actor_email: currentUser.email.toLowerCase(),
+      task_id: payload.p_task_id,
+      type: payload.p_type,
+      title: payload.p_title,
+      body: payload.p_body,
+      event_key: payload.p_event_key,
+      metadata: payload.p_metadata
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data?.id || null;
+}
+
+async function jwMarkNotificationReadInSupabase(id) {
+  if (!id || String(id).startsWith('local-') || typeof _sb === 'undefined') return;
+  const { error } = await _sb
+    .from('jw_notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) console.warn('Notification mark-read failed:', error);
+}
+
+async function jwMarkAllNotificationsReadInSupabase() {
+  if (!currentUser?.email || typeof _sb === 'undefined') return;
+  const { error } = await _sb
+    .from('jw_notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('user_email', currentUser.email.toLowerCase())
+    .is('read_at', null);
+  if (error) console.warn('Notification mark-all-read failed:', error);
+}
+
+async function jwDeleteNotificationInSupabase(id) {
+  if (!id || String(id).startsWith('local-') || typeof _sb === 'undefined') return;
+  const { error } = await _sb
+    .from('jw_notifications')
+    .delete()
+    .eq('id', id);
+  if (error) console.warn('Notification delete failed:', error);
+}
+
+// Override local read/render count to use the latest merged table state.
+const __jwLocalReadNotificationsFallback = typeof jwReadNotifications === 'function' ? jwReadNotifications : null;
+jwReadNotifications = function() {
+  if (Array.isArray(_jwNotificationRows) && _jwNotificationRows.length) return _jwNotificationRows;
+  try {
+    const list = JSON.parse(localStorage.getItem(jwNotificationsKey()) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+};
+
+jwUnreadNotificationCount = function() {
+  return jwReadNotifications().filter(n => n.unread !== false).length;
+};
+
+async function jwRefreshNotificationsUI() {
+  await jwLoadNotifications();
+  jwRenderNotifications();
+}
+
+// Override add notification: create persistent Supabase notification plus local fallback.
+jwAddNotification = function({ key, type = 'general', title, body, taskId = '', page = '', userEmail = '', sound = true, popup = true, metadata = {} }) {
+  if (!currentUser || !key) return;
+
+  const targetEmail = String(userEmail || currentUser.email || '').toLowerCase();
+  if (!targetEmail) return;
+
+  const existing = jwReadNotifications().some(n => (n.key || n.event_key) === key);
+  if (existing) return;
+
+  const local = {
+    id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    key,
+    type,
+    title: title || 'New notification',
+    body: body || '',
+    taskId,
+    page,
+    unread: true,
+    at: new Date().toISOString(),
+    metadata: { ...metadata, page },
+    user_email: targetEmail
+  };
+
+  _jwNotificationRows = jwMergeNotificationRows([local], jwReadNotifications());
+  jwWriteNotifications(_jwNotificationRows);
+  jwRenderNotifications();
+
+  if (sound) jwPlayNotificationSound(type);
+  if (popup) {
+    try { notify('🔔 ' + local.title); } catch {}
+    jwBrowserNotify(local);
+  }
+
+  jwCreateNotificationInSupabase({
+    ...local,
+    user_email: targetEmail,
+    task_id: taskId,
+    event_key: key
+  }).then(id => {
+    if (id) {
+      local.id = id;
+      _jwNotificationRows = jwMergeNotificationRows([local], jwReadNotifications());
+      jwWriteNotifications(_jwNotificationRows);
+      jwRenderNotifications();
+    }
+  }).catch(err => {
+    _jwNotificationTableReady = false;
+    console.warn('Supabase notification creation failed; local fallback retained:', err);
+  });
+};
+
+// Override render to load table-backed notifications first when possible.
+if (typeof jwRenderNotifications === 'function' && !jwRenderNotifications.__jwSupabaseTablePatched) {
+  const __jwOriginalRenderNotificationsTable = jwRenderNotifications;
+
+  jwRenderNotifications = function() {
+    const result = __jwOriginalRenderNotificationsTable.apply(this, arguments);
+    // Update count from current row cache immediately.
+    const count = jwUnreadNotificationCount();
+    document.querySelectorAll('#jw-notification-count, #jw-notification-count-mobile').forEach(el => {
+      el.textContent = count > 99 ? '99+' : String(count);
+      el.classList.toggle('show', count > 0);
+    });
+    return result;
+  };
+
+  jwRenderNotifications.__jwSupabaseTablePatched = true;
+}
+
+// Override panel toggle so opening the panel refreshes from Supabase.
+if (typeof jwToggleNotifications === 'function' && !jwToggleNotifications.__jwSupabaseTablePatched) {
+  const __jwOriginalToggleNotificationsTable = jwToggleNotifications;
+
+  jwToggleNotifications = function(force) {
+    const result = __jwOriginalToggleNotificationsTable.apply(this, arguments);
+    const panel = document.getElementById('jw-notification-panel');
+    if (panel?.classList.contains('open')) {
+      jwRefreshNotificationsUI().catch(err => console.warn('Notification refresh failed:', err));
+    }
+    return result;
+  };
+
+  jwToggleNotifications.__jwSupabaseTablePatched = true;
+}
+
+// Override open/mark read functions so read status syncs across devices.
+jwOpenNotification = function(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => x.id === id);
+  if (!n) return;
+
+  n.unread = false;
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+  jwMarkNotificationReadInSupabase(id).catch(() => {});
+
+  if (n.taskId) openTaskDetailsPage(n.taskId);
+  else if (n.page) navigate(n.page);
+
+  jwToggleNotifications(false);
+};
+
+jwMarkOneNotificationRead = function(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => x.id === id);
+  if (n) n.unread = false;
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+  jwMarkNotificationReadInSupabase(id).catch(() => {});
+};
+
+jwMarkNotificationsRead = function() {
+  const list = jwReadNotifications().map(n => ({ ...n, unread: false }));
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+  jwMarkAllNotificationsReadInSupabase().catch(() => {});
+};
+
+function jwStartNotificationsTableRealtime() {
+  if (!currentUser?.email || typeof _sb === 'undefined' || !_sb?.channel) return;
+
+  try {
+    if (_jwNotificationTableSub) {
+      _sb.removeChannel?.(_jwNotificationTableSub);
+      _jwNotificationTableSub = null;
+    }
+
+    _jwNotificationTableSub = _sb
+      .channel('jw-notifications-table-' + jwUserKey())
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'jw_notifications',
+          filter: 'user_email=eq.' + currentUser.email.toLowerCase()
+        },
+        payload => {
+          const row = payload.new || payload.old;
+          if (!row) return;
+
+          if (payload.eventType === 'DELETE') {
+            _jwNotificationRows = jwReadNotifications().filter(n => n.id !== row.id);
+          } else {
+            const normalized = jwNormalizeNotificationRow(row);
+            _jwNotificationRows = jwMergeNotificationRows([normalized], jwReadNotifications());
+            if (payload.eventType === 'INSERT') {
+              jwPlayNotificationSound(normalized.type);
+              try { notify('🔔 ' + normalized.title); } catch {}
+              jwBrowserNotify(normalized);
+            }
+          }
+
+          jwWriteNotifications(_jwNotificationRows);
+          jwRenderNotifications();
+        }
+      )
+      .subscribe();
+  } catch (err) {
+    console.warn('Could not start jw_notifications realtime:', err);
+  }
+}
+
+function jwStopNotificationsTableRealtime() {
+  try {
+    if (_jwNotificationTableSub && typeof _sb !== 'undefined') {
+      _sb.removeChannel?.(_jwNotificationTableSub);
+      _jwNotificationTableSub = null;
+    }
+  } catch {}
+}
+
+// Create table notifications from task scans for correct recipients.
+// This upgrades the earlier local-only scan into persistent recipient notifications.
+function jwNotifyTaskOwner(t, type, title, body, key, metadata = {}) {
+  if (!t?.posted_by) return;
+  jwAddNotification({
+    key,
+    type,
+    title,
+    body,
+    taskId: t.id,
+    userEmail: t.posted_by,
+    metadata,
+    sound: typeof sameEmail === 'function' ? sameEmail(t.posted_by, currentUser.email) : true
+  });
+}
+
+function jwNotifyTaskWriter(t, type, title, body, key, metadata = {}) {
+  if (!t?.taken_by) return;
+  jwAddNotification({
+    key,
+    type,
+    title,
+    body,
+    taskId: t.id,
+    userEmail: t.taken_by,
+    metadata,
+    sound: typeof sameEmail === 'function' ? sameEmail(t.taken_by, currentUser.email) : false
+  });
+}
+
+// Fix Python-style True typo in old browsers by defining safe helper.
+function jwSameEmailSafe(a, b) {
+  try {
+    if (typeof sameEmail === 'function') return sameEmail(a, b);
+  } catch {}
+  return String(a || '').toLowerCase() === String(b || '').toLowerCase();
+}
+
+// Correct owner/writer persistent recipient helpers.
+jwNotifyTaskOwner = function(t, type, title, body, key, metadata = {}) {
+  if (!t?.posted_by) return;
+  jwAddNotification({
+    key,
+    type,
+    title,
+    body,
+    taskId: t.id,
+    userEmail: String(t.posted_by).toLowerCase(),
+    metadata,
+    sound: jwSameEmailSafe(t.posted_by, currentUser?.email),
+    popup: jwSameEmailSafe(t.posted_by, currentUser?.email)
+  });
+};
+
+jwNotifyTaskWriter = function(t, type, title, body, key, metadata = {}) {
+  if (!t?.taken_by) return;
+  jwAddNotification({
+    key,
+    type,
+    title,
+    body,
+    taskId: t.id,
+    userEmail: String(t.taken_by).toLowerCase(),
+    metadata,
+    sound: jwSameEmailSafe(t.taken_by, currentUser?.email),
+    popup: jwSameEmailSafe(t.taken_by, currentUser?.email)
+  });
+};
+
+// Patch existing scan to persist notification rows for recipients.
+if (typeof jwScanTaskNotifications === 'function' && !jwScanTaskNotifications.__jwSupabaseTablePatched) {
+  const __jwOriginalScanTaskNotificationsTable = jwScanTaskNotifications;
+
+  jwScanTaskNotifications = function(options = {}) {
+    const result = __jwOriginalScanTaskNotificationsTable.apply(this, arguments);
+
+    try {
+      const list = options.onlyTask ? [options.onlyTask] : (Array.isArray(tasks) ? tasks : []);
+
+      list.forEach(t => {
+        if (!t?.id) return;
+        const subject = t.subject || 'Task';
+        const stamp = typeof jwTaskNotificationStamp === 'function' ? jwTaskNotificationStamp(t) : (t.updated_at || t.created_at || '');
+
+        // Submitted work: notify employer/student task owner.
+        const hasWork = typeof hasSubmittedWork === 'function'
+          ? hasSubmittedWork(t)
+          : !!(t.submitted_link || t.submitted_text || (Array.isArray(t.submitted_files) && t.submitted_files.length));
+
+        if (hasWork && t.posted_by) {
+          jwNotifyTaskOwner(
+            t,
+            'submitted',
+            'Task submitted',
+            `${t.id} — ${subject} has submitted work/materials for review.`,
+            `submitted:${t.id}:${stamp || t.submitted_link || t.submitted_text || 'submitted'}`
+          );
+        }
+
+        // Revision: notify assigned writer.
+        if ((String(t.status || '').toLowerCase() === 'revision' || t.revision_notes) && t.taken_by) {
+          jwNotifyTaskWriter(
+            t,
+            'revision',
+            'Task sent for revision',
+            `${t.id} — ${subject} needs your attention.`,
+            `revision:${t.id}:${t.revision_at || t.revision_notes || t.status}`
+          );
+        }
+
+        // Assignment: notify writer.
+        if (t.taken_by) {
+          jwNotifyTaskWriter(
+            t,
+            'assigned',
+            'Task assigned to you',
+            `${t.id} — ${subject} is now assigned to your account.`,
+            `assigned:${t.id}:${t.taken_by}:${t.taken_by_name || ''}`
+          );
+        }
+
+        // Payment: notify writer.
+        if (String(t.payment || '').toLowerCase() === 'paid' && t.taken_by) {
+          jwNotifyTaskWriter(
+            t,
+            'paid',
+            'Order payment confirmed',
+            `${t.id} — ${subject} has been marked paid.`,
+            `paid:${t.id}:${t.paid_at || t.payment || stamp}`
+          );
+        }
+
+        // Bids: notify task owner.
+        try {
+          const bids = typeof getTaskBids === 'function' ? getTaskBids(t) : [];
+          bids.forEach(b => {
+            if (!b || String(b.status || 'pending').toLowerCase() === 'withdrawn') return;
+            jwNotifyTaskOwner(
+              t,
+              'bid',
+              'New writer bid received',
+              `${b.writer_name || b.writer_email || 'A writer'} requested ${t.id} — ${subject}.`,
+              `bid:${t.id}:${b.writer_email || b.writer_name || 'writer'}:${b.at || b.created_at || b.message || ''}`,
+              { writer_email: b.writer_email || '', writer_name: b.writer_name || '' }
+            );
+          });
+        } catch {}
+      });
+    } catch (err) {
+      console.warn('Persistent task notification scan failed:', err);
+    }
+
+    return result;
+  };
+
+  jwScanTaskNotifications.__jwSupabaseTablePatched = true;
+}
+
+// Patch app boot/logout to load/subscribe/unsubscribe the table notifications.
+if (typeof launchApp === 'function' && !launchApp.__jwNotificationTablePatched) {
+  const __jwOriginalLaunchAppNotificationsTable = launchApp;
+
+  launchApp = function() {
+    const result = __jwOriginalLaunchAppNotificationsTable.apply(this, arguments);
+
+    setTimeout(() => {
+      jwLoadNotifications()
+        .then(() => jwRenderNotifications())
+        .catch(err => console.warn('Initial notification table load failed:', err));
+      jwStartNotificationsTableRealtime();
+    }, 900);
+
+    return result;
+  };
+
+  launchApp.__jwNotificationTablePatched = true;
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwNotificationTablePatched) {
+  const __jwOriginalDoLogoutNotificationsTable = doLogout;
+
+  doLogout = async function() {
+    jwStopNotificationsTableRealtime();
+    _jwNotificationRows = [];
+    return await __jwOriginalDoLogoutNotificationsTable.apply(this, arguments);
+  };
+
+  doLogout.__jwNotificationTablePatched = true;
+}
+
+// Periodic sync fallback.
+setInterval(() => {
+  try {
+    if (!currentUser) return;
+    jwLoadNotifications()
+      .then(() => jwRenderNotifications())
+      .catch(() => {});
+  } catch {}
+}, 15000);
+
+// Boot safety.
+setTimeout(() => {
+  try {
+    if (currentUser) {
+      jwLoadNotifications().then(() => jwRenderNotifications()).catch(() => {});
+      jwStartNotificationsTableRealtime();
+    }
+  } catch {}
+}, 1500);
+
+
+
+// ══════════════════════════════════════════════════════
+//  ROBUST SUBMITTED WORK DISPLAY + SUBMISSION REFRESH FIX
+//  Shows writer submissions to writer, employer, student, and admin.
+// ══════════════════════════════════════════════════════
+
+function jwSameEmailLoose(a, b) {
+  try {
+    if (typeof sameEmail === 'function') return sameEmail(a, b);
+  } catch {}
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+// Strengthen task visibility for downloads and submitted material display.
+if (typeof canCurrentUserSeeTask === 'function' && !canCurrentUserSeeTask.__jwSubmissionAccessPatched) {
+  const __jwOriginalCanCurrentUserSeeTask = canCurrentUserSeeTask;
+  canCurrentUserSeeTask = function(t) {
+    try {
+      if (!currentUser || !t) return false;
+      if (typeof isJwAdmin === 'function' && isJwAdmin()) return true;
+      if (jwSameEmailLoose(t.posted_by, currentUser.email)) return true;
+      if (jwSameEmailLoose(t.taken_by, currentUser.email)) return true;
+      return __jwOriginalCanCurrentUserSeeTask.apply(this, arguments);
+    } catch {
+      return false;
+    }
+  };
+  canCurrentUserSeeTask.__jwSubmissionAccessPatched = true;
+}
+
+function jwSafeJsonArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof value === 'object') {
+    if (Array.isArray(value.files)) return value.files.filter(Boolean);
+    if (Array.isArray(value.submitted_files)) return value.submitted_files.filter(Boolean);
+    if (Array.isArray(value.attachments)) return value.attachments.filter(Boolean);
+  }
+  return [];
+}
+
+function jwSubmittedFilesForTask(t) {
+  if (!t) return [];
+
+  const groups = [
+    t.submitted_files,
+    t.submission_files,
+    t.submissionFiles,
+    t.writer_submission?.files,
+    t.writer_submission?.submitted_files,
+    t.submission?.files,
+    t.submission?.submitted_files,
+    t.metadata?.submitted_files,
+    t.ratings?.submitted_files
+  ];
+
+  let files = [];
+  groups.forEach(g => { files = files.concat(jwSafeJsonArray(g)); });
+
+  // Deduplicate files by name/path/url/data_url.
+  const seen = new Set();
+  return files.filter(f => {
+    if (!f) return false;
+    const key = String(f.id || f.name || f.filename || f.storage_path || f.path || f.url || f.data_url || JSON.stringify(f)).slice(0, 400);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function jwSubmittedLinkForTask(t) {
+  return String(
+    t?.submitted_link ||
+    t?.submission_link ||
+    t?.submission_url ||
+    t?.writer_submission?.link ||
+    t?.writer_submission?.url ||
+    t?.submission?.link ||
+    t?.submission?.url ||
+    ''
+  ).trim();
+}
+
+function jwSubmittedTextForTask(t) {
+  return String(
+    t?.submitted_text ||
+    t?.submission_text ||
+    t?.writer_submission?.text ||
+    t?.submission?.text ||
+    ''
+  ).trim();
+}
+
+function jwSubmittedNotesForTask(t) {
+  return String(
+    t?.submitted_notes ||
+    t?.submission_notes ||
+    t?.writer_submission?.notes ||
+    t?.submission?.notes ||
+    ''
+  ).trim();
+}
+
+function jwSubmittedAtForTask(t) {
+  try {
+    const timing = typeof taskTiming === 'function' ? taskTiming(t) : {};
+    return timing.submitted_at || t?.submitted_at || t?.submission_at || t?.updated_at || t?.created_at || '';
+  } catch {
+    return t?.submitted_at || t?.submission_at || t?.updated_at || t?.created_at || '';
+  }
+}
+
+function jwTaskHasSubmittedMaterials(t) {
+  return !!(
+    jwSubmittedFilesForTask(t).length ||
+    jwSubmittedLinkForTask(t) ||
+    jwSubmittedTextForTask(t) ||
+    jwSubmittedNotesForTask(t)
+  );
+}
+
+function jwLooksSubmittedOrCompleted(t) {
+  const status = String(t?.status || '').toLowerCase();
+  return ['completed', 'revision', 'disputed'].includes(status) || jwTaskHasSubmittedMaterials(t);
+}
+
+function jwFileDisplayName(f, index = 0) {
+  return f?.name || f?.filename || f?.file_name || f?.original_name || ('Submitted file ' + (index + 1));
+}
+
+function jwFileTypeMeta(f) {
+  const name = jwFileDisplayName(f);
+  const ext = String(name || '').includes('.') ? String(name).split('.').pop().toUpperCase() : (f?.type || 'FILE');
+  const size = f?.size && typeof formatSize === 'function' ? ' · ' + formatSize(Number(f.size)) : '';
+  const source =
+    f?.storage_path || f?.path ? ' · stored securely' :
+    f?.data_url || f?.dataUrl || f?.dataURL || f?.base64 ? ' · embedded file' :
+    f?.url || f?.public_url || f?.signedUrl ? ' · link file' :
+    ' · metadata only';
+  return `${ext}${size}${source}`;
+}
+
+function jwHasSubmittedDownloadData(f) {
+  return !!(f && (
+    f.data_url || f.dataUrl || f.dataURL || f.base64 || f.content ||
+    f.url || f.public_url || f.signedUrl ||
+    f.storage_path || f.path
+  ));
+}
+
+function jwSafeHref(url) {
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
+  return 'https://' + raw;
+}
+
+async function jwResolveSubmittedFileUrl(f, expiresIn = 3600) {
+  if (!f) throw new Error('File not found.');
+
+  if (f.data_url) return f.data_url;
+  if (f.dataUrl) return f.dataUrl;
+  if (f.dataURL) return f.dataURL;
+
+  if (f.base64) {
+    const mime = f.type || 'application/octet-stream';
+    return `data:${mime};base64,${f.base64}`;
+  }
+
+  if (f.content && String(f.content).startsWith('data:')) return f.content;
+
+  if (f.url) return f.url;
+  if (f.public_url) return f.public_url;
+  if (f.signedUrl) return f.signedUrl;
+
+  const path = f.storage_path || f.path;
+  const bucket = f.storage_bucket || f.bucket || (typeof SUBMISSIONS_BUCKET !== 'undefined' ? SUBMISSIONS_BUCKET : 'jw-submissions');
+  if (!path) throw new Error('This submission only has file metadata. The writer needs to resubmit the file using the updated submission form.');
+
+  if (typeof _sb === 'undefined' || !_sb?.storage) throw new Error('Storage client is not available.');
+
+  const { data, error } = await _sb.storage.from(bucket).createSignedUrl(path, expiresIn, {
+    download: jwFileDisplayName(f)
+  });
+
+  if (error) throw error;
+  if (!data?.signedUrl) throw new Error('Could not create a download link for this file.');
+  return data.signedUrl;
+}
+
+async function jwDownloadSubmittedMaterial(taskId, index) {
+  const t = typeof getTaskById === 'function' ? getTaskById(taskId) : (tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t || !canCurrentUserSeeTask(t)) {
+    notify('⚠️ You do not have access to this submitted file.');
+    return;
+  }
+
+  const files = jwSubmittedFilesForTask(t);
+  const f = files[index];
+
+  try {
+    const url = await jwResolveSubmittedFileUrl(f, 3600);
+    const name = jwFileDisplayName(f, index);
+
+    if (!String(url).startsWith('data:')) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Download request failed.');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+        notify('⬇️ Submitted file download started.');
+        return;
+      } catch {
+        // Some signed URLs block fetch but allow direct browser opening.
+      }
+    }
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    notify('⬇️ Submitted file download started.');
+  } catch (err) {
+    notify('⚠️ ' + (err?.message || 'Could not download this submitted file.'));
+  }
+}
+
+async function jwOpenSubmittedMaterial(taskId, index) {
+  const t = typeof getTaskById === 'function' ? getTaskById(taskId) : (tasks || []).find(x => String(x.id) === String(taskId));
+  if (!t || !canCurrentUserSeeTask(t)) {
+    notify('⚠️ You do not have access to this submitted file.');
+    return;
+  }
+
+  const f = jwSubmittedFilesForTask(t)[index];
+
+  try {
+    const url = await jwResolveSubmittedFileUrl(f, 3600);
+    window.open(url, '_blank', 'noopener');
+  } catch (err) {
+    notify('⚠️ ' + (err?.message || 'Could not open this submitted file.'));
+  }
+}
+
+function jwSubmissionViewerHtml(t) {
+  if (!t || !canCurrentUserSeeTask(t)) return '';
+
+  const files = jwSubmittedFilesForTask(t);
+  const link = jwSubmittedLinkForTask(t);
+  const text = jwSubmittedTextForTask(t);
+  const notes = jwSubmittedNotesForTask(t);
+  const submittedAt = jwSubmittedAtForTask(t);
+  const hasMaterials = files.length || link || text || notes;
+  const submittedLabel = submittedAt ? 'Submitted ' + fmtDate(submittedAt) : 'Submitted work';
+
+  if (!hasMaterials && !jwLooksSubmittedOrCompleted(t)) return '';
+
+  if (!hasMaterials) {
+    return `
+      <div class="task-detail-section jw-submission-mounted" id="jw-task-submissions-section">
+        <div class="jw-submission-head">
+          <div>
+            <div class="jw-submission-title">Submitted Work / Materials</div>
+            <div class="jw-submission-subtitle">This task is marked as ${esc(t.status || 'completed')}, but no submitted file, link, text, or note is attached to this task record yet.</div>
+          </div>
+          <span class="jw-submission-pill">No material attached</span>
+        </div>
+        <div class="jw-submission-empty">
+          Ask the writer to resubmit through the platform if the completed work was sent outside Janelle Writes, or if this was an older submission before file storage was fixed.
+        </div>
+      </div>
+    `;
+  }
+
+  const filesHtml = files.length ? `
+    <div class="jw-submission-box">
+      <div class="jw-submission-label">Submitted Files (${files.length})</div>
+      <div class="jw-submission-file-list">
+        ${files.map((f, i) => {
+          const name = jwFileDisplayName(f, i);
+          const downloadable = jwHasSubmittedDownloadData(f);
+          const icon = typeof fileIcon === 'function' ? fileIcon(name) : '📎';
+          return `<div class="jw-submission-file">
+            <div class="jw-submission-file-icon">${icon}</div>
+            <div>
+              <div class="jw-submission-file-name">${esc(name)}</div>
+              <div class="jw-submission-file-meta">${esc(jwFileTypeMeta(f))}</div>
+            </div>
+            <div class="jw-submission-actions">
+              ${downloadable ? `<button class="btn btn-outline btn-sm" onclick="jwOpenSubmittedMaterial('${escJS(t.id)}',${i})">Open</button><button class="btn btn-primary btn-sm" onclick="jwDownloadSubmittedMaterial('${escJS(t.id)}',${i})">Download</button>` : `<button class="btn btn-outline btn-sm" onclick="notify('⚠️ This file has metadata only. The writer needs to resubmit it through the platform.')">No file data</button>`}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const linkHtml = link ? `
+    <div class="jw-submission-box">
+      <div class="jw-submission-label">Submitted Link</div>
+      <a class="jw-submission-link" href="${esc(jwSafeHref(link))}" target="_blank" rel="noopener noreferrer">🔗 Open submitted link/document</a>
+      <div class="jw-submission-text" style="margin-top:8px;">${esc(link)}</div>
+    </div>
+  ` : '';
+
+  const textHtml = text ? `
+    <div class="jw-submission-box">
+      <div class="jw-submission-label">Inline / Pasted Work</div>
+      <div class="jw-submission-text">${esc(text)}</div>
+    </div>
+  ` : '';
+
+  const notesHtml = notes ? `
+    <div class="jw-submission-box">
+      <div class="jw-submission-label">Writer Notes</div>
+      <div class="jw-submission-text">${esc(notes)}</div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="task-detail-section jw-submission-mounted" id="jw-task-submissions-section">
+      <div class="jw-submission-head">
+        <div>
+          <div class="jw-submission-title">Submitted Work / Materials</div>
+          <div class="jw-submission-subtitle">Visible to the assigned writer, the task owner, student/employer, and admin.</div>
+        </div>
+        <span class="jw-submission-pill">${esc(submittedLabel)}</span>
+      </div>
+      <div class="jw-submission-grid">
+        ${filesHtml}
+        ${linkHtml}
+        ${textHtml}
+        ${notesHtml}
+      </div>
+    </div>
+  `;
+}
+
+function jwEnsureSubmittedMaterialsInTaskPage(taskId = '') {
+  try {
+    const page = document.getElementById('page-task-details');
+    if (!page || !page.classList.contains('active')) return;
+
+    const id = taskId || (typeof _activeTaskDetailId !== 'undefined' ? _activeTaskDetailId : '');
+    const t = typeof getTaskById === 'function' ? getTaskById(id) : (tasks || []).find(x => String(x.id) === String(id));
+    if (!t) return;
+
+    const body = page.querySelector('.task-detail-body');
+    if (!body) return;
+
+    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted').forEach(el => el.remove());
+
+    const html = jwSubmissionViewerHtml(t);
+    if (!html) return;
+
+    const danger = body.querySelector('.task-detail-danger-note');
+    if (danger) danger.insertAdjacentHTML('beforebegin', html);
+    else body.insertAdjacentHTML('beforeend', html);
+  } catch (err) {
+    console.warn('Could not mount submitted materials section:', err);
+  }
+}
+
+// Patch the full task detail renderer. This works even if older task-detail HTML is still in place.
+if (typeof renderTaskDetailsPage === 'function' && !renderTaskDetailsPage.__jwSubmittedMaterialsViewPatched) {
+  const __jwOriginalRenderTaskDetailsPageForSubmissions = renderTaskDetailsPage;
+
+  renderTaskDetailsPage = function() {
+    const result = __jwOriginalRenderTaskDetailsPageForSubmissions.apply(this, arguments);
+    setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 20);
+    setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 250);
+    return result;
+  };
+
+  renderTaskDetailsPage.__jwSubmittedMaterialsViewPatched = true;
+}
+
+// Patch workflow HTML too, for any alternative task rendering path.
+if (typeof taskDetailWorkflowHtml === 'function' && !taskDetailWorkflowHtml.__jwSubmittedMaterialsViewPatched) {
+  const __jwOriginalTaskDetailWorkflowHtmlForSubmissions = taskDetailWorkflowHtml;
+
+  taskDetailWorkflowHtml = function(t) {
+    const original = __jwOriginalTaskDetailWorkflowHtmlForSubmissions.apply(this, arguments);
+    const submitted = jwSubmissionViewerHtml(t);
+    return `${submitted}${original}`;
+  };
+
+  taskDetailWorkflowHtml.__jwSubmittedMaterialsViewPatched = true;
+}
+
+// Make the older native helper more reliable and case-insensitive with newer file formats.
+renderSubmittedFiles = function(t) {
+  const files = jwSubmittedFilesForTask(t);
+  if (!files.length) return '';
+
+  return `<div style="margin-bottom:12px;">
+    <div class="form-label" style="margin-bottom:8px;">📎 Submitted Files (${files.length})</div>
+    <div class="submission-files">
+      ${files.map((f, i) => {
+        const downloadable = jwHasSubmittedDownloadData(f);
+        const name = jwFileDisplayName(f, i);
+        const icon = typeof fileIcon === 'function' ? fileIcon(name) : '📎';
+        return `<div class="submission-file-card">
+          <span style="font-size:24px;flex-shrink:0;">${icon}</span>
+          <div class="submission-file-main">
+            <div class="submission-file-name">${esc(name)}</div>
+            <div class="submission-file-meta">${esc(jwFileTypeMeta(f))}</div>
+          </div>
+          <div class="submission-file-actions">
+            ${downloadable ? `<button class="btn btn-outline btn-sm" onclick="jwOpenSubmittedMaterial('${escJS(t.id)}',${i})">Open</button><button class="btn btn-primary btn-sm" onclick="jwDownloadSubmittedMaterial('${escJS(t.id)}',${i})">Download</button>` : `<button class="btn btn-outline btn-sm" onclick="notify('⚠️ This file has metadata only. The writer needs to resubmit it through the platform.')">No file data</button>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+};
+
+// Patch downloadSubmittedFile to use the robust file resolver.
+downloadSubmittedFile = async function(taskId, index) {
+  return await jwDownloadSubmittedMaterial(taskId, index);
+};
+
+// Fetch a fresh task row after writer submits, so all accounts see the exact submitted_files/link/text saved in Supabase.
+async function jwFetchFreshTaskRow(taskId) {
+  if (!taskId || typeof _sb === 'undefined') return null;
+  const { data, error } = await _sb
+    .from('jw_tasks')
+    .select('*')
+    .eq('id', taskId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function jwRefreshSubmittedTaskEverywhere(taskId, fallbackUpdates = {}) {
+  try {
+    const fresh = await jwFetchFreshTaskRow(taskId);
+    if (fresh) {
+      if (typeof upsertLocalTask === 'function') upsertLocalTask(fresh);
+      else {
+        const idx = (tasks || []).findIndex(t => String(t.id) === String(taskId));
+        if (idx >= 0) tasks[idx] = { ...tasks[idx], ...fresh };
+        else tasks.unshift(fresh);
+      }
+    } else {
+      const t = typeof getTaskById === 'function' ? getTaskById(taskId) : null;
+      if (t) Object.assign(t, fallbackUpdates);
+    }
+  } catch (err) {
+    console.warn('Could not fetch fresh submitted task row:', err);
+    const t = typeof getTaskById === 'function' ? getTaskById(taskId) : null;
+    if (t) Object.assign(t, fallbackUpdates);
+  }
+
+  try { updateBadges(); } catch {}
+  try {
+    if (document.getElementById('page-task-details')?.classList.contains('active')) {
+      renderTaskDetailsPage();
+    }
+  } catch {}
+  try {
+    if (typeof renderWriterDashboard === 'function' && currentUser?.role === 'writer') renderWriterDashboard();
+    if (typeof renderEmpDashboard === 'function' && currentUser?.role === 'employer') renderEmpDashboard();
+    if (typeof renderStudentDashboard === 'function' && currentUser?.role === 'student') renderStudentDashboard();
+  } catch {}
+}
+
+// Patch writerSubmitWork so after successful submission, local task cache and full details page refresh from Supabase.
+if (typeof writerSubmitWork === 'function' && !writerSubmitWork.__jwSubmittedRefreshPatched) {
+  const __jwOriginalWriterSubmitWork = writerSubmitWork;
+
+  writerSubmitWork = async function() {
+    const selectedId = document.getElementById('writer-submit-select')?.value || '';
+    const before = selectedId ? JSON.stringify(getTaskById(selectedId) || {}) : '';
+
+    const result = await __jwOriginalWriterSubmitWork.apply(this, arguments);
+
+    if (selectedId) {
+      setTimeout(() => jwRefreshSubmittedTaskEverywhere(selectedId), 350);
+      setTimeout(() => jwRefreshSubmittedTaskEverywhere(selectedId), 1500);
+    }
+
+    return result;
+  };
+
+  writerSubmitWork.__jwSubmittedRefreshPatched = true;
+}
+
+// If realtime updates a task, re-render submitted work when the active task is open.
+if (typeof upsertLocalTask === 'function' && !upsertLocalTask.__jwSubmittedRefreshPatched) {
+  const __jwOriginalUpsertLocalTaskForSubmissions = upsertLocalTask;
+  upsertLocalTask = function(row, atStart = true) {
+    const result = __jwOriginalUpsertLocalTaskForSubmissions.apply(this, arguments);
+    try {
+      if (row?.id && String(row.id) === String(typeof _activeTaskDetailId !== 'undefined' ? _activeTaskDetailId : '')) {
+        setTimeout(() => {
+          if (typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+          else jwEnsureSubmittedMaterialsInTaskPage(row.id);
+        }, 80);
+      }
+    } catch {}
+    return result;
+  };
+  upsertLocalTask.__jwSubmittedRefreshPatched = true;
+}
+
+// Safety: every time a task page opens, make sure submissions are mounted.
+if (typeof openTaskDetailsPage === 'function' && !openTaskDetailsPage.__jwSubmittedMaterialsPatched) {
+  const __jwOriginalOpenTaskDetailsPageForSubmissions = openTaskDetailsPage;
+  openTaskDetailsPage = function(taskId, options = {}) {
+    const result = __jwOriginalOpenTaskDetailsPageForSubmissions.apply(this, arguments);
+    setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(taskId), 450);
+    setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(taskId), 1200);
+    return result;
+  };
+  openTaskDetailsPage.__jwSubmittedMaterialsPatched = true;
+}
+
+// Boot safety for an already-open completed task.
+setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 700);
+setInterval(() => {
+  try {
+    if (document.getElementById('page-task-details')?.classList.contains('active')) {
+      jwEnsureSubmittedMaterialsInTaskPage();
+    }
+  } catch {}
+}, 4000);
 
 </script>
 
