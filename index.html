@@ -6946,6 +6946,31 @@ body.dark .jw-submission-text {
   font-weight: 800;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   WRITER DASHBOARD ACTIVE / IN-PROGRESS STAT BOX
+   ══════════════════════════════════════════════════════ */
+.hero-stat.jw-active-task-stat {
+  border-color: rgba(42,157,143,.34);
+  background:
+    radial-gradient(circle at 92% 8%, rgba(82,196,184,.16), transparent 44%),
+    rgba(255,255,255,.10);
+}
+
+.hero-stat.jw-active-task-stat .hero-stat-value {
+  color: var(--teal-light);
+}
+
+.hero-stat.jw-active-task-stat .hero-stat-label {
+  color: rgba(224,245,243,.78);
+}
+
+@media (max-width: 720px) {
+  .hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -8164,6 +8189,7 @@ body.dark .jw-submission-text {
         <p>Browse available orders, submit work, and track your earnings.</p>
       </div>
       <div class="hero-stats">
+        <div class="hero-stat jw-active-task-stat"><div class="hero-stat-value" id="writer-stat-active">0</div><div class="hero-stat-label">Active / In Progress</div></div>
         <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-taken">0</div><div class="hero-stat-label">My Tasks</div></div>
         <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-done">0</div><div class="hero-stat-label">Completed</div></div>
         <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-revision">0</div><div class="hero-stat-label">Revisions</div></div>
@@ -25656,6 +25682,558 @@ setTimeout(() => {
     }
   } catch {}
 }, 1200);
+
+
+
+// ══════════════════════════════════════════════════════
+//  NOTIFICATION READ-STATE SYNC + NEW MESSAGE ALERT FIX
+//  - Read notifications stay read after login.
+//  - Notifications for other users are not shown in the current user's panel.
+//  - New unread messages trigger sound + popup only when unread count increases.
+// ══════════════════════════════════════════════════════
+
+let _jwNotificationsInitialSynced = false;
+let _jwMessageAlertReady = false;
+let _jwLastUnreadMessageCount = null;
+
+function jwNotifReadCacheKey() {
+  return 'jw_notification_read_keys_' + String(currentUser?.email || 'guest').trim().toLowerCase();
+}
+
+function jwNotifReadSet() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(jwNotifReadCacheKey()) || '[]');
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function jwSaveNotifReadSet(set) {
+  try {
+    localStorage.setItem(jwNotifReadCacheKey(), JSON.stringify([...set].slice(-1200)));
+  } catch {}
+}
+
+function jwNotificationKeys(n) {
+  const keys = [];
+  if (!n) return keys;
+  if (n.id) keys.push('id:' + String(n.id));
+  if (n.key) keys.push('key:' + String(n.key));
+  if (n.event_key) keys.push('key:' + String(n.event_key));
+  if (n.taskId && n.type && n.at) keys.push(`soft:${n.type}:${n.taskId}:${n.at}`);
+  if (n.task_id && n.type && n.created_at) keys.push(`soft:${n.type}:${n.task_id}:${n.created_at}`);
+  return keys.filter(Boolean);
+}
+
+function jwIsNotificationKnownRead(n) {
+  const readSet = jwNotifReadSet();
+  return jwNotificationKeys(n).some(k => readSet.has(k));
+}
+
+function jwRememberNotificationRead(n) {
+  if (!n) return;
+  const readSet = jwNotifReadSet();
+  jwNotificationKeys(n).forEach(k => readSet.add(k));
+  jwSaveNotifReadSet(readSet);
+}
+
+function jwRecipientIsCurrentUser(email) {
+  try {
+    if (typeof sameEmail === 'function') return sameEmail(email, currentUser?.email);
+  } catch {}
+  return String(email || '').trim().toLowerCase() === String(currentUser?.email || '').trim().toLowerCase();
+}
+
+function jwSanitizeNotificationForCurrentUser(n) {
+  if (!n) return null;
+  const rowEmail = n.user_email || n.userEmail || '';
+  if (rowEmail && !jwRecipientIsCurrentUser(rowEmail)) return null;
+
+  const out = { ...n };
+
+  // Preserve read status from Supabase and local read cache.
+  if (out.read_at || jwIsNotificationKnownRead(out)) {
+    out.unread = false;
+    jwRememberNotificationRead(out);
+  } else if (typeof out.unread === 'undefined') {
+    out.unread = true;
+  }
+
+  return out;
+}
+
+// Override/strengthen normalization so already-read Supabase rows never become unread again.
+if (typeof jwNormalizeNotificationRow === 'function' && !jwNormalizeNotificationRow.__jwReadStatePatched) {
+  const __jwOriginalNormalizeNotificationRow = jwNormalizeNotificationRow;
+
+  jwNormalizeNotificationRow = function(row) {
+    const n = __jwOriginalNormalizeNotificationRow.apply(this, arguments);
+    return jwSanitizeNotificationForCurrentUser(n);
+  };
+
+  jwNormalizeNotificationRow.__jwReadStatePatched = true;
+}
+
+// Merge notifications with read status winning over unread duplicates.
+jwMergeNotificationRows = function(dbRows = [], localRows = []) {
+  const map = new Map();
+
+  [...dbRows, ...localRows]
+    .map(jwSanitizeNotificationForCurrentUser)
+    .filter(Boolean)
+    .forEach(n => {
+      const key = n.key || n.event_key || n.id;
+      if (!key) return;
+
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, n);
+        return;
+      }
+
+      const chosen = String(n.id || '').startsWith('local-') && !String(existing.id || '').startsWith('local-')
+        ? existing
+        : n;
+
+      // If either copy is read, the merged copy must stay read.
+      chosen.unread = !(existing.unread === false || n.unread === false || existing.read_at || n.read_at || jwIsNotificationKnownRead(existing) || jwIsNotificationKnownRead(n));
+      map.set(key, chosen);
+    });
+
+  const rows = [...map.values()]
+    .sort((a, b) => new Date(b.at || b.created_at || 0) - new Date(a.at || a.created_at || 0))
+    .slice(0, 100);
+
+  rows.filter(n => n.unread === false).forEach(jwRememberNotificationRead);
+  return rows;
+};
+
+// Load from Supabase, then mark initial sync complete. Existing read rows stay read.
+if (typeof jwLoadNotifications === 'function' && !jwLoadNotifications.__jwReadStatePatched) {
+  const __jwOriginalLoadNotifications = jwLoadNotifications;
+
+  jwLoadNotifications = async function() {
+    const rows = await __jwOriginalLoadNotifications.apply(this, arguments);
+    _jwNotificationRows = (rows || []).map(jwSanitizeNotificationForCurrentUser).filter(Boolean);
+    _jwNotificationRows.filter(n => n.unread === false).forEach(jwRememberNotificationRead);
+    jwWriteNotifications?.(_jwNotificationRows);
+    _jwNotificationsInitialSynced = true;
+    return _jwNotificationRows;
+  };
+
+  jwLoadNotifications.__jwReadStatePatched = true;
+}
+
+// Ensure read actions persist to both Supabase and local read cache.
+jwOpenNotification = function(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => String(x.id) === String(id));
+  if (!n) return;
+
+  n.unread = false;
+  jwRememberNotificationRead(n);
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+
+  if (typeof jwMarkNotificationReadInSupabase === 'function') {
+    jwMarkNotificationReadInSupabase(id).catch(() => {});
+  }
+
+  if (n.taskId) openTaskDetailsPage(n.taskId);
+  else if (n.page) navigate(n.page);
+
+  jwToggleNotifications(false);
+};
+
+jwMarkOneNotificationRead = function(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => String(x.id) === String(id));
+  if (n) {
+    n.unread = false;
+    jwRememberNotificationRead(n);
+  }
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+
+  if (typeof jwMarkNotificationReadInSupabase === 'function') {
+    jwMarkNotificationReadInSupabase(id).catch(() => {});
+  }
+};
+
+jwMarkNotificationsRead = function() {
+  const list = jwReadNotifications().map(n => {
+    const read = { ...n, unread: false };
+    jwRememberNotificationRead(read);
+    return read;
+  });
+
+  _jwNotificationRows = list;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+
+  if (typeof jwMarkAllNotificationsReadInSupabase === 'function') {
+    jwMarkAllNotificationsReadInSupabase().catch(() => {});
+  }
+};
+
+// Critical fix: if a notification is meant for another user, create it in Supabase only.
+// Do not add it to this browser's notification panel as unread.
+if (typeof jwAddNotification === 'function' && !jwAddNotification.__jwReadStatePatched) {
+  const __jwOriginalAddNotification = jwAddNotification;
+
+  jwAddNotification = function({ key, type = 'general', title, body, taskId = '', page = '', userEmail = '', sound = true, popup = true, metadata = {} }) {
+    if (!currentUser || !key) return;
+
+    const targetEmail = String(userEmail || currentUser.email || '').trim().toLowerCase();
+    if (!targetEmail) return;
+
+    const localShape = {
+      id: 'preview-' + key,
+      key,
+      type,
+      title: title || 'New notification',
+      body: body || '',
+      taskId,
+      page,
+      user_email: targetEmail,
+      metadata: { ...metadata, page },
+      at: new Date().toISOString()
+    };
+
+    // If this event was already read, never recreate it as unread on login/scan.
+    if (jwIsNotificationKnownRead(localShape)) return;
+
+    // Do not show other people's notifications in the current user's UI.
+    if (!jwRecipientIsCurrentUser(targetEmail)) {
+      if (typeof jwCreateNotificationInSupabase === 'function') {
+        jwCreateNotificationInSupabase({
+          ...localShape,
+          user_email: targetEmail,
+          task_id: taskId,
+          event_key: key
+        }).catch(err => console.warn('Cross-recipient notification creation failed:', err));
+      } else if (typeof _sb !== 'undefined' && _sb?.rpc) {
+        _sb.rpc('jw_create_notification', {
+          p_user_email: targetEmail,
+          p_type: type,
+          p_title: title || 'New notification',
+          p_body: body || '',
+          p_task_id: taskId || null,
+          p_event_key: key,
+          p_metadata: metadata || {}
+        }).catch(err => console.warn('Cross-recipient notification RPC failed:', err));
+      }
+      return;
+    }
+
+    // During the first login scan, avoid locally creating "old" events as new unread.
+    // After Supabase notification load completes, realtime/new events can be shown normally.
+    if (!_jwNotificationsInitialSynced) {
+      if (typeof jwCreateNotificationInSupabase === 'function') {
+        jwCreateNotificationInSupabase({
+          ...localShape,
+          user_email: targetEmail,
+          task_id: taskId,
+          event_key: key
+        }).then(() => jwLoadNotifications?.().then(() => jwRenderNotifications?.())).catch(() => {});
+      }
+      return;
+    }
+
+    return __jwOriginalAddNotification.call(this, {
+      key,
+      type,
+      title,
+      body,
+      taskId,
+      page,
+      userEmail: targetEmail,
+      sound,
+      popup,
+      metadata
+    });
+  };
+
+  jwAddNotification.__jwReadStatePatched = true;
+}
+
+// Realtime table insert: only alert if it belongs to current user and is not already read.
+if (typeof jwStartNotificationsTableRealtime === 'function' && !jwStartNotificationsTableRealtime.__jwReadStatePatched) {
+  const __jwOriginalStartNotificationsTableRealtime = jwStartNotificationsTableRealtime;
+
+  jwStartNotificationsTableRealtime = function() {
+    __jwOriginalStartNotificationsTableRealtime.apply(this, arguments);
+    // The original subscription remains. This patch makes row normalization/read cache protect alerts.
+    _jwNotificationsInitialSynced = true;
+  };
+
+  jwStartNotificationsTableRealtime.__jwReadStatePatched = true;
+}
+
+// Message sound + popup alert when unread message count increases.
+// This avoids replaying old messages on login by arming only after the workspace has loaded.
+function jwCurrentUnreadMessagesCountSafe() {
+  try {
+    const c = typeof currentBadgeCounts === 'function' ? currentBadgeCounts() : null;
+    return Number(c?.unread || 0);
+  } catch {
+    const badge = document.getElementById('msg-unread-badge') || document.getElementById('topbar-msg-unread-badge');
+    return Number(badge?.textContent || 0) || 0;
+  }
+}
+
+function jwArmMessageAlerts() {
+  setTimeout(() => {
+    _jwLastUnreadMessageCount = jwCurrentUnreadMessagesCountSafe();
+    _jwMessageAlertReady = true;
+  }, 2200);
+}
+
+function jwShowNewMessageAlert(delta = 1) {
+  try {
+    if (typeof playSound === 'function') playSound('message');
+    else if (typeof jwPlayNotificationSound === 'function') jwPlayNotificationSound('message');
+  } catch {}
+
+  try { notify(delta > 1 ? `💬 ${delta} new messages` : '💬 New message'); } catch {}
+
+  try {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        const n = new Notification('New message', {
+          body: delta > 1 ? `You have ${delta} new messages on Janelle Writes.` : 'You have a new message on Janelle Writes.',
+          icon: '/favicon.ico',
+          tag: 'jw-new-message'
+        });
+        n.onclick = () => {
+          window.focus();
+          try { openMessagesInbox(); } catch { navigate('messages'); }
+        };
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+  } catch {}
+}
+
+function jwCheckForNewMessageAlert() {
+  if (!currentUser || !_jwMessageAlertReady) return;
+
+  const count = jwCurrentUnreadMessagesCountSafe();
+  if (_jwLastUnreadMessageCount === null) {
+    _jwLastUnreadMessageCount = count;
+    return;
+  }
+
+  if (count > _jwLastUnreadMessageCount) {
+    jwShowNewMessageAlert(count - _jwLastUnreadMessageCount);
+  }
+
+  _jwLastUnreadMessageCount = count;
+}
+
+if (typeof updateBadges === 'function' && !updateBadges.__jwMessageAlertPatched) {
+  const __jwOriginalUpdateBadgesForMessageAlert = updateBadges;
+
+  updateBadges = function() {
+    const result = __jwOriginalUpdateBadgesForMessageAlert.apply(this, arguments);
+    setTimeout(jwCheckForNewMessageAlert, 80);
+    return result;
+  };
+
+  updateBadges.__jwMessageAlertPatched = true;
+}
+
+if (typeof launchApp === 'function' && !launchApp.__jwMessageAlertPatched) {
+  const __jwOriginalLaunchAppForMessageAlert = launchApp;
+
+  launchApp = function() {
+    const result = __jwOriginalLaunchAppForMessageAlert.apply(this, arguments);
+    _jwMessageAlertReady = false;
+    _jwLastUnreadMessageCount = null;
+    _jwNotificationsInitialSynced = false;
+
+    setTimeout(() => {
+      jwLoadNotifications?.()
+        .then(() => {
+          _jwNotificationsInitialSynced = true;
+          jwRenderNotifications?.();
+        })
+        .catch(() => { _jwNotificationsInitialSynced = true; });
+      jwArmMessageAlerts();
+    }, 900);
+
+    return result;
+  };
+
+  launchApp.__jwMessageAlertPatched = true;
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwMessageAlertPatched) {
+  const __jwOriginalDoLogoutForMessageAlert = doLogout;
+
+  doLogout = async function() {
+    _jwMessageAlertReady = false;
+    _jwLastUnreadMessageCount = null;
+    _jwNotificationsInitialSynced = false;
+    return await __jwOriginalDoLogoutForMessageAlert.apply(this, arguments);
+  };
+
+  doLogout.__jwMessageAlertPatched = true;
+}
+
+// Poll fallback in case realtime is delayed.
+setInterval(() => {
+  try {
+    if (currentUser) jwCheckForNewMessageAlert();
+  } catch {}
+}, 3500);
+
+// Boot safety.
+setTimeout(() => {
+  try {
+    if (currentUser) {
+      jwLoadNotifications?.()
+        .then(() => {
+          _jwNotificationsInitialSynced = true;
+          jwRenderNotifications?.();
+        })
+        .catch(() => { _jwNotificationsInitialSynced = true; });
+      jwArmMessageAlerts();
+    }
+  } catch {}
+}, 1500);
+
+
+
+// ══════════════════════════════════════════════════════
+//  WRITER DASHBOARD ACTIVE / IN-PROGRESS BOX
+//  Adds a live Active/In Progress stat before My Tasks in all writer accounts.
+// ══════════════════════════════════════════════════════
+
+function jwWriterDashboardTasksForCurrentUser() {
+  if (!currentUser || currentUser.role !== 'writer') return [];
+
+  try {
+    if (typeof jwWriterAssignedTasks === 'function') return jwWriterAssignedTasks();
+  } catch {}
+
+  return (Array.isArray(tasks) ? tasks : []).filter(t => {
+    try {
+      if (typeof taskForWriter === 'function' && taskForWriter(t, currentUser.email)) return true;
+    } catch {}
+    try {
+      if (typeof sameEmail === 'function') return sameEmail(t.taken_by, currentUser.email);
+    } catch {}
+    return String(t.taken_by || '').trim().toLowerCase() === String(currentUser.email || '').trim().toLowerCase();
+  });
+}
+
+function jwIsWriterActiveTask(t) {
+  if (!t) return false;
+
+  const status = String(t.status || '').toLowerCase();
+  if (['completed', 'cancelled', 'disputed'].includes(status)) return false;
+
+  try {
+    if (typeof jwTaskWasSubmittedWorkflow === 'function' && jwTaskWasSubmittedWorkflow(t)) return false;
+  } catch {}
+
+  if (status === 'revision') return false;
+
+  return !!t.taken_by;
+}
+
+function jwEnsureWriterActiveStatBox() {
+  if (!currentUser || currentUser.role !== 'writer') return;
+
+  const heroStats = document.querySelector('#page-writer-dashboard .hero-stats');
+  if (!heroStats) return;
+
+  let active = document.getElementById('writer-stat-active');
+  const myTasks = document.getElementById('writer-stat-taken')?.closest('.hero-stat');
+
+  if (!active) {
+    const box = document.createElement('div');
+    box.className = 'hero-stat jw-active-task-stat';
+    box.innerHTML = `<div class="hero-stat-value" id="writer-stat-active">0</div><div class="hero-stat-label">Active / In Progress</div>`;
+    if (myTasks) heroStats.insertBefore(box, myTasks);
+    else heroStats.insertBefore(box, heroStats.firstChild);
+    active = document.getElementById('writer-stat-active');
+  } else {
+    const box = active.closest('.hero-stat');
+    if (box && myTasks && box.nextElementSibling !== myTasks) {
+      heroStats.insertBefore(box, myTasks);
+    }
+  }
+}
+
+function jwUpdateWriterActiveStatBox() {
+  if (!currentUser || currentUser.role !== 'writer') return;
+
+  jwEnsureWriterActiveStatBox();
+
+  const assigned = jwWriterDashboardTasksForCurrentUser();
+  const activeCount = assigned.filter(jwIsWriterActiveTask).length;
+
+  const activeEl = document.getElementById('writer-stat-active');
+  if (activeEl) activeEl.textContent = activeCount;
+
+  // Keep the existing My Tasks number as all assigned tasks.
+  const takenEl = document.getElementById('writer-stat-taken');
+  if (takenEl) takenEl.textContent = assigned.length;
+}
+
+// Patch writer dashboard renderer so the new box updates with live task data.
+if (typeof renderWriterDashboard === 'function' && !renderWriterDashboard.__jwActiveStatPatched) {
+  const __jwOriginalRenderWriterDashboardActiveStat = renderWriterDashboard;
+
+  renderWriterDashboard = function() {
+    const result = __jwOriginalRenderWriterDashboardActiveStat.apply(this, arguments);
+    jwUpdateWriterActiveStatBox();
+    setTimeout(jwUpdateWriterActiveStatBox, 250);
+    return result;
+  };
+
+  renderWriterDashboard.__jwActiveStatPatched = true;
+}
+
+// Also refresh the active/in-progress count whenever badges/task data update.
+if (typeof updateBadges === 'function' && !updateBadges.__jwActiveStatPatched) {
+  const __jwOriginalUpdateBadgesActiveStat = updateBadges;
+
+  updateBadges = function() {
+    const result = __jwOriginalUpdateBadgesActiveStat.apply(this, arguments);
+    setTimeout(jwUpdateWriterActiveStatBox, 80);
+    return result;
+  };
+
+  updateBadges.__jwActiveStatPatched = true;
+}
+
+if (typeof upsertLocalTask === 'function' && !upsertLocalTask.__jwActiveStatPatched) {
+  const __jwOriginalUpsertLocalTaskActiveStat = upsertLocalTask;
+
+  upsertLocalTask = function() {
+    const result = __jwOriginalUpsertLocalTaskActiveStat.apply(this, arguments);
+    setTimeout(jwUpdateWriterActiveStatBox, 80);
+    return result;
+  };
+
+  upsertLocalTask.__jwActiveStatPatched = true;
+}
+
+setTimeout(jwUpdateWriterActiveStatBox, 800);
+setInterval(() => {
+  try {
+    if (currentUser?.role === 'writer' && document.getElementById('page-writer-dashboard')?.classList.contains('active')) {
+      jwUpdateWriterActiveStatBox();
+    }
+  } catch {}
+}, 5000);
 
 </script>
 
