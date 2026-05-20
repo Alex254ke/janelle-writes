@@ -6426,6 +6426,291 @@ body.dark .task-submission-text {
   color: #edf8f7;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   FIX: PREVENT ACCIDENTAL FULL-DASHBOARD TEXT HIGHLIGHT
+   ══════════════════════════════════════════════════════ */
+
+/* Prevent accidental browser text selection on app chrome/cards after login. */
+#app-shell,
+.sidebar,
+.topbar,
+.nav-item,
+.stat-card,
+.action-card,
+.card,
+.dashboard-card,
+.hero-card,
+.landing-header,
+.floating-support-widget,
+.btn,
+.badge,
+.pill,
+.table-wrap,
+.order-link,
+.message-conversation-card,
+.bid-task-card {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Keep real content/editing areas selectable. */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.task-detail-text,
+.task-submission-text,
+.submission-file-name,
+.submission-file-meta,
+.instruction-file-card,
+.submission-file-card,
+.message-body,
+.message-text,
+.form-input,
+.form-textarea,
+pre,
+code {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* If selection still happens briefly, make it less visually aggressive. */
+#app-shell ::selection {
+  background: rgba(42,157,143,.18);
+  color: inherit;
+}
+#app-shell ::-moz-selection {
+  background: rgba(42,157,143,.18);
+  color: inherit;
+}
+
+
+/* ══════════════════════════════════════════════════════
+   LIVE NOTIFICATIONS + WRITER REVISION TAB POSITION
+   ══════════════════════════════════════════════════════ */
+
+.jw-notify-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.jw-notify-btn {
+  position: relative;
+  min-height: 38px;
+  gap: 8px;
+}
+
+.jw-notify-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.jw-notify-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e76f51, #ff8a65);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(231,111,81,.38);
+  border: 2px solid var(--white);
+}
+
+.jw-notify-count.show {
+  display: inline-flex;
+}
+
+.jw-notification-panel {
+  position: fixed;
+  top: 72px;
+  right: 22px;
+  width: min(390px, calc(100vw - 28px));
+  max-height: min(620px, calc(100vh - 95px));
+  z-index: 1200;
+  display: none;
+  overflow: hidden;
+  border: 1px solid rgba(42,157,143,.22);
+  border-radius: 20px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 28px 72px rgba(15,25,35,.20);
+  backdrop-filter: blur(14px);
+}
+
+.jw-notification-panel.open {
+  display: block;
+  animation: jwNotifyPanelIn .18s ease both;
+}
+
+@keyframes jwNotifyPanelIn {
+  from { opacity: 0; transform: translateY(-8px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.jw-notification-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(205,224,221,.8);
+}
+
+.jw-notification-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.jw-notification-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.jw-notification-list {
+  max-height: 470px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.jw-notification-item {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.jw-notification-item:hover {
+  background: rgba(224,245,243,.55);
+  border-color: rgba(42,157,143,.16);
+}
+
+.jw-notification-item.unread {
+  background: linear-gradient(135deg, rgba(224,245,243,.86), rgba(255,255,255,.96));
+  border-color: rgba(42,157,143,.22);
+}
+
+.jw-notification-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10202b;
+  color: #f4d58d;
+  font-size: 16px;
+  box-shadow: inset 0 0 0 1px rgba(244,213,141,.25);
+}
+
+.jw-notification-item.unread .jw-notification-dot {
+  background: linear-gradient(135deg, #0f766e, #2a9d8f);
+  color: #fff;
+}
+
+.jw-notification-body {
+  min-width: 0;
+}
+
+.jw-notification-item-title {
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.jw-notification-item-text {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.jw-notification-time {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.jw-notification-empty {
+  padding: 34px 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.nav-item[data-page="writer-revisions"] {
+  border-color: rgba(156,78,194,.20);
+}
+
+.nav-item[data-page="writer-revisions"] .nav-badge-revision,
+.nav-item[data-page="writer-revisions"] .nav-badge {
+  background: linear-gradient(135deg, #9c4ec2, #b967d5);
+  color: #fff;
+}
+
+@media (max-width: 720px) {
+  .jw-notification-panel {
+    top: 66px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  .jw-notify-btn .jw-notify-label {
+    display: none;
+  }
+
+  .jw-notify-btn {
+    min-width: 42px;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+body.dark-mode .jw-notification-panel,
+body.dark .jw-notification-panel {
+  background: rgba(20,32,43,.98);
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .jw-notification-head,
+body.dark .jw-notification-head {
+  border-bottom-color: rgba(142,228,214,.14);
+}
+
+body.dark-mode .jw-notification-title,
+body.dark .jw-notification-title,
+body.dark-mode .jw-notification-item-title,
+body.dark .jw-notification-item-title {
+  color: #f4fbfa;
+}
+
+body.dark-mode .jw-notification-item.unread,
+body.dark .jw-notification-item.unread {
+  background: linear-gradient(135deg, rgba(42,157,143,.16), rgba(255,255,255,.04));
+  border-color: rgba(142,228,214,.18);
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -22946,6 +23231,661 @@ setTimeout(() => {
     }
   } catch {}
 }, 500);
+
+
+
+// ══════════════════════════════════════════════════════
+//  FIX: CLEAR ACCIDENTAL TEXT SELECTION AFTER LOGIN / NAVIGATION / RENDER
+// ══════════════════════════════════════════════════════
+
+function jwClearAccidentalSelection() {
+  try {
+    const active = document.activeElement;
+    const editable = active && (
+      active.matches?.('input, textarea, select, [contenteditable="true"]') ||
+      active.closest?.('input, textarea, select, [contenteditable="true"]')
+    );
+
+    if (editable) return;
+
+    const sel = window.getSelection && window.getSelection();
+    if (sel && sel.rangeCount) sel.removeAllRanges();
+
+    if (document.selection && document.selection.empty) document.selection.empty();
+  } catch {}
+}
+
+function jwClearSelectionSoon() {
+  jwClearAccidentalSelection();
+  setTimeout(jwClearAccidentalSelection, 50);
+  setTimeout(jwClearAccidentalSelection, 180);
+  setTimeout(jwClearAccidentalSelection, 450);
+}
+
+/* Clear selection whenever the app finishes loading or changes page. */
+if (typeof navigate === 'function' && !navigate.__jwClearSelectionPatched) {
+  const __jwOriginalNavigateForSelection = navigate;
+  navigate = function() {
+    const result = __jwOriginalNavigateForSelection.apply(this, arguments);
+    jwClearSelectionSoon();
+    return result;
+  };
+  navigate.__jwClearSelectionPatched = true;
+}
+
+if (typeof launchApp === 'function' && !launchApp.__jwClearSelectionPatched) {
+  const __jwOriginalLaunchAppForSelection = launchApp;
+  launchApp = function() {
+    const result = __jwOriginalLaunchAppForSelection.apply(this, arguments);
+    jwClearSelectionSoon();
+    setTimeout(jwClearSelectionSoon, 900);
+    return result;
+  };
+  launchApp.__jwClearSelectionPatched = true;
+}
+
+if (typeof jwStrictHideWorkspaceLoader === 'function' && !jwStrictHideWorkspaceLoader.__jwClearSelectionPatched) {
+  const __jwOriginalStrictHideLoaderForSelection = jwStrictHideWorkspaceLoader;
+  jwStrictHideWorkspaceLoader = function() {
+    const result = __jwOriginalStrictHideLoaderForSelection.apply(this, arguments);
+    jwClearSelectionSoon();
+    return result;
+  };
+  jwStrictHideWorkspaceLoader.__jwClearSelectionPatched = true;
+}
+
+/* Clear selection after common dashboard renderers run. */
+[
+  'renderEmpDashboard',
+  'renderWriterDashboard',
+  'renderStudentDashboard',
+  'renderAdminControl',
+  'renderTasks',
+  'renderMyOrders',
+  'renderAvailableOrders',
+  'renderWriterTasks',
+  'renderBidRequestsPage'
+].forEach(fnName => {
+  try {
+    if (typeof window[fnName] === 'function' && !window[fnName].__jwClearSelectionPatched) {
+      const original = window[fnName];
+      window[fnName] = function() {
+        const result = original.apply(this, arguments);
+        jwClearSelectionSoon();
+        return result;
+      };
+      window[fnName].__jwClearSelectionPatched = true;
+    }
+  } catch {}
+});
+
+/* If user taps/drags on non-editable dashboard text, do not leave the whole dashboard selected. */
+document.addEventListener('mouseup', function(e) {
+  if (e.target.closest?.('input, textarea, select, [contenteditable="true"], .task-detail-text, .task-submission-text, .message-body, .message-text')) return;
+  setTimeout(jwClearAccidentalSelection, 20);
+}, true);
+
+document.addEventListener('touchend', function(e) {
+  if (e.target.closest?.('input, textarea, select, [contenteditable="true"], .task-detail-text, .task-submission-text, .message-body, .message-text')) return;
+  setTimeout(jwClearAccidentalSelection, 20);
+}, true);
+
+/* Safety: after login refresh/data updates, clear any browser selection left behind. */
+setInterval(() => {
+  try {
+    if (currentUser && document.getElementById('app-shell') && getComputedStyle(document.getElementById('app-shell')).display !== 'none') {
+      const sel = window.getSelection && window.getSelection();
+      if (sel && String(sel.toString() || '').length > 20) {
+        jwClearAccidentalSelection();
+      }
+    }
+  } catch {}
+}, 1500);
+
+
+
+// ══════════════════════════════════════════════════════
+//  LIVE NOTIFICATIONS + WRITER REVISION TAB POSITION
+// ══════════════════════════════════════════════════════
+
+let _jwNotificationRealtimeSub = null;
+let _jwNotificationSoundReady = false;
+
+function jwUserKey() {
+  return String(currentUser?.email || 'guest').trim().toLowerCase();
+}
+
+function jwNotificationsKey() {
+  return 'jw_live_notifications_' + jwUserKey();
+}
+
+function jwNotificationSeenKey() {
+  return 'jw_live_notification_seen_' + jwUserKey();
+}
+
+function jwReadNotifications() {
+  try {
+    const list = JSON.parse(localStorage.getItem(jwNotificationsKey()) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+function jwWriteNotifications(list) {
+  try {
+    localStorage.setItem(jwNotificationsKey(), JSON.stringify((list || []).slice(0, 80)));
+  } catch {}
+}
+
+function jwReadSeenKeys() {
+  try {
+    const list = JSON.parse(localStorage.getItem(jwNotificationSeenKey()) || '[]');
+    return new Set(Array.isArray(list) ? list : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function jwWriteSeenKeys(set) {
+  try {
+    localStorage.setItem(jwNotificationSeenKey(), JSON.stringify([...set].slice(-500)));
+  } catch {}
+}
+
+function jwNotificationIcon(type) {
+  const map = {
+    revision: '↻',
+    bid: '✎',
+    assigned: '✓',
+    paid: '₵',
+    submitted: '↑',
+    message: '✉',
+    wallet: '₵',
+    dispute: '⚖'
+  };
+  return map[type] || '•';
+}
+
+function jwTimeAgo(iso) {
+  const ms = Date.now() - new Date(iso || Date.now()).getTime();
+  if (ms < 60000) return 'just now';
+  const min = Math.floor(ms / 60000);
+  if (min < 60) return min + ' min ago';
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return hr + ' hr ago';
+  const day = Math.floor(hr / 24);
+  return day + ' day' + (day === 1 ? '' : 's') + ' ago';
+}
+
+function jwPlayNotificationSound(type = 'default') {
+  try {
+    if (typeof playSound === 'function') {
+      if (type === 'bid') playSound('message');
+      else if (type === 'submitted') playSound('submission');
+      else if (type === 'assigned' || type === 'revision') playSound('order');
+      else playSound('message');
+      return;
+    }
+  } catch {}
+
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+    gain.connect(ctx.destination);
+
+    [660, 880, 740].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.10);
+      osc.connect(gain);
+      osc.start(now + i * 0.10);
+      osc.stop(now + i * 0.10 + 0.15);
+    });
+
+    setTimeout(() => ctx.close?.(), 800);
+  } catch {}
+}
+
+function jwMaybeAskNotificationPermission() {
+  try {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+  } catch {}
+}
+
+function jwBrowserNotify(n) {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const note = new Notification(n.title || 'Janelle Writes', {
+      body: n.body || '',
+      icon: '/favicon.ico',
+      tag: n.key || n.id || undefined
+    });
+    note.onclick = () => {
+      window.focus();
+      if (n.taskId) openTaskDetailsPage(n.taskId);
+    };
+  } catch {}
+}
+
+function jwAddNotification({ key, type = 'default', title, body, taskId = '', page = '', sound = true, popup = true }) {
+  if (!currentUser || !key) return;
+
+  const seen = jwReadSeenKeys();
+  if (seen.has(key)) return;
+
+  const list = jwReadNotifications();
+  const exists = list.some(n => n.key === key);
+  if (exists) {
+    seen.add(key);
+    jwWriteSeenKeys(seen);
+    return;
+  }
+
+  const n = {
+    id: 'N-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    key,
+    type,
+    title: title || 'New notification',
+    body: body || '',
+    taskId,
+    page,
+    unread: true,
+    at: new Date().toISOString()
+  };
+
+  list.unshift(n);
+  jwWriteNotifications(list);
+  seen.add(key);
+  jwWriteSeenKeys(seen);
+
+  jwRenderNotifications();
+
+  if (sound) jwPlayNotificationSound(type);
+  if (popup) {
+    try { notify('🔔 ' + n.title); } catch {}
+    jwBrowserNotify(n);
+  }
+}
+
+function jwUnreadNotificationCount() {
+  return jwReadNotifications().filter(n => n.unread).length;
+}
+
+function jwEnsureNotificationPanel() {
+  let panel = document.getElementById('jw-notification-panel');
+  if (panel) return panel;
+
+  panel = document.createElement('div');
+  panel.id = 'jw-notification-panel';
+  panel.className = 'jw-notification-panel';
+  panel.innerHTML = `
+    <div class="jw-notification-head">
+      <div>
+        <div class="jw-notification-title">Notifications</div>
+        <div class="text-muted" style="font-size:11px;">Live updates from your workspace</div>
+      </div>
+      <div class="jw-notification-actions">
+        <button class="btn btn-outline btn-sm" onclick="jwMarkNotificationsRead()">Mark read</button>
+        <button class="btn btn-outline btn-sm" onclick="jwToggleNotifications(false)">✕</button>
+      </div>
+    </div>
+    <div class="jw-notification-list" id="jw-notification-list"></div>
+  `;
+  document.body.appendChild(panel);
+  return panel;
+}
+
+function jwNotificationTarget(n) {
+  if (n.taskId) return `openTaskDetailsPage('${escJS(n.taskId)}')`;
+  if (n.page) return `navigate('${escJS(n.page)}')`;
+  return '';
+}
+
+function jwRenderNotifications() {
+  const panel = jwEnsureNotificationPanel();
+  const listEl = document.getElementById('jw-notification-list');
+  const list = jwReadNotifications();
+
+  if (listEl) {
+    if (!list.length) {
+      listEl.innerHTML = `<div class="jw-notification-empty">No notifications yet. You will see task revisions, bids, assignments, submissions, payments, and important updates here.</div>`;
+    } else {
+      listEl.innerHTML = list.map(n => {
+        const target = jwNotificationTarget(n);
+        return `<div class="jw-notification-item ${n.unread ? 'unread' : ''}" ${target ? `onclick="jwOpenNotification('${escJS(n.id)}')"` : `onclick="jwMarkOneNotificationRead('${escJS(n.id)}')"`}>
+          <div class="jw-notification-dot">${esc(jwNotificationIcon(n.type))}</div>
+          <div class="jw-notification-body">
+            <div class="jw-notification-item-title">${esc(n.title)}</div>
+            <div class="jw-notification-item-text">${esc(n.body || '')}</div>
+            <div class="jw-notification-time">${esc(jwTimeAgo(n.at))}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  const count = jwUnreadNotificationCount();
+  document.querySelectorAll('#jw-notification-count, #jw-notification-count-mobile').forEach(el => {
+    el.textContent = count > 99 ? '99+' : String(count);
+    el.classList.toggle('show', count > 0);
+  });
+}
+
+function jwOpenNotification(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => x.id === id);
+  if (!n) return;
+  n.unread = false;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+
+  if (n.taskId) openTaskDetailsPage(n.taskId);
+  else if (n.page) navigate(n.page);
+
+  jwToggleNotifications(false);
+}
+
+function jwMarkOneNotificationRead(id) {
+  const list = jwReadNotifications();
+  const n = list.find(x => x.id === id);
+  if (n) n.unread = false;
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+}
+
+function jwMarkNotificationsRead() {
+  const list = jwReadNotifications().map(n => ({ ...n, unread: false }));
+  jwWriteNotifications(list);
+  jwRenderNotifications();
+}
+
+function jwToggleNotifications(force) {
+  const panel = jwEnsureNotificationPanel();
+  const open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+  panel.classList.toggle('open', open);
+  if (open) {
+    jwRenderNotifications();
+    jwMaybeAskNotificationPermission();
+  }
+}
+
+function jwEnsureNotificationButton() {
+  if (!currentUser) return;
+  const actions = document.getElementById('topbar-actions');
+  if (!actions) return;
+
+  let btn = document.getElementById('jw-notification-button');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'jw-notification-button';
+    btn.type = 'button';
+    btn.className = 'btn btn-outline btn-sm jw-notify-btn';
+    btn.onclick = () => jwToggleNotifications();
+    btn.innerHTML = `<span class="jw-notify-icon">🔔</span><span class="jw-notify-label">Notifications</span><span class="jw-notify-count" id="jw-notification-count">0</span>`;
+  }
+
+  const dark = document.getElementById('dark-mode-toggle');
+  if (dark && dark.parentNode === actions) {
+    if (dark.nextSibling !== btn) actions.insertBefore(btn, dark.nextSibling);
+  } else if (!actions.contains(btn)) {
+    actions.insertBefore(btn, actions.firstChild);
+  }
+
+  jwRenderNotifications();
+}
+
+function jwMoveWriterRevisionsTab() {
+  if (!currentUser || currentUser.role !== 'writer') return;
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav) return;
+
+  const myTasks = nav.querySelector('[data-page="writer-tasks"]');
+  const revisions = nav.querySelector('[data-page="writer-revisions"]');
+  if (myTasks && revisions && revisions.previousElementSibling !== myTasks) {
+    myTasks.insertAdjacentElement('afterend', revisions);
+  }
+}
+
+function jwTaskNotificationStamp(t) {
+  try {
+    const timing = typeof taskTiming === 'function' ? taskTiming(t) : {};
+    return timing.submitted_at || t.revision_at || t.paid_at || t.admin_override_at || t.updated_at || t.created_at || '';
+  } catch {
+    return t?.updated_at || t?.created_at || '';
+  }
+}
+
+function jwScanTaskNotifications({ sound = false, onlyTask = null } = {}) {
+  if (!currentUser) return;
+
+  const me = currentUser.email;
+  const list = onlyTask ? [onlyTask] : (Array.isArray(tasks) ? tasks : []);
+  const role = currentUser.role;
+  const admin = typeof isJwAdmin === 'function' && isJwAdmin();
+
+  list.forEach(t => {
+    if (!t || !t.id) return;
+
+    const subject = t.subject || 'Task';
+    const stamp = jwTaskNotificationStamp(t);
+
+    // Writer: revision tasks.
+    if (role === 'writer' && typeof taskForWriter === 'function' && taskForWriter(t, me)) {
+      if (String(t.status || '').toLowerCase() === 'revision' || t.revision_notes) {
+        jwAddNotification({
+          key: `revision:${t.id}:${t.revision_at || t.revision_notes || t.status}`,
+          type: 'revision',
+          title: 'Task sent for revision',
+          body: `${t.id} — ${subject} needs your attention.`,
+          taskId: t.id,
+          sound,
+          popup: sound
+        });
+      }
+
+      if (String(t.payment || '').toLowerCase() === 'paid') {
+        jwAddNotification({
+          key: `paid:${t.id}:${t.paid_at || t.payment || stamp}`,
+          type: 'paid',
+          title: 'Order payment confirmed',
+          body: `${t.id} — ${subject} has been marked paid.`,
+          taskId: t.id,
+          sound,
+          popup: sound
+        });
+      }
+
+      if (t.taken_by && typeof sameEmail === 'function' && sameEmail(t.taken_by, me)) {
+        jwAddNotification({
+          key: `assigned:${t.id}:${t.taken_by}:${t.taken_by_name || ''}`,
+          type: 'assigned',
+          title: 'Task assigned to you',
+          body: `${t.id} — ${subject} is now assigned to your account.`,
+          taskId: t.id,
+          sound,
+          popup: sound
+        });
+      }
+    }
+
+    // Employer/student: writer bids and submissions.
+    const owner = (role === 'employer' || role === 'student') && typeof taskForEmployer === 'function' && taskForEmployer(t, me);
+    if (owner || admin) {
+      try {
+        const bids = typeof getTaskBids === 'function' ? getTaskBids(t) : [];
+        bids.forEach(b => {
+          if (!b || String(b.status || 'pending').toLowerCase() === 'withdrawn') return;
+          jwAddNotification({
+            key: `bid:${t.id}:${b.writer_email || b.writer_name || 'writer'}:${b.at || b.created_at || b.message || ''}`,
+            type: 'bid',
+            title: 'New writer bid received',
+            body: `${b.writer_name || b.writer_email || 'A writer'} requested ${t.id} — ${subject}.`,
+            taskId: t.id,
+            sound,
+            popup: sound
+          });
+        });
+      } catch {}
+
+      try {
+        const hasWork = typeof hasSubmittedWork === 'function'
+          ? hasSubmittedWork(t)
+          : !!(t.submitted_link || t.submitted_text || (Array.isArray(t.submitted_files) && t.submitted_files.length));
+        if (hasWork) {
+          jwAddNotification({
+            key: `submitted:${t.id}:${stamp || t.submitted_link || t.submitted_text || 'submitted'}`,
+            type: 'submitted',
+            title: 'Task submitted',
+            body: `${t.id} — ${subject} has submitted work/materials for review.`,
+            taskId: t.id,
+            sound,
+            popup: sound
+          });
+        }
+      } catch {}
+    }
+  });
+
+  jwRenderNotifications();
+}
+
+function jwStartNotificationRealtime() {
+  if (!currentUser || typeof _sb === 'undefined' || !_sb?.channel) return;
+  try {
+    if (_jwNotificationRealtimeSub) {
+      _sb.removeChannel?.(_jwNotificationRealtimeSub);
+      _jwNotificationRealtimeSub = null;
+    }
+
+    _jwNotificationRealtimeSub = _sb.channel('jw-live-notifications-' + jwUserKey())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_tasks' }, payload => {
+        const row = payload.new || payload.old;
+        if (!row || !row.id) return;
+
+        try {
+          if (typeof upsertLocalTask === 'function' && payload.new) upsertLocalTask(payload.new);
+          else if (payload.new) {
+            const idx = (tasks || []).findIndex(t => t.id === payload.new.id);
+            if (idx >= 0) tasks[idx] = { ...tasks[idx], ...payload.new };
+            else tasks.unshift(payload.new);
+          }
+          if (typeof updateBadges === 'function') updateBadges();
+          jwScanTaskNotifications({ sound: true, onlyTask: payload.new || row });
+        } catch (err) {
+          console.warn('Live notification processing failed:', err);
+        }
+      })
+      .subscribe();
+  } catch (err) {
+    console.warn('Could not start live notification subscription:', err);
+  }
+}
+
+function jwStopNotificationRealtime() {
+  try {
+    if (_jwNotificationRealtimeSub && typeof _sb !== 'undefined') {
+      _sb.removeChannel?.(_jwNotificationRealtimeSub);
+      _jwNotificationRealtimeSub = null;
+    }
+  } catch {}
+}
+
+// Patch buildSidebar/buildTopbar/updateBadges/launchApp so notification UI stays active.
+if (typeof buildSidebar === 'function' && !buildSidebar.__jwNotifyPatched) {
+  const __jwOriginalBuildSidebarForNotify = buildSidebar;
+  buildSidebar = function() {
+    const result = __jwOriginalBuildSidebarForNotify.apply(this, arguments);
+    setTimeout(jwMoveWriterRevisionsTab, 30);
+    return result;
+  };
+  buildSidebar.__jwNotifyPatched = true;
+}
+
+if (typeof buildTopbar === 'function' && !buildTopbar.__jwNotifyPatched) {
+  const __jwOriginalBuildTopbarForNotify = buildTopbar;
+  buildTopbar = function() {
+    const result = __jwOriginalBuildTopbarForNotify.apply(this, arguments);
+    setTimeout(jwEnsureNotificationButton, 30);
+    return result;
+  };
+  buildTopbar.__jwNotifyPatched = true;
+}
+
+if (typeof updateBadges === 'function' && !updateBadges.__jwNotifyPatched) {
+  const __jwOriginalUpdateBadgesForNotify = updateBadges;
+  updateBadges = function() {
+    const result = __jwOriginalUpdateBadgesForNotify.apply(this, arguments);
+    jwMoveWriterRevisionsTab();
+    jwEnsureNotificationButton();
+    jwScanTaskNotifications({ sound: false });
+    jwRenderNotifications();
+    return result;
+  };
+  updateBadges.__jwNotifyPatched = true;
+}
+
+if (typeof launchApp === 'function' && !launchApp.__jwNotifyPatched) {
+  const __jwOriginalLaunchAppForNotify = launchApp;
+  launchApp = function() {
+    const result = __jwOriginalLaunchAppForNotify.apply(this, arguments);
+    setTimeout(() => {
+      jwMoveWriterRevisionsTab();
+      jwEnsureNotificationButton();
+      jwMaybeAskNotificationPermission();
+      jwScanTaskNotifications({ sound: false });
+      jwStartNotificationRealtime();
+    }, 850);
+    return result;
+  };
+  launchApp.__jwNotifyPatched = true;
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwNotifyPatched) {
+  const __jwOriginalDoLogoutForNotify = doLogout;
+  doLogout = async function() {
+    jwStopNotificationRealtime();
+    return await __jwOriginalDoLogoutForNotify.apply(this, arguments);
+  };
+  doLogout.__jwNotifyPatched = true;
+}
+
+// Poll fallback: keeps notification counts live even if realtime is delayed.
+setInterval(() => {
+  try {
+    if (!currentUser) return;
+    jwMoveWriterRevisionsTab();
+    jwEnsureNotificationButton();
+    jwScanTaskNotifications({ sound: false });
+  } catch {}
+}, 6000);
+
+// Close panel when clicking outside.
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('jw-notification-panel');
+  if (!panel?.classList.contains('open')) return;
+  if (e.target.closest('#jw-notification-panel, #jw-notification-button')) return;
+  jwToggleNotifications(false);
+}, true);
+
+// Initial boot safety.
+setTimeout(() => {
+  try {
+    jwMoveWriterRevisionsTab();
+    jwEnsureNotificationButton();
+    jwScanTaskNotifications({ sound: false });
+    jwStartNotificationRealtime();
+  } catch {}
+}, 1200);
 
 </script>
 
