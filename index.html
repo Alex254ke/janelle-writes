@@ -6142,6 +6142,152 @@ body.dark .task-detail-stat {
 @media(max-width:980px){.task-detail-grid{grid-template-columns:repeat(2,minmax(130px,1fr))}.task-detail-cover,.task-detail-body{padding:22px}}@media(max-width:560px){.floating-support-widget{right:14px!important;bottom:14px!important}.support-trigger,.floating-support-widget>a,.whatsapp-floating,.live-support-float,#floating-support{min-width:126px!important;height:50px!important;padding:0 14px!important;border-radius:16px!important;font-size:14px!important}.task-detail-grid{grid-template-columns:1fr}.task-detail-actions .btn{width:100%}.task-detail-cover,.task-detail-body{padding:18px}.jw-blink-mark{width:68px;height:68px;font-size:42px;border-radius:20px}}
 body.dark-mode .jw-global-loading-overlay,body.dark .jw-global-loading-overlay{background:rgba(8,14,20,.86)}body.dark-mode .jw-loader-card,body.dark .jw-loader-card,body.dark-mode .task-detail-page-card,body.dark .task-detail-page-card,body.dark-mode .task-detail-section,body.dark .task-detail-section{background:#14202b;border-color:rgba(142,228,214,.18)}body.dark-mode .jw-blink-text,body.dark .jw-blink-text,body.dark-mode .task-detail-section-title,body.dark .task-detail-section-title,body.dark-mode .task-detail-stat-value,body.dark .task-detail-stat-value{color:#f4fbfa}body.dark-mode .task-detail-stat,body.dark .task-detail-stat{background:rgba(82,196,184,.07);border-color:rgba(142,228,214,.18)}
 
+
+/* ══════════════════════════════════════════════════════
+   CLASSIC SUPPORT BUTTON + POST-LOGIN WORKSPACE LOADER
+   ══════════════════════════════════════════════════════ */
+
+/* A more classic floating support button: neat, professional, not neon/AI-like. */
+.floating-support-widget {
+  position: fixed !important;
+  right: 22px !important;
+  bottom: 22px !important;
+  z-index: 900 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.support-trigger,
+.floating-support-widget > a,
+.whatsapp-floating,
+.live-support-float,
+#floating-support {
+  width: auto !important;
+  min-width: 132px !important;
+  height: 50px !important;
+  padding: 0 16px !important;
+  border-radius: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  background: linear-gradient(180deg, #ffffff, #f4fbfa) !important;
+  color: #123c3a !important;
+  text-decoration: none !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: .1px !important;
+  border: 1.5px solid rgba(42,157,143,.38) !important;
+  box-shadow: 0 12px 30px rgba(15,25,35,.16), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
+}
+
+.support-trigger:hover,
+.support-trigger:focus,
+.floating-support-widget > a:hover,
+.floating-support-widget > a:focus {
+  transform: translateY(-2px) !important;
+  border-color: rgba(42,157,143,.70) !important;
+  box-shadow: 0 18px 40px rgba(15,25,35,.20), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  outline: none !important;
+}
+
+.support-trigger::before,
+.floating-support-widget > a::before {
+  content: none !important;
+}
+
+.jw-support-classic-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #10202b;
+  color: #f4d58d;
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(244,213,141,.25);
+  flex-shrink: 0;
+}
+
+.jw-support-classic-text {
+  display: inline-flex;
+  align-items: center;
+  color: #123c3a;
+  text-transform: none;
+}
+
+/* Keep footer/card WhatsApp support hidden; the floating support button stays. */
+.support-footer .btn,
+.support-desk .btn,
+.footer-support .btn,
+.support-card .btn,
+#support-footer .btn,
+#support-desk .btn,
+.support-footer a[href*="wa.me"],
+.support-desk a[href*="wa.me"],
+.footer-support a[href*="wa.me"],
+.support-card a[href*="wa.me"],
+#support-footer a[href*="wa.me"],
+#support-desk a[href*="wa.me"],
+footer a[href*="wa.me"],
+footer a[href*="api.whatsapp.com"] {
+  display: none !important;
+}
+
+/* Ensure the workspace loader feels intentional after login. */
+.jw-global-loading-overlay.open {
+  display: flex !important;
+}
+
+.jw-global-loader-caption {
+  min-height: 18px;
+}
+
+@media (max-width: 560px) {
+  .floating-support-widget {
+    right: 14px !important;
+    bottom: 14px !important;
+  }
+
+  .support-trigger,
+  .floating-support-widget > a,
+  .whatsapp-floating,
+  .live-support-float,
+  #floating-support {
+    min-width: 118px !important;
+    height: 48px !important;
+    padding: 0 13px !important;
+    border-radius: 13px !important;
+    font-size: 13px !important;
+  }
+
+  .jw-support-classic-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+}
+
+body.dark-mode .support-trigger,
+body.dark .support-trigger,
+body.dark-mode .floating-support-widget > a,
+body.dark .floating-support-widget > a {
+  background: linear-gradient(180deg, #172530, #111c25) !important;
+  color: #f4fbfa !important;
+  border-color: rgba(142,228,214,.32) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+body.dark-mode .jw-support-classic-text,
+body.dark .jw-support-classic-text {
+  color: #f4fbfa;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -22010,6 +22156,238 @@ if(typeof refreshTasks==='function'&&!refreshTasks.__jwLoader){var oldRt=refresh
 if(typeof launchApp==='function'&&!launchApp.__jwLoader){var oldLaunch=launchApp;launchApp=function(){try{jwShowGlobalLoader('Loading your workspace...')}catch(e){}var r=oldLaunch.apply(this,arguments);setTimeout(jwHideGlobalLoader,1100);setTimeout(jwPolishFloatingSupportButton,900);return r};launchApp.__jwLoader=true}
 setTimeout(function(){try{var m=String(location.hash||'').match(/^#task=(.+)$/);if(m&&window.currentUser)openTaskDetailsPage(decodeURIComponent(m[1]),{fast:true,skipHistory:true})}catch(e){}jwPolishFloatingSupportButton()},900);
 })();
+
+
+// ══════════════════════════════════════════════════════
+//  CLASSIC SUPPORT BUTTON + POST-LOGIN WORKSPACE LOADER + PROFILE LOOKUP SPEED
+// ══════════════════════════════════════════════════════
+
+function jwClassicSupportButton() {
+  const candidates = document.querySelectorAll('.floating-support-widget a, .support-trigger, .whatsapp-floating, .live-support-float, #floating-support');
+
+  candidates.forEach(el => {
+    if (!el) return;
+    el.innerHTML = `<span class="jw-support-classic-icon" aria-hidden="true">☏</span><span class="jw-support-classic-text">Support</span>`;
+    el.setAttribute('aria-label', 'Support');
+    el.setAttribute('title', 'Support');
+  });
+
+  document.querySelectorAll('a, button').forEach(el => {
+    const text = String(el.textContent || '').toLowerCase();
+    const href = String(el.getAttribute('href') || '').toLowerCase();
+    const isWhatsApp = text.includes('whatsapp support') || href.includes('wa.me') || href.includes('api.whatsapp.com');
+    if (!isWhatsApp) return;
+
+    const isFloating = !!el.closest('.floating-support-widget, #floating-support, .live-support-float, .whatsapp-floating');
+    const isFooterish = !!el.closest('.support-footer, .support-desk, .footer-support, .support-card, #support-footer, #support-desk, footer');
+
+    if (isFooterish && !isFloating) {
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
+setTimeout(jwClassicSupportButton, 100);
+setTimeout(jwClassicSupportButton, 800);
+setInterval(jwClassicSupportButton, 2500);
+
+function jwShowWorkspaceLoader(message = 'Preparing your workspace...') {
+  try {
+    if (typeof jwShowGlobalLoader === 'function') {
+      jwShowGlobalLoader(message);
+      return;
+    }
+  } catch {}
+
+  let overlay = document.getElementById('jw-global-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jw-global-loading-overlay';
+    overlay.className = 'jw-global-loading-overlay open';
+    overlay.innerHTML = `
+      <div class="jw-global-loading-card">
+        <div class="jw-global-blink-logo">
+          <div class="jw-global-blink-logo-mark">J</div>
+          <div class="jw-global-blink-logo-text">Janelle <span>Writes!</span></div>
+        </div>
+        <div class="jw-global-loader-caption" id="jw-global-loader-caption">${message}</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  const caption = document.getElementById('jw-global-loader-caption');
+  if (caption) caption.textContent = message;
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+}
+
+function jwHideWorkspaceLoader(delay = 220) {
+  setTimeout(() => {
+    try {
+      if (typeof jwHideGlobalLoader === 'function') {
+        jwHideGlobalLoader();
+        return;
+      }
+    } catch {}
+
+    const overlay = document.getElementById('jw-global-loading-overlay');
+    if (overlay) {
+      overlay.classList.remove('open');
+      overlay.style.display = 'none';
+    }
+  }, delay);
+}
+
+/* Small local cache for existing user profile records to reduce repeat login/dashboard lookup delays. */
+function jwProfileCacheKey(email) {
+  return 'jw_profile_cache_' + String(email || '').trim().toLowerCase();
+}
+
+function jwSaveProfileCache(record) {
+  if (!record?.email) return;
+  try {
+    localStorage.setItem(jwProfileCacheKey(record.email), JSON.stringify({
+      at: Date.now(),
+      record
+    }));
+  } catch {}
+}
+
+function jwGetProfileCache(email) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(jwProfileCacheKey(email)) || 'null');
+    if (!raw?.record) return null;
+    const age = Date.now() - Number(raw.at || 0);
+    if (age > 1000 * 60 * 60 * 12) return null; // 12 hours
+    return raw.record;
+  } catch {
+    return null;
+  }
+}
+
+/* Wrap dbGetUserByEmail so repeated existing-user lookups return faster while Supabase updates in background. */
+if (typeof dbGetUserByEmail === 'function' && !dbGetUserByEmail.__jwProfileCachePatched) {
+  const _jwOrigDbGetUserByEmail = dbGetUserByEmail;
+
+  dbGetUserByEmail = async function(email) {
+    const cached = jwGetProfileCache(email);
+
+    if (cached) {
+      // Refresh silently so role/profile changes still sync, but don't block login.
+      _jwOrigDbGetUserByEmail.call(this, email)
+        .then(fresh => { if (fresh?.email) jwSaveProfileCache(fresh); })
+        .catch(err => console.warn('Background profile refresh skipped:', err));
+
+      return cached;
+    }
+
+    const fresh = await _jwOrigDbGetUserByEmail.apply(this, arguments);
+    if (fresh?.email) jwSaveProfileCache(fresh);
+    return fresh;
+  };
+
+  dbGetUserByEmail.__jwProfileCachePatched = true;
+}
+
+/* Strengthen successful-login loading: show loader immediately after credentials/OAuth succeed and keep it until workspace render starts. */
+if (typeof finishSecureAuthSession === 'function' && !finishSecureAuthSession.__jwWorkspaceLoaderPatched) {
+  const _jwOrigFinishSecureAuthSession = finishSecureAuthSession;
+
+  finishSecureAuthSession = async function(session, options = {}) {
+    jwShowWorkspaceLoader('Signing you in...');
+    try {
+      const result = await _jwOrigFinishSecureAuthSession.apply(this, arguments);
+      if (result !== false) {
+        jwShowWorkspaceLoader('Preparing your workspace...');
+        setTimeout(() => jwShowWorkspaceLoader('Loading dashboard data...'), 450);
+        setTimeout(() => jwHideWorkspaceLoader(0), 2600);
+      } else {
+        jwHideWorkspaceLoader(0);
+      }
+      return result;
+    } catch (err) {
+      jwHideWorkspaceLoader(0);
+      throw err;
+    }
+  };
+
+  finishSecureAuthSession.__jwWorkspaceLoaderPatched = true;
+}
+
+if (typeof launchApp === 'function' && !launchApp.__jwPostLoginLoaderPatched) {
+  const _jwOrigLaunchAppForLoader = launchApp;
+
+  launchApp = function() {
+    jwShowWorkspaceLoader('Preparing your workspace...');
+    const result = _jwOrigLaunchAppForLoader.apply(this, arguments);
+
+    setTimeout(() => jwShowWorkspaceLoader('Loading dashboard data...'), 350);
+    setTimeout(() => {
+      jwClassicSupportButton();
+      jwHideWorkspaceLoader(0);
+    }, 1800);
+
+    return result;
+  };
+
+  launchApp.__jwPostLoginLoaderPatched = true;
+}
+
+/* When task lists are being fetched/refreshed, show the same classic blinking logo loader. */
+if (typeof refreshTasks === 'function' && !refreshTasks.__jwPostLoginLoaderPatched) {
+  const _jwOrigRefreshTasksForLoader = refreshTasks;
+
+  refreshTasks = async function() {
+    jwShowWorkspaceLoader('Loading tasks...');
+    try {
+      return await _jwOrigRefreshTasksForLoader.apply(this, arguments);
+    } finally {
+      jwHideWorkspaceLoader(220);
+    }
+  };
+
+  refreshTasks.__jwPostLoginLoaderPatched = true;
+}
+
+if (typeof dbGetTasks === 'function' && !dbGetTasks.__jwPostLoginLoaderPatched) {
+  const _jwOrigDbGetTasksForLoader = dbGetTasks;
+
+  dbGetTasks = async function() {
+    jwShowWorkspaceLoader('Retrieving tasks...');
+    try {
+      return await _jwOrigDbGetTasksForLoader.apply(this, arguments);
+    } finally {
+      jwHideWorkspaceLoader(220);
+    }
+  };
+
+  dbGetTasks.__jwPostLoginLoaderPatched = true;
+}
+
+/* Keep the loader from sticking forever on weak mobile networks. */
+setInterval(() => {
+  const overlay = document.getElementById('jw-global-loading-overlay');
+  if (!overlay || !overlay.classList.contains('open')) return;
+  const openedAt = overlay.dataset.openedAt ? Number(overlay.dataset.openedAt) : 0;
+  if (!openedAt) {
+    overlay.dataset.openedAt = String(Date.now());
+    return;
+  }
+  if (Date.now() - openedAt > 12000) {
+    jwHideWorkspaceLoader(0);
+    overlay.dataset.openedAt = '';
+  }
+}, 2500);
+
+const _jwOriginalShowWorkspaceLoader = jwShowWorkspaceLoader;
+jwShowWorkspaceLoader = function(message = 'Preparing your workspace...') {
+  _jwOriginalShowWorkspaceLoader(message);
+  const overlay = document.getElementById('jw-global-loading-overlay');
+  if (overlay) overlay.dataset.openedAt = String(Date.now());
+};
+
 </script>
 
 </body>
