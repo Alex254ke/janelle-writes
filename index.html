@@ -6971,6 +6971,235 @@ body.dark .jw-submission-text {
   }
 }
 
+
+/* ══════════════════════════════════════════════════════
+   MOBILE TOPBAR FIX + DEDICATED MESSAGE CHAT ROOM
+   ══════════════════════════════════════════════════════ */
+
+/* Mobile topbar: dark-mode button must not sit on top of menu button. */
+@media (max-width: 820px) {
+  .topbar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .topbar::-webkit-scrollbar,
+  .topbar-actions::-webkit-scrollbar,
+  #topbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-menu-toggle,
+  .topbar .mobile-menu-toggle,
+  button.mobile-menu-toggle {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    margin: 0 4px 0 0 !important;
+    order: 0 !important;
+    z-index: 3 !important;
+  }
+
+  .topbar-title {
+    display: none !important;
+  }
+
+  .topbar-actions,
+  #topbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 0 auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    overflow: visible !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  #dark-mode-toggle {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    order: 1 !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  #dark-mode-toggle #dark-mode-label {
+    display: none !important;
+  }
+
+  #jw-notification-button {
+    order: 2 !important;
+  }
+
+  .topbar .btn,
+  #topbar-actions .btn {
+    white-space: nowrap !important;
+  }
+}
+
+/* Dedicated chat room page */
+.message-room-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 22px 58px rgba(15,25,35,.08);
+  overflow: hidden;
+}
+
+.message-room-head {
+  padding: 22px 24px;
+  background:
+    radial-gradient(circle at 92% 5%, rgba(82,196,184,.18), transparent 38%),
+    linear-gradient(135deg, #10202b, #174d49);
+  color: #fff;
+}
+
+.message-room-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(82,196,184,.18);
+  color: #b9fff4;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.message-room-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(30px, 6vw, 48px);
+  line-height: 1.03;
+  font-weight: 900;
+  margin: 0;
+}
+
+.message-room-sub {
+  margin-top: 10px;
+  color: rgba(255,255,255,.78);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.message-room-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.message-room-body {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.message-room-summary {
+  border: 1px solid rgba(42,157,143,.18);
+  border-radius: 16px;
+  padding: 13px 14px;
+  background: var(--cream);
+  color: var(--charcoal);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.message-room-thread {
+  min-height: 360px;
+  max-height: min(62vh, 680px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--cream);
+  border: 1px solid rgba(205,224,221,.86);
+  border-radius: 16px;
+}
+
+.message-room-composer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.message-room-composer textarea {
+  flex: 1;
+  min-height: 66px;
+  resize: vertical;
+}
+
+@media (max-width: 640px) {
+  #page-message-room.content {
+    padding: 16px 10px 90px !important;
+  }
+
+  .message-room-shell {
+    border-radius: 20px;
+  }
+
+  .message-room-head {
+    padding: 20px 18px;
+  }
+
+  .message-room-body {
+    padding: 12px;
+  }
+
+  .message-room-thread {
+    min-height: 54vh;
+    max-height: 58vh;
+  }
+
+  .message-room-composer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .message-room-composer .btn {
+    width: 100%;
+  }
+}
+
+body.dark-mode .message-room-shell,
+body.dark .message-room-shell {
+  background: #14202b;
+  border-color: rgba(142,228,214,.18);
+}
+
+body.dark-mode .message-room-summary,
+body.dark .message-room-summary,
+body.dark-mode .message-room-thread,
+body.dark .message-room-thread {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(142,228,214,.18);
+  color: #edf8f7;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -8436,6 +8665,18 @@ body.dark .jw-submission-text {
           <div class="jw-blink-logo-text">Janelle <span>Writes!</span></div>
         </div>
         <div class="jw-loader-caption">Opening task details...</div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- MOBILE / SHARED: DEDICATED MESSAGE CHAT ROOM PAGE -->
+  <div class="page content" id="page-message-room">
+    <div id="message-room-wrap">
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <p>Open a conversation from Messages.</p>
       </div>
     </div>
   </div>
@@ -26234,6 +26475,295 @@ setInterval(() => {
     }
   } catch {}
 }, 5000);
+
+
+
+// ══════════════════════════════════════════════════════
+//  MOBILE TOPBAR FIX + DEDICATED MESSAGE CHAT ROOM
+//  - Dark mode no longer overlaps mobile menu.
+//  - On mobile, tapping a message opens a full chat-room page.
+// ══════════════════════════════════════════════════════
+
+let _activeMessageRoomTaskId = '';
+
+function jwMobileView() {
+  try { return window.matchMedia('(max-width: 820px)').matches; } catch { return window.innerWidth <= 820; }
+}
+
+function jwFixMobileTopbarLayout() {
+  const actions = document.getElementById('topbar-actions');
+  const menu = document.querySelector('.mobile-menu-toggle');
+  const dark = document.getElementById('dark-mode-toggle');
+
+  if (!actions || !menu || !dark) return;
+
+  // Keep dark mode inside topbar actions and away from the menu button.
+  if (dark.parentElement !== actions) {
+    actions.insertBefore(dark, actions.firstChild);
+  }
+
+  if (actions.firstElementChild !== dark) {
+    actions.insertBefore(dark, actions.firstElementChild);
+  }
+
+  menu.style.position = 'relative';
+  menu.style.zIndex = '3';
+  dark.style.position = 'relative';
+  dark.style.zIndex = '1';
+}
+
+function jwMessageableTasksFixed() {
+  if (!currentUser) return [];
+
+  try {
+    if (currentUser.role === 'employer' || currentUser.role === 'student') return myTaskList();
+  } catch {}
+
+  const email = String(currentUser.email || '').toLowerCase();
+
+  if (currentUser.role === 'writer') {
+    return (tasks || []).filter(t => String(t.taken_by || '').toLowerCase() === email);
+  }
+
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) {
+    return (tasks || []).filter(t => visibleMessagesForCurrentUser(t).length || t.taken_by || t.posted_by);
+  }
+
+  return typeof messageableTasks === 'function' ? messageableTasks() : [];
+}
+
+// Patch messageableTasks to fix case-sensitive writer matches.
+if (typeof messageableTasks === 'function' && !messageableTasks.__jwMobileChatPatched) {
+  const __jwOriginalMessageableTasksMobileChat = messageableTasks;
+
+  messageableTasks = function() {
+    try {
+      if (currentUser?.role === 'writer') {
+        const email = String(currentUser.email || '').toLowerCase();
+        return (tasks || []).filter(t => String(t.taken_by || '').toLowerCase() === email);
+      }
+      if (currentUser?.role === 'student') return myTaskList();
+      if (currentUser?.role === 'employer') return myTaskList().filter(t => t.taken_by || visibleMessagesForCurrentUser(t).length);
+    } catch {}
+    return __jwOriginalMessageableTasksMobileChat.apply(this, arguments);
+  };
+
+  messageableTasks.__jwMobileChatPatched = true;
+}
+
+function jwMessageRoomBack(event) {
+  if (event?.preventDefault) event.preventDefault();
+  navigate('messages', { replaceHistory: true });
+  setTimeout(() => {
+    try {
+      const sel = document.getElementById('msg-order-select');
+      if (sel && _activeMessageRoomTaskId) sel.value = _activeMessageRoomTaskId;
+      renderMessagesPage();
+    } catch {}
+  }, 80);
+  return false;
+}
+
+function jwMessageRoomTitle(t) {
+  if (!t) return 'Chat Room';
+  return `${esc(t.id)} — ${esc(t.subject || 'Order Messages')}`;
+}
+
+function renderMessageRoomPage() {
+  const wrap = document.getElementById('message-room-wrap');
+  if (!wrap) return;
+
+  const t = typeof getTaskById === 'function' ? getTaskById(_activeMessageRoomTaskId) : null;
+
+  if (!t || !canCurrentUserSeeTask(t)) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <p>This conversation could not be opened. Return to Messages and choose a conversation again.</p>
+        <button class="btn btn-primary" onclick="jwMessageRoomBack(event)">Back to Messages</button>
+      </div>`;
+    return;
+  }
+
+  const msgs = markTaskMessagesRead(t);
+  const visible = visibleMessagesForCurrentUser(t, msgs);
+  const other = conversationOtherName(t);
+  const status = typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || '—');
+
+  wrap.innerHTML = `
+    <div class="message-room-shell">
+      <div class="message-room-head">
+        <div class="message-room-kicker">💬 Chat Room</div>
+        <h1 class="message-room-title">${jwMessageRoomTitle(t)}</h1>
+        <div class="message-room-sub">Conversation with ${esc(other)}. Keep all order communication inside Janelle Writes.</div>
+        <div class="message-room-actions">
+          <button class="btn btn-outline" onclick="jwMessageRoomBack(event)">← Back to Messages</button>
+          <button class="btn btn-primary" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'message-room' })">Open Task</button>
+        </div>
+      </div>
+      <div class="message-room-body">
+        <div class="message-room-summary">
+          <strong>${esc(t.subject || 'Untitled order')}</strong><br>
+          Status: ${status}<br>
+          Employer/Student: ${esc(t.posted_by_name || t.posted_by || '—')}<br>
+          Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}
+        </div>
+        <div class="message-room-thread" id="message-room-thread">
+          ${visible.length ? visible.map(m => {
+            const mine = String(m.sender_email || '').toLowerCase() === String(currentUser.email || '').toLowerCase();
+            const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
+            return `<div class="message-bubble ${mine ? 'mine' : ''}">
+              <div class="message-meta">${esc(m.sender_name || m.sender_email || 'User')} · ${esc(m.sender_role || '')} · ${esc(when)}</div>
+              <div class="message-text">${esc(m.body || '')}</div>
+            </div>`;
+          }).join('') : `<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet. Start the conversation below.</p></div>`}
+        </div>
+        <div class="message-room-composer">
+          <textarea id="message-room-input" class="form-textarea" placeholder="Type your message..."></textarea>
+          <button class="btn btn-primary" onclick="sendMessageRoomMessage()">Send</button>
+        </div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const thread = document.getElementById('message-room-thread');
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  }, 30);
+
+  try { updateBadges(); } catch {}
+}
+
+async function sendMessageRoomMessage() {
+  const t = typeof getTaskById === 'function' ? getTaskById(_activeMessageRoomTaskId) : null;
+  const input = document.getElementById('message-room-input');
+  const body = String(input?.value || '').trim();
+
+  if (!t || !canCurrentUserSeeTask(t)) {
+    notify('⚠️ This conversation is not available.');
+    return;
+  }
+
+  if (!body) {
+    notify('⚠️ Type a message first');
+    return;
+  }
+
+  if (typeof isJwAdmin === 'function' && !isJwAdmin() && typeof containsPrivateContactInfo === 'function' && containsPrivateContactInfo(body)) {
+    notify('⚠️ For safety, keep communication inside Janelle Writes. Phone numbers, emails, and off-platform contact details are not allowed in order messages.');
+    return;
+  }
+
+  const messages = getTaskMessages(t);
+  const channel = isStudentOrder(t)
+    ? (currentUser.role === 'student' ? 'student' : (currentUser.role === 'writer' ? 'writer' : 'student'))
+    : 'standard';
+
+  const msg = {
+    id: 'MSG-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    body,
+    at: new Date().toISOString(),
+    sender_email: currentUser.email,
+    sender_name: currentUser.name || currentUser.email,
+    sender_role: currentUser.role,
+    channel,
+    read_by: [currentUser.email]
+  };
+
+  const next = [...messages, msg];
+  setTaskMessages(t, next);
+  if (input) input.value = '';
+
+  renderMessageRoomPage();
+
+  try {
+    await dbUpdateTask(t.id, { messages: next });
+    notify('✅ Message sent');
+  } catch (err) {
+    notify('⚠️ Message saved locally. Please check your connection.');
+    console.warn('Message sync failed:', err);
+  }
+
+  try { updateBadges(); } catch {}
+}
+
+function openMessageRoom(id) {
+  if (!id) return;
+  _activeMessageRoomTaskId = id;
+  navigate('message-room');
+  setTimeout(renderMessageRoomPage, 50);
+}
+
+function selectMessageThread(id) {
+  const sel = document.getElementById('msg-order-select');
+  if (sel) sel.value = id;
+
+  if (jwMobileView()) {
+    openMessageRoom(id);
+    return;
+  }
+
+  loadMessageThread();
+}
+
+// On mobile, clicking a message conversation card should always open the dedicated chat page.
+document.addEventListener('click', function(e) {
+  if (!currentUser || !jwMobileView()) return;
+  const card = e.target.closest?.('.message-conversation-card');
+  if (!card) return;
+
+  const text = String(card.textContent || '');
+  const match = text.match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/i);
+  if (!match) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+  openMessageRoom(match[0]);
+}, true);
+
+if (typeof pageTitles === 'object') {
+  pageTitles['message-room'] = 'Chat Room';
+}
+
+// Patch navigate to render message-room.
+if (typeof navigate === 'function' && !navigate.__jwMobileChatRoomPatched) {
+  const __jwOriginalNavigateMobileChatRoom = navigate;
+
+  navigate = function(page, options = {}) {
+    const result = __jwOriginalNavigateMobileChatRoom.apply(this, arguments);
+    jwFixMobileTopbarLayout();
+
+    if (page === 'message-room') {
+      setTimeout(renderMessageRoomPage, 40);
+    }
+
+    return result;
+  };
+
+  navigate.__jwMobileChatRoomPatched = true;
+}
+
+// Keep topbar clean after every render.
+if (typeof buildTopbar === 'function' && !buildTopbar.__jwMobileTopbarFixPatched) {
+  const __jwOriginalBuildTopbarMobileFix = buildTopbar;
+  buildTopbar = function() {
+    const result = __jwOriginalBuildTopbarMobileFix.apply(this, arguments);
+    setTimeout(jwFixMobileTopbarLayout, 40);
+    return result;
+  };
+  buildTopbar.__jwMobileTopbarFixPatched = true;
+}
+
+window.addEventListener('resize', () => setTimeout(jwFixMobileTopbarLayout, 80));
+window.addEventListener('orientationchange', () => setTimeout(jwFixMobileTopbarLayout, 250));
+
+setTimeout(jwFixMobileTopbarLayout, 300);
+setInterval(() => {
+  try {
+    if (currentUser && jwMobileView()) jwFixMobileTopbarLayout();
+  } catch {}
+}, 2500);
 
 </script>
 
