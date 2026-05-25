@@ -7367,6 +7367,107 @@ body.dark .message-room-thread {
   }
 }
 
+
+/* ══════════════════════════════════════════════════════
+   PESAPAL WALLET TOP-UP / STK PUSH CARD
+   ══════════════════════════════════════════════════════ */
+.pesapal-card {
+  border: 1.5px solid rgba(42,157,143,.24);
+  border-radius: 18px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(244,213,141,.24), transparent 34%),
+    linear-gradient(135deg, rgba(224,245,243,.88), rgba(255,255,255,.98));
+  box-shadow: 0 16px 38px rgba(15,25,35,.08);
+  margin-bottom: 18px;
+}
+.pesapal-card-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.pesapal-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;
+  line-height:1.1;
+  font-weight:900;
+  color:var(--ink);
+}
+.pesapal-subtitle {
+  margin-top:5px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+.pesapal-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#10202b;
+  color:#f4d58d;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+.pesapal-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:end;
+}
+.pesapal-help {
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:13px;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(205,224,221,.85);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55;
+}
+.pesapal-result {
+  display:none;
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(42,157,143,.22);
+  background:rgba(255,255,255,.82);
+  color:var(--charcoal);
+  font-size:13px;
+  line-height:1.6;
+}
+.pesapal-result.show { display:block; }
+.pesapal-result a {
+  color:var(--teal-dark);
+  font-weight:900;
+}
+@media (max-width:900px) {
+  .pesapal-grid { grid-template-columns:1fr; }
+}
+body.dark-mode .pesapal-card,
+body.dark .pesapal-card {
+  background:
+    radial-gradient(circle at 96% 8%, rgba(244,213,141,.13), transparent 34%),
+    linear-gradient(135deg, rgba(42,157,143,.11), #14202b);
+  border-color:rgba(142,228,214,.18);
+}
+body.dark-mode .pesapal-title,
+body.dark .pesapal-title { color:#f4fbfa; }
+body.dark-mode .pesapal-help,
+body.dark .pesapal-help,
+body.dark-mode .pesapal-result,
+body.dark .pesapal-result {
+  background:rgba(255,255,255,.05);
+  border-color:rgba(142,228,214,.18);
+  color:#d7e8e6;
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -27134,6 +27235,206 @@ setInterval(() => {
     if (currentUser && jwFinalMobileView()) jwFinalFixMobileTopbarLayout();
   } catch {}
 }, 1800);
+
+
+
+// ══════════════════════════════════════════════════════
+//  PESAPAL WALLET TOP-UP / STK PUSH INTEGRATION
+//  Frontend calls /api/pesapal-stk. Secrets stay on Vercel serverless API.
+// ══════════════════════════════════════════════════════
+
+function jwPesapalCurrencyForUser() {
+  try {
+    const country = String(currentUser?.country || currentUser?.profile?.country || currentUser?.profile?.location || '').toLowerCase();
+    if (country.includes('uganda')) return 'UGX';
+    if (country.includes('tanzania')) return 'TZS';
+    if (country.includes('rwanda')) return 'RWF';
+    if (country.includes('burundi')) return 'BIF';
+  } catch {}
+  return 'KES';
+}
+
+function jwNormalizePhoneForPayment(phone) {
+  let raw = String(phone || '').trim().replace(/[^\d+]/g, '');
+  if (!raw) return '';
+  if (raw.startsWith('+')) return raw;
+  if (raw.startsWith('0') && raw.length >= 10) return '+254' + raw.slice(1);
+  if (raw.startsWith('254')) return '+' + raw;
+  return raw;
+}
+
+function jwPesapalCardHtml() {
+  const currency = jwPesapalCurrencyForUser();
+  const phone = currentUser?.phone || currentUser?.profile?.phone || currentUser?.phone_number || '';
+  return `
+    <div class="pesapal-card" id="pesapal-wallet-card">
+      <div class="pesapal-card-head">
+        <div>
+          <div class="pesapal-title">Instant Wallet Top Up</div>
+          <div class="pesapal-subtitle">Enter amount and phone number, then click <strong>Send STK Push</strong>. Pesapal will process the payment securely.</div>
+        </div>
+        <div class="pesapal-badge">💳 Pesapal</div>
+      </div>
+      <div class="pesapal-grid">
+        <div class="form-group">
+          <label class="form-label">Amount (${esc(currency)})</label>
+          <input class="form-input" id="pesapal-amount" type="number" min="1" placeholder="e.g. 500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input class="form-input" id="pesapal-phone" inputmode="tel" placeholder="07XXXXXXXX or +2547XXXXXXXX" value="${esc(phone)}">
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary btn-full" id="pesapal-stk-btn" onclick="sendPesapalStkPush()">Send STK Push</button>
+        </div>
+      </div>
+      <div class="pesapal-help">
+        Keep the payment window open until the transaction finishes. If a direct STK prompt is not available from your payment channel, Pesapal will open a secure checkout page to complete the same wallet top-up.
+      </div>
+      <div class="pesapal-result" id="pesapal-result"></div>
+    </div>`;
+}
+
+function jwMountPesapalWalletCard() {
+  const wrap = document.getElementById('wallet-wrap');
+  if (!wrap || document.getElementById('pesapal-wallet-card')) return;
+  const grid = wrap.querySelector('.wallet-action-grid');
+  if (grid) grid.insertAdjacentHTML('beforebegin', jwPesapalCardHtml());
+  else wrap.insertAdjacentHTML('afterbegin', jwPesapalCardHtml());
+}
+
+function jwSetPesapalResult(html, isError = false) {
+  const box = document.getElementById('pesapal-result');
+  if (!box) return;
+  box.classList.add('show');
+  box.style.borderColor = isError ? 'rgba(231,111,81,.35)' : 'rgba(42,157,143,.28)';
+  box.innerHTML = html;
+}
+
+async function sendPesapalStkPush() {
+  if (!currentUser) {
+    notify('⚠️ Please sign in first.');
+    return;
+  }
+
+  const amount = Math.round(Number(document.getElementById('pesapal-amount')?.value || 0));
+  const phone = jwNormalizePhoneForPayment(document.getElementById('pesapal-phone')?.value || '');
+  const currency = jwPesapalCurrencyForUser();
+
+  if (!amount || amount < 1) {
+    notify('⚠️ Enter a valid amount');
+    return;
+  }
+  if (!phone || phone.length < 10) {
+    notify('⚠️ Enter a valid phone number');
+    return;
+  }
+
+  const btn = document.getElementById('pesapal-stk-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+  }
+
+  // Open a tab immediately, so mobile browsers do not block the checkout fallback.
+  let payWindow = null;
+  try { payWindow = window.open('', '_blank'); } catch {}
+
+  try {
+    jwSetPesapalResult('Sending payment request to Pesapal...');
+
+    const merchantReference = 'JW-WAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+
+    const response = await fetch('/api/pesapal-stk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount,
+        currency,
+        phone,
+        email: currentUser.email,
+        name: currentUser.name || currentUser.email,
+        description: `Janelle Writes wallet top-up ${currency} ${amount}`,
+        merchantReference
+      })
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.error) {
+      if (payWindow) payWindow.close();
+      throw new Error(data.error || data.message || 'Pesapal request failed.');
+    }
+
+    // Save a pending wallet row immediately so admin/user can track it.
+    try {
+      if (typeof dbInsertWalletTransaction === 'function') {
+        await dbInsertWalletTransaction({
+          tx_ref: merchantReference,
+          user_email: currentUser.email.toLowerCase(),
+          type: 'topup',
+          amount,
+          code: data.order_tracking_id || data.orderTrackingId || merchantReference,
+          till: 'Pesapal',
+          status: 'pending_review',
+          note: 'Pesapal payment initiated',
+          metadata: {
+            provider: 'pesapal',
+            currency,
+            phone,
+            merchant_reference: merchantReference,
+            order_tracking_id: data.order_tracking_id || data.orderTrackingId || '',
+            redirect_url: data.redirect_url || data.redirectUrl || '',
+            method: data.method || ''
+          },
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (walletErr) {
+      console.warn('Could not save pending Pesapal wallet row:', walletErr);
+    }
+
+    const redirectUrl = data.redirect_url || data.redirectUrl || '';
+    const trackingId = data.order_tracking_id || data.orderTrackingId || '';
+
+    if (redirectUrl) {
+      if (payWindow) payWindow.location.href = redirectUrl;
+      jwSetPesapalResult(`✅ Payment request created.<br><strong>Reference:</strong> ${esc(merchantReference)}<br><strong>Tracking ID:</strong> ${esc(trackingId || 'Pending')}<br><a href="${esc(redirectUrl)}" target="_blank" rel="noopener">Open Pesapal checkout</a>`);
+      notify('✅ Pesapal payment request created. Complete payment in the opened window.');
+    } else {
+      if (payWindow) payWindow.close();
+      jwSetPesapalResult(`✅ STK/payment request sent.<br><strong>Reference:</strong> ${esc(merchantReference)}<br><strong>Tracking ID:</strong> ${esc(trackingId || 'Pending')}`);
+      notify('✅ STK/payment request sent.');
+    }
+
+    setTimeout(() => { try { renderWalletPage(); } catch {} }, 1200);
+  } catch (err) {
+    jwSetPesapalResult('❌ ' + esc(err.message || 'Could not send STK Push.'), true);
+    notify('❌ ' + (err.message || 'Could not send STK Push.'));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send STK Push';
+    }
+  }
+}
+
+// Patch wallet renderer to inject Pesapal card every time wallet opens.
+if (typeof renderWalletPage === 'function' && !renderWalletPage.__jwPesapalPatched) {
+  const __jwOriginalRenderWalletPagePesapal = renderWalletPage;
+  renderWalletPage = async function() {
+    const result = await __jwOriginalRenderWalletPagePesapal.apply(this, arguments);
+    setTimeout(jwMountPesapalWalletCard, 30);
+    return result;
+  };
+  renderWalletPage.__jwPesapalPatched = true;
+}
+
+setTimeout(() => {
+  try {
+    if (document.getElementById('page-wallet')?.classList.contains('active')) jwMountPesapalWalletCard();
+  } catch {}
+}, 700);
 
 </script>
 
