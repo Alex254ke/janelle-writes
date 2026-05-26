@@ -27436,6 +27436,85 @@ setTimeout(() => {
   } catch {}
 }, 700);
 
+
+
+// PESAPAL V2: clearer frontend errors
+async function jwPesapalFetchJson(url, options = {}) {
+  const response = await fetch(url, options);
+  const raw = await response.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = { raw }; }
+  if (!response.ok || data.error) {
+    const message = data.error || data.message || data.details?.error?.message || data.details?.message || data.raw || `HTTP ${response.status}`;
+    const err = new Error(message);
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+if (typeof sendPesapalStkPush === 'function') {
+  sendPesapalStkPush = async function() {
+    if (!currentUser) { notify('⚠️ Please sign in first.'); return; }
+    const amount = Math.round(Number(document.getElementById('pesapal-amount')?.value || 0));
+    const phone = jwNormalizePhoneForPayment(document.getElementById('pesapal-phone')?.value || '');
+    const currency = jwPesapalCurrencyForUser();
+    if (!amount || amount < 1) { notify('⚠️ Enter a valid amount'); return; }
+    if (!phone || phone.length < 10) { notify('⚠️ Enter a valid phone number'); return; }
+
+    const btn = document.getElementById('pesapal-stk-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+    let payWindow = null;
+    try { payWindow = window.open('', '_blank'); } catch {}
+
+    try {
+      jwSetPesapalResult('Sending payment request to Pesapal...');
+      const merchantReference = 'JW-WAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,7).toUpperCase();
+      const data = await jwPesapalFetchJson('/api/pesapal-stk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, currency, phone, email: currentUser.email, name: currentUser.name || currentUser.email, merchantReference, description: `Janelle Writes wallet top-up ${currency} ${amount}` })
+      });
+
+      try {
+        if (typeof dbInsertWalletTransaction === 'function') {
+          await dbInsertWalletTransaction({
+            tx_ref: merchantReference,
+            user_email: currentUser.email.toLowerCase(),
+            type: 'topup',
+            amount,
+            code: data.order_tracking_id || merchantReference,
+            till: 'Pesapal',
+            status: 'pending_review',
+            note: 'Pesapal payment initiated',
+            metadata: { provider:'pesapal', currency, phone, merchant_reference:merchantReference, order_tracking_id:data.order_tracking_id || '', redirect_url:data.redirect_url || '' },
+            created_at: new Date().toISOString()
+          });
+        }
+      } catch(e) { console.warn('Wallet pending row save failed:', e); }
+
+      if (data.redirect_url) {
+        if (payWindow) payWindow.location.href = data.redirect_url;
+        jwSetPesapalResult(`✅ Pesapal request created.<br><strong>Reference:</strong> ${esc(merchantReference)}<br><strong>Tracking ID:</strong> ${esc(data.order_tracking_id || 'Pending')}<br><a href="${esc(data.redirect_url)}" target="_blank" rel="noopener">Open Pesapal checkout</a>`);
+        notify('✅ Pesapal request created. Complete payment in the opened window.');
+      } else {
+        if (payWindow) payWindow.close();
+        jwSetPesapalResult(`✅ Payment request sent.<br><strong>Reference:</strong> ${esc(merchantReference)}`);
+        notify('✅ Payment request sent.');
+      }
+      setTimeout(() => { try { renderWalletPage(); } catch {} }, 1200);
+    } catch (err) {
+      if (payWindow) { try { payWindow.close(); } catch {} }
+      const msg = err.message || 'Could not create Pesapal payment request.';
+      jwSetPesapalResult(`❌ ${esc(msg)}<br><small>Open <code>/api/pesapal-health</code> to check API setup.</small>`, true);
+      notify('❌ ' + msg);
+      console.error('Pesapal error:', err.data || err);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Send STK Push'; }
+    }
+  };
+}
+
 </script>
 
 </body>
