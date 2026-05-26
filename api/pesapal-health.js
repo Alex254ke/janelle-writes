@@ -131,19 +131,18 @@ async function updateWallet({ merchantReference, orderTrackingId, statusData }) 
 
 export default {
   async fetch(request) {
-    try {
-      const u = new URL(request.url);
-      let body = {};
-      if (request.method === 'POST') body = await request.json().catch(() => ({}));
-      const orderTrackingId = u.searchParams.get('OrderTrackingId') || u.searchParams.get('orderTrackingId') || body.OrderTrackingId || body.orderTrackingId;
-      const merchantReference = u.searchParams.get('OrderMerchantReference') || u.searchParams.get('merchantReference') || body.OrderMerchantReference || body.merchantReference;
-      if (!orderTrackingId) return json(200, { ok:true, message:'IPN received without OrderTrackingId.' });
-      const s = await status(orderTrackingId);
-      const wallet = await updateWallet({ merchantReference, orderTrackingId, statusData:s });
-      return json(200, { orderNotificationType:u.searchParams.get('OrderNotificationType') || body.OrderNotificationType || 'IPNCHANGE', orderTrackingId, orderMerchantReference:merchantReference || '', status:200, wallet });
-    } catch (err) {
-      console.error('Pesapal IPN error:', err);
-      return json(200, { ok:false, error:err.message || 'IPN handled with error.', details:err.data || null });
-    }
+    return json(200, {
+      ok:true,
+      runtime:'vercel-web-api',
+      pesapal_env:process.env.PESAPAL_ENV || 'live',
+      base_url:baseUrl(),
+      has_consumer_key:Boolean(process.env.PESAPAL_CONSUMER_KEY),
+      has_consumer_secret:Boolean(process.env.PESAPAL_CONSUMER_SECRET),
+      has_ipn_id:Boolean(process.env.PESAPAL_IPN_ID),
+      ipn_url:process.env.PESAPAL_IPN_URL || `${origin(request)}/api/pesapal-ipn`,
+      has_supabase_url:Boolean(process.env.SUPABASE_URL),
+      has_supabase_service_role_key:Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      note:'No secret values are shown.'
+    });
   }
 };
