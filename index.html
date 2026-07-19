@@ -8401,32 +8401,23 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
   isolation:isolate;
   align-items:center;
   justify-content:center;
-  padding:28px;
-  background:
-    linear-gradient(115deg,rgba(5,18,25,.88),rgba(11,39,43,.72)),
-    url('https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=2000&q=86') center/cover fixed;
+  padding:0;
+  background:#f8f7f1;
 }
 #auth-screen::before {
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:-1;
-  background:
-    radial-gradient(circle at 14% 12%,rgba(73,205,187,.20),transparent 32%),
-    radial-gradient(circle at 86% 88%,rgba(6,20,28,.58),transparent 42%);
-  backdrop-filter:blur(4px);
+  display:none;
 }
 .auth-shell {
-  width:min(1240px,100%);
-  height:min(820px,calc(100vh - 56px));
-  min-height:680px;
+  width:100%;
+  min-height:100vh;
+  height:100vh;
   display:grid;
-  grid-template-columns:minmax(0,1.02fr) minmax(470px,.98fr);
+  grid-template-columns:minmax(0,1.16fr) minmax(520px,.84fr);
   overflow:hidden;
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:28px;
+  border:0;
+  border-radius:0;
   background:#f8f8f4;
-  box-shadow:0 35px 100px rgba(0,0,0,.38),0 2px 0 rgba(255,255,255,.22) inset;
+  box-shadow:none;
 }
 #auth-screen .auth-visual {
   width:auto;
@@ -8563,7 +8554,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
 #notification.show { visibility:visible; }
 
 @media (max-width:1080px) {
-  .auth-shell { grid-template-columns:minmax(0,.9fr) minmax(450px,1.1fr); }
+  .auth-shell { grid-template-columns:minmax(0,1fr) minmax(460px,1fr); }
   #auth-screen .auth-visual { padding:36px; }
   #auth-screen .auth-visual-mark { top:30px; left:30px; }
   #auth-screen .auth-showcase { top:102px; right:30px; left:30px; }
