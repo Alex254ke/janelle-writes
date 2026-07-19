@@ -20,6 +20,14 @@ test('mobile navigation and hero both expose the student CTA', () => {
   assert.match(html, /#landing-page \.student-cta-btn[\s\S]*visibility:visible !important/);
 });
 
+test('authentication uses a responsive, contained workspace shell', () => {
+  assert.match(html, /<div id="auth-screen"[^>]*>\s*<div class="auth-shell">/);
+  assert.match(html, /\.auth-shell \{[\s\S]*?grid-template-columns:[^;]+;/);
+  assert.match(html, /@media \(max-width:860px\) \{[\s\S]*?#auth-screen \.auth-visual \{ display:none; \}/);
+  assert.match(html, /#auth-screen \.auth-panel \{[\s\S]*?overflow-y:auto;/);
+  assert.match(html, /#notification:not\(\.show\) \{[\s\S]*?visibility:hidden;/);
+});
+
 test('initial task summaries exclude large file payload columns', () => {
   const match = html.match(/const JW_TASK_SUMMARY_COLUMNS = \[([\s\S]*?)\]\.join\(','\);/);
   assert.ok(match, 'task summary column allowlist should exist');
