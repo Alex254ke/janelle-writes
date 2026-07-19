@@ -3487,15 +3487,20 @@ body.dark-mode .google-auth-separator::after {
   gap: 9px;
 }
 .footer-contact-link .footer-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 9px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(82,196,184,0.14);
   color: var(--teal-dark);
   flex-shrink: 0;
+}
+.footer-contact-link .footer-icon i {
+  display:block;
+  font-size:16px;
+  line-height:1;
 }
 
 
@@ -3523,8 +3528,31 @@ body.dark-mode .google-auth-separator::after {
   color: #8ee4d6;
 }
 .landing-footer .footer-icon {
-  background: rgba(82,196,184,0.16);
-  color: #8ee4d6;
+  background: rgba(82,196,184,0.20);
+  color: #a4f3e9;
+  box-shadow:inset 0 0 0 1px rgba(164,243,233,.10);
+}
+.landing-footer .member-sign-in-link {
+  width:fit-content;
+  padding:7px 12px 7px 7px;
+  border:1px solid rgba(217,181,107,.34);
+  border-radius:12px;
+  color:#fff !important;
+  background:rgba(255,255,255,.06) !important;
+  font-weight:800;
+  transition:transform .2s ease,background .2s ease,border-color .2s ease;
+}
+.landing-footer .member-sign-in-link:hover,
+.landing-footer .member-sign-in-link:focus-visible {
+  color:#fff !important;
+  background:rgba(217,181,107,.13) !important;
+  border-color:rgba(217,181,107,.64);
+  transform:translateY(-1px);
+}
+.landing-footer .member-sign-in-link .footer-icon {
+  color:#0f1923;
+  background:#d9b56b;
+  box-shadow:none;
 }
 .landing-footer .landing-brand-mark {
   background: rgba(255,255,255,0.08);
@@ -7930,12 +7958,14 @@ textarea:focus-visible {
 }
 .jw-whatsapp-widget .support-trigger-icon::after { content:none !important; display:none !important; }
 .jw-whatsapp-widget .support-trigger-icon img {
-  width:24px;
-  height:24px;
+  width:36px;
+  height:36px;
   display:block;
   object-fit:contain;
   filter:invert(1);
   mix-blend-mode:screen;
+  border-radius:50%;
+  transform:scale(1.08);
 }
 .jw-whatsapp-widget .support-trigger-copy { display:flex; align-items:center; text-align:left; }
 .jw-whatsapp-widget .support-trigger-copy strong { color:var(--ux-ink); font-size:12.5px; line-height:1; white-space:nowrap; }
@@ -8345,17 +8375,17 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
         <div class="footer-col">
           <h4>Support</h4>
           <a class="footer-contact-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">
-            <span class="footer-icon">📸</span> @Janelle_assignments
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-instagram"></i></span> @Janelle_assignments
           </a>
           <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
-            <span class="footer-icon">✉️</span> janellewrites979@gmail.com
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-envelope-fill"></i></span> janellewrites979@gmail.com
           </a>
         </div>
 
         <div class="footer-col">
           <h4>Account</h4>
-          <a class="footer-contact-link" href="javascript:void(0)" onclick="openAuthScreen('login')">
-            <span class="footer-icon">🔐</span> Member Sign In
+          <a class="footer-contact-link member-sign-in-link" href="javascript:void(0)" onclick="openAuthScreen('login')">
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-person-lock"></i></span> Member Sign In
           </a>
         </div>
       </div>
