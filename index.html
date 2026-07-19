@@ -7797,45 +7797,36 @@ textarea:focus-visible {
 .jw-whatsapp-widget .support-popover { display:none !important; }
 .jw-whatsapp-widget .support-trigger {
   min-width:0 !important;
-  height:58px !important;
-  padding:7px 16px 7px 8px !important;
-  gap:11px !important;
-  border:1px solid rgba(255,255,255,.13) !important;
-  border-radius:18px !important;
-  color:#fff !important;
-  background:var(--ux-ink) !important;
-  box-shadow:0 18px 46px rgba(11,23,32,.26) !important;
+  height:48px !important;
+  padding:5px 14px 5px 6px !important;
+  gap:9px !important;
+  border:1px solid #d2dfdc !important;
+  border-radius:999px !important;
+  color:var(--ux-ink) !important;
+  background:rgba(255,255,255,.97) !important;
+  box-shadow:0 10px 26px rgba(11,23,32,.14) !important;
 }
 .jw-whatsapp-widget .support-trigger:hover,
 .jw-whatsapp-widget .support-trigger:focus-visible {
-  transform:translateY(-3px) !important;
-  background:#102c35 !important;
-  box-shadow:0 24px 56px rgba(11,23,32,.30) !important;
+  transform:translateY(-2px) !important;
+  border-color:#91bcb6 !important;
+  background:#fff !important;
+  box-shadow:0 15px 34px rgba(11,23,32,.18) !important;
 }
 .jw-whatsapp-widget .support-trigger-icon {
   position:relative;
-  width:42px;
-  height:42px;
-  border-radius:13px;
-  color:#fff;
-  background:#20a86b;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
-  font-size:20px;
-}
-.jw-whatsapp-widget .support-trigger-icon::after {
-  content:"";
-  position:absolute;
-  right:-1px;
-  bottom:-1px;
-  width:10px;
-  height:10px;
-  border:2px solid var(--ux-ink);
+  width:36px;
+  height:36px;
   border-radius:50%;
-  background:#7ee2a8;
+  color:#fff;
+  background:#148f66;
+  box-shadow:none;
+  font-size:17px;
 }
-.jw-whatsapp-widget .support-trigger-copy { display:grid; gap:2px; text-align:left; }
-.jw-whatsapp-widget .support-trigger-copy strong { color:#fff; font-size:13px; line-height:1.1; }
-.jw-whatsapp-widget .support-trigger-copy small { color:rgba(255,255,255,.62); font-size:10px; line-height:1.1; }
+.jw-whatsapp-widget .support-trigger-icon::after { content:none !important; display:none !important; }
+.jw-whatsapp-widget .support-trigger-copy { display:flex; align-items:center; text-align:left; }
+.jw-whatsapp-widget .support-trigger-copy strong { color:var(--ux-ink); font-size:12.5px; line-height:1; white-space:nowrap; }
+.jw-whatsapp-widget .support-trigger-copy small { display:none; }
 body:has(#auth-screen[style*="display: flex"]) .floating-support-widget.jw-whatsapp-widget {
   top:20px !important;
   right:20px !important;
@@ -9752,7 +9743,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
   </a>
   <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">
     <span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span>
-    <span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>
+    <span class="support-trigger-copy"><strong>Get support</strong></span>
   </a>
 </div>
 
@@ -23777,7 +23768,7 @@ window.jwEnsureGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(!
 window.jwShowGlobalLoader=function(m){var o=jwEnsureGlobalLoader(),c=q('jw-global-loader-caption');if(c)c.textContent=m||'Loading...';o.classList.add('open');o.style.display='flex'};
 window.jwHideGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(o){o.classList.remove('open');o.style.display='none'}};
 window.jwGlobalLoadingInline=function(m){return '<div class="jw-loader-inline"><div class="jw-blink-logo"><div class="jw-blink-mark">J</div><div class="jw-blink-text">Janelle <span>Writes!</span></div></div><div class="jw-loader-caption">'+esc(m||'Loading...')+'</div></div>'};
-window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget .support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>';el.setAttribute('aria-label','Chat with Janelle Writes support on WhatsApp');el.setAttribute('title','Chat with support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
+window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget .support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>';el.setAttribute('aria-label','Chat with Janelle Writes support on WhatsApp');el.setAttribute('title','Get support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
 setTimeout(jwPolishFloatingSupportButton,100);setTimeout(jwPolishFloatingSupportButton,900);setInterval(jwPolishFloatingSupportButton,2500);
 var activeTaskId='';window.__jwTaskDetailReturn=window.__jwTaskDetailReturn||{page:'',scrollY:0,taskId:''};
 function currentPageName(){var a=document.querySelector('.page.active'),p=a&&a.id?a.id.replace(/^page-/,''):'';if(p&&p!=='task-details')return p;if(typeof _currentPage!=='undefined'&&_currentPage&&_currentPage!=='task-details')return _currentPage;return''}
@@ -23819,9 +23810,9 @@ function jwClassicSupportButton() {
 
   candidates.forEach(el => {
     if (!el) return;
-    el.innerHTML = `<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>`;
+    el.innerHTML = `<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>`;
     el.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
-    el.setAttribute('title', 'Chat with support');
+    el.setAttribute('title', 'Get support');
   });
 
   document.querySelectorAll('a, button').forEach(el => {
@@ -28040,9 +28031,9 @@ function jwIconifyTree(root = document.body) {
 function jwPolishSupportControl() {
   const trigger = document.querySelector('.jw-whatsapp-widget .support-trigger');
   if (!trigger) return;
-  trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>';
+  trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>';
   trigger.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
-  trigger.setAttribute('title', 'Chat with support');
+  trigger.setAttribute('title', 'Get support');
 }
 
 function jwInitializeUxRefresh() {
