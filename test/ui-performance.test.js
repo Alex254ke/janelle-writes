@@ -33,3 +33,11 @@ test('historical notification scans no longer write notifications', () => {
   assert.ok(match, 'final historical scan override should exist');
   assert.doesNotMatch(match[1], /jw_create_notification|jwCreateNotificationInSupabase|\.rpc\(/);
 });
+
+test('task cards open details in the current app tab', () => {
+  const match = html.match(/jwOpenTaskDetailInNewTab = function\(taskId\) \{([\s\S]*?)\n\};/);
+  assert.ok(match, 'legacy new-tab route should have a final override');
+  assert.match(match[1], /openTaskDetailsPage\(taskId, \{ sameTab:true, inPlace:true \}\)/);
+  assert.doesNotMatch(match[1], /window\.open/);
+  assert.match(html, /now - _jwLastTaskOpen\.at < 700/);
+});

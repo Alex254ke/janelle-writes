@@ -28714,6 +28714,60 @@ if (typeof jwOpenDedicatedTaskPageOnly === 'function') {
   };
 }
 
+// Keep every task-detail interaction inside the current app tab. Several legacy
+// capture handlers still call jwOpenTaskDetailInNewTab(), so changing that shared
+// route prevents mobile browsers from booting a second tab back on the dashboard.
+if (typeof openTaskDetailsPage === 'function') {
+  const _jwOriginalOpenTaskDetailsInPlace = openTaskDetailsPage;
+  let _jwLastTaskOpen = { id:'', at:0 };
+
+  openTaskDetailsPage = function(taskId, options = {}) {
+    const id = String(taskId || '').trim();
+    if (!id) return false;
+
+    const now = Date.now();
+    if (_jwLastTaskOpen.id === id && now - _jwLastTaskOpen.at < 700) return false;
+    _jwLastTaskOpen = { id, at:now };
+
+    const result = _jwOriginalOpenTaskDetailsInPlace.call(this, id, {
+      ...options,
+      sameTab:true,
+      inPlace:true
+    });
+
+    // Render the lightweight summary immediately, then add the selected task's
+    // file payload without blocking navigation to the detail page.
+    if (typeof jwEnsureFullTaskLoaded === 'function') {
+      jwEnsureFullTaskLoaded(id)
+        .then(full => {
+          if (!full || String(window._activeTaskDetailId || '') !== id) return;
+          if (_currentPage !== 'task-details') return;
+          if (typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+          if (typeof jwEnsureSubmittedMaterialsInTaskPage === 'function') {
+            jwEnsureSubmittedMaterialsInTaskPage(id);
+          }
+        })
+        .catch(err => console.warn('Full task details could not be loaded:', err));
+    }
+
+    return result;
+  };
+}
+
+// Legacy capture listeners resolve this function at click time. Route them to
+// the repaired in-page opener rather than window.open().
+jwOpenTaskDetailInNewTab = function(taskId) {
+  return openTaskDetailsPage(taskId, { sameTab:true, inPlace:true });
+};
+
+empViewTask = function(taskId) {
+  return openTaskDetailsPage(taskId, { sameTab:true, inPlace:true });
+};
+
+openTakeOrderModal = function(taskId) {
+  return openTaskDetailsPage(taskId, { sameTab:true, inPlace:true });
+};
+
 // Historical scans should render known notifications, not recreate every old event.
 jwScanTaskNotifications = function() {
   try { jwRenderNotifications?.(); } catch {}
