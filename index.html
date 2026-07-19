@@ -9328,6 +9328,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SUBMISSIONS_BUCKET = 'jw-submissions';
 const SECURE_PROFILE_API = '/api/auth/profile';
+const JW_SAFE_USER_COLUMNS = 'id,email,name,role,created_at,profile,auth_id,updated_at,is_admin';
 
 // Google OAuth redirect setting.
 // Leave this blank so Google returns to the same domain that started the login.
@@ -9346,30 +9347,15 @@ let currentUser = null; // { id, email, name, role }
   try { currentUser = JSON.parse(localStorage.getItem('jw_session')) || null; } catch { currentUser = null; }
 })();
 
-// ── EARLY ADMIN ROLE GUARD ─────────────────────────────────
-// This runs before the app init so admin does not briefly load as student/employer after refresh.
-window.JW_ADMIN_EMAILS_BOOT = ['janellewrites979@gmail.com'];
-function isJwAdminEmail(email) {
-  return window.JW_ADMIN_EMAILS_BOOT.includes(String(email || '').trim().toLowerCase());
-}
+// Admin status is returned by the server profile endpoint. Never elevate a browser
+// session from an email address or user-editable metadata.
+window.JW_ADMIN_EMAILS_BOOT = [];
+function isJwAdminEmail() { return false; }
 function isJwAdmin() {
-  return !!currentUser && (currentUser.is_admin === true || isJwAdminEmail(currentUser.email));
+  return !!currentUser && currentUser.is_admin === true && currentUser.role === 'admin';
 }
 function forceAdminUserShape(user) {
-  if (!user || !isJwAdminEmail(user.email)) return user;
-  const profile = normalizeProfile ? normalizeProfile(user.profile) : (user.profile || {});
-  return {
-    ...user,
-    role: 'admin',
-    is_admin: true,
-    role_label: 'Platform Admin',
-    profile: {
-      ...profile,
-      is_admin: true,
-      role_label: 'Platform Admin',
-      title: 'Platform Admin'
-    }
-  };
+  return user;
 }
 currentUser = forceAdminUserShape(currentUser);
 if (currentUser) {
@@ -9474,19 +9460,19 @@ function makeFallbackOrderNum(base) {
 //  DB HELPERS — wraps Supabase calls
 // ══════════════════════════════════════════════════════
 async function dbGetUsers() {
-  const { data, error } = await _sb.from('jw_users').select('*');
+  const { data, error } = await _sb.from('jw_users').select(JW_SAFE_USER_COLUMNS);
   if (error) throw error;
   return data || [];
 }
 
 async function dbGetUserByEmail(email) {
-  const { data, error } = await _sb.from('jw_users').select('*').eq('email', email).maybeSingle();
+  const { data, error } = await _sb.from('jw_users').select(JW_SAFE_USER_COLUMNS).eq('email', email).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 async function dbCreateUser(user) {
-  const { data, error } = await _sb.from('jw_users').insert([user]).select().single();
+  const { data, error } = await _sb.from('jw_users').insert([user]).select(JW_SAFE_USER_COLUMNS).single();
   if (error) throw error;
   return data;
 }
@@ -9948,6 +9934,20 @@ async function secureUpsertPlatformUser(payload) {
     try { controller?.abort(); } catch {}
   }, 12000);
 
+  const safePayload = { ...(payload || {}) };
+  delete safePayload.id;
+  delete safePayload.auth_id;
+  delete safePayload.is_admin;
+  delete safePayload.created_at;
+  delete safePayload.updated_at;
+  const safeProfile = { ...((safePayload.profile && typeof safePayload.profile === 'object') ? safePayload.profile : {}) };
+  [
+    '__proto__', 'prototype', 'constructor', 'admin', 'app_metadata', 'auth_id',
+    'auth_provider', 'claims', 'email', 'id', 'is_admin', 'permissions', 'role',
+    'role_label', 'user_id', 'user_metadata', 'updated_at'
+  ].forEach(key => delete safeProfile[key]);
+  safePayload.profile = safeProfile;
+
   let res;
   try {
     res = await fetch(SECURE_PROFILE_API, {
@@ -9956,7 +9956,7 @@ async function secureUpsertPlatformUser(payload) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       },
-      body: JSON.stringify(payload || {}),
+      body: JSON.stringify(safePayload),
       signal: controller?.signal
     });
   } catch (err) {
@@ -15651,10 +15651,10 @@ if (!window.__jwPasswordToggleObserver) {
 //  COMMISSION / MONETIZATION ENGINE
 // ══════════════════════════════════════════════════════
 const COMMISSION_RATE = 0.12;
-const ADMIN_COMMISSION_EMAILS = ['janellewrites979@gmail.com', 'purebliss823@gmail.com'];
+const ADMIN_COMMISSION_EMAILS = [];
 
 function isCommissionAdmin() {
-  return !!currentUser && ADMIN_COMMISSION_EMAILS.map(e => e.toLowerCase()).includes(String(currentUser.email || '').toLowerCase());
+  return typeof isJwAdmin === 'function' && isJwAdmin();
 }
 
 function calcCommission(total) {
@@ -16002,13 +16002,11 @@ subscribeRealtime = function() {
 // ══════════════════════════════════════════════════════
 //  ADMIN ACCOUNT + PAYHERO PAYMENT INTEGRATION
 // ══════════════════════════════════════════════════════
-const JW_ADMIN_EMAILS = ['janellewrites979@gmail.com'];
+const JW_ADMIN_EMAILS = [];
 
-function isJwAdminEmail(email) {
-  return JW_ADMIN_EMAILS.includes(String(email || '').toLowerCase());
-}
+function isJwAdminEmail() { return false; }
 function isJwAdmin() {
-  return !!currentUser && (currentUser.is_admin === true || isJwAdminEmail(currentUser.email));
+  return !!currentUser && currentUser.is_admin === true && currentUser.role === 'admin';
 }
 function adminBadgeHtml(extraClass = '') {
   return '<span class="admin-badge ' + extraClass + '">ADMIN</span>';
@@ -20783,7 +20781,7 @@ function taskDetailLoaderHtml() {
   </div>`;
 }
 
-function taskVisibleAmountText(t) {
+function taskVisibleAmountTextLegacyV1(t) {
   if (!t) return '—';
   if (currentUser?.role === 'writer' && isStudentOrder(t)) {
     return typeof writerPayoutText === 'function'
@@ -20811,7 +20809,7 @@ function taskDetailCanShowBidPanel(t) {
   return false;
 }
 
-function taskDetailActionsHtml(t) {
+function taskDetailActionsHtmlLegacyV1(t) {
   const actions = [];
   const back = taskDetailBackPage();
   actions.push(`<button class="btn btn-outline" onclick="navigate('${escJS(back)}')">← Back</button>`);
@@ -20839,21 +20837,21 @@ function taskDetailActionsHtml(t) {
   return actions.join('');
 }
 
-function taskDetailPartnerHtml(t) {
+function taskDetailPartnerHtmlLegacyV1(t) {
   try {
     if (typeof partnerRatingPanelForTask === 'function') return partnerRatingPanelForTask(t);
   } catch {}
   return '';
 }
 
-function taskDetailFilesHtml(t) {
+function taskDetailFilesHtmlLegacyV1(t) {
   try {
     if (typeof renderInstructionFiles === 'function') return renderInstructionFiles(t);
   } catch {}
   return '';
 }
 
-function taskDetailWorkflowHtml(t) {
+function taskDetailWorkflowHtmlLegacyV1(t) {
   const parts = [];
 
   if (taskDetailCanShowBidPanel(t)) {
@@ -20877,7 +20875,7 @@ function taskDetailWorkflowHtml(t) {
   return parts.join('');
 }
 
-function renderTaskDetailsPage() {
+function renderTaskDetailsPageLegacyV1() {
   const wrap = document.getElementById('task-details-wrap');
   if (!wrap) return;
   const t = getTaskById(_activeTaskDetailId);
@@ -20948,7 +20946,7 @@ function renderTaskDetailsPage() {
   } catch {}
 }
 
-function openTaskDetailsPage(taskId, options = {}) {
+function openTaskDetailsPageLegacyV1(taskId, options = {}) {
   if (!taskId) return;
   _activeTaskDetailId = String(taskId).trim();
   const wrap = document.getElementById('task-details-wrap');
@@ -20960,7 +20958,7 @@ function openTaskDetailsPage(taskId, options = {}) {
   setTimeout(renderTaskDetailsPage, options.fast ? 160 : 520);
 }
 
-function extractTaskIdFromClickedElement(el) {
+function extractTaskIdFromClickedElementLegacyV1(el) {
   if (!el) return '';
   const fromData = el.getAttribute?.('data-task-id') || el.dataset?.taskId || '';
   if (fromData && getTaskById(fromData)) return fromData;
@@ -21154,7 +21152,7 @@ window.__jwTaskDetailReturn = window.__jwTaskDetailReturn || {
   taskId: ''
 };
 
-function jwCurrentVisiblePageName() {
+function jwCurrentVisiblePageNameLegacyV1() {
   const active = document.querySelector('.page.active');
   const idPage = active?.id ? active.id.replace(/^page-/, '') : '';
   if (idPage && idPage !== 'task-details') return idPage;
@@ -21162,7 +21160,7 @@ function jwCurrentVisiblePageName() {
   return '';
 }
 
-function jwDefaultReturnPageForRole() {
+function jwDefaultReturnPageForRoleLegacyV1() {
   if (typeof isJwAdmin === 'function' && isJwAdmin()) return 'admin-all-orders';
   if (currentUser?.role === 'writer') return 'writer-tasks';
   if (currentUser?.role === 'student') return 'student-dashboard';
@@ -21170,7 +21168,7 @@ function jwDefaultReturnPageForRole() {
   return typeof getHomePage === 'function' ? getHomePage() : 'emp-dashboard';
 }
 
-function jwSaveTaskReturnPage(taskId, explicitPage) {
+function jwSaveTaskReturnPageLegacyV1(taskId, explicitPage) {
   const page = explicitPage || jwCurrentVisiblePageName() || jwDefaultReturnPageForRole();
   if (!page || page === 'task-details') return;
 
@@ -21185,7 +21183,7 @@ function jwSaveTaskReturnPage(taskId, explicitPage) {
   } catch {}
 }
 
-function jwGetTaskReturnPage() {
+function jwGetTaskReturnPageLegacyV1() {
   if (window.__jwTaskDetailReturn?.page && window.__jwTaskDetailReturn.page !== 'task-details') {
     return window.__jwTaskDetailReturn;
   }
@@ -21202,7 +21200,7 @@ function jwGetTaskReturnPage() {
   };
 }
 
-function returnFromTaskDetails(event) {
+function returnFromTaskDetailsLegacyV1(event) {
   if (event?.preventDefault) event.preventDefault();
   if (event?.stopPropagation) event.stopPropagation();
 
@@ -21527,7 +21525,7 @@ setInterval(() => {
 // ══════════════════════════════════════════════════════
 //  MOBILE LOGOUT + DATA LOADING RELIABILITY FIX
 // ══════════════════════════════════════════════════════
-function jwIsMobileDeviceView() {
+function jwIsMobileDeviceViewLegacyV1() {
   return window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
 }
 
@@ -21563,7 +21561,7 @@ function jwHideDataOverlay() {
   }
 }
 
-function jwPromiseTimeout(promise, ms, label = 'Request') {
+function jwPromiseTimeoutLegacyV1(promise, ms, label = 'Request') {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timed out. Please check your connection.')), ms))
@@ -21592,7 +21590,7 @@ function jwTaskFilterQueryForCurrentUser(baseQuery) {
   return baseQuery;
 }
 
-async function jwFastGetTasks() {
+async function jwFastGetTasksLegacyV1() {
   if (!currentUser) return [];
 
   let q = _sb
@@ -21656,7 +21654,7 @@ if (typeof refreshTasks === 'function' && !refreshTasks.__jwMobileFastPatched) {
   refreshTasks.__jwMobileFastPatched = true;
 }
 
-async function jwRefreshDashboardAfterLogin(reason = 'login') {
+async function jwRefreshDashboardAfterLoginLegacyV1(reason = 'login') {
   if (!currentUser) {
     jwHideDataOverlay();
     return;
@@ -22003,7 +22001,7 @@ setInterval(jwFixLogoutVisualLeak, 1200);
 // ══════════════════════════════════════════════════════
 
 // 1) Remove the mobile Refresh button completely.
-function jwRemoveMobileRefreshButton() {
+function jwRemoveMobileRefreshButtonLegacyV1() {
   document.querySelectorAll('#jw-mobile-data-refresh-btn').forEach(btn => btn.remove());
 }
 
@@ -22019,17 +22017,17 @@ setTimeout(jwRemoveMobileRefreshButton, 1200);
 // 2) Safer role-aware task loading.
 // The previous mobile OR query could fail/stall on some mobile browsers/networks.
 // This version uses separate simple Supabase queries, then merges results.
-function jwMergeTaskRows(...groups) {
+function jwMergeTaskRowsLegacyV2(...groups) {
   return dedupeTasks(groups.flat().filter(Boolean));
 }
 
-async function jwQueryTasksSimple(builder, label, ms = 22000) {
+async function jwQueryTasksSimpleLegacyV2(builder, label, ms = 22000) {
   const result = await jwPromiseTimeout(builder, ms, label);
   if (result.error) throw result.error;
   return result.data || [];
 }
 
-async function jwFastGetTasks() {
+async function jwFastGetTasksLegacyV2() {
   if (!currentUser) return [];
 
   const email = String(currentUser.email || '').toLowerCase();
@@ -22096,7 +22094,7 @@ refreshTasks = async function() {
   return tasks;
 };
 
-async function jwRefreshDashboardAfterLogin(reason = 'login') {
+async function jwRefreshDashboardAfterLoginLegacyV2(reason = 'login') {
   if (!currentUser) {
     jwHideDataOverlay();
     return;
@@ -22135,7 +22133,7 @@ async function jwRefreshDashboardAfterLogin(reason = 'login') {
 // 3) Google role lock.
 // Existing users must keep the role saved in jw_users. A Google login should not
 // turn a writer into a student just because _selectedRole defaults to student.
-function jwCachedRoleForEmail(email) {
+function jwCachedRoleForEmailLegacyV1(email) {
   try {
     const cached = JSON.parse(localStorage.getItem('jw_session') || 'null');
     if (cached?.email && sameEmail(cached.email, email) && cached.role) {
@@ -22145,14 +22143,14 @@ function jwCachedRoleForEmail(email) {
   return '';
 }
 
-function jwExplicitSignupRole() {
+function jwExplicitSignupRoleLegacyV1() {
   const intent = localStorage.getItem('jw_google_intent') || '';
   const role = localStorage.getItem('jw_google_role') || '';
   if (intent === 'signup' && role) return normalizePlatformRole(role, 'employer');
   return '';
 }
 
-function jwSafeRoleForAuth(authUser, existing, options = {}) {
+function jwSafeRoleForAuthLegacyV1(authUser, existing, options = {}) {
   if (existing?.role) return normalizePlatformRole(existing.role, 'employer');
 
   const cachedRole = jwCachedRoleForEmail(authUser.email);
@@ -22352,7 +22350,7 @@ setTimeout(jwRemoveFooterSupportButtons, 800);
 setInterval(jwRemoveFooterSupportButtons, 2500);
 
 /* ---------- Dedicated task detail page ---------- */
-let _activeTaskDetailId = window._activeTaskDetailId || '';
+_activeTaskDetailId = window._activeTaskDetailId || _activeTaskDetailId || '';
 window.__jwTaskDetailReturn = window.__jwTaskDetailReturn || { page: '', scrollY: 0, taskId: '' };
 
 function jwCurrentVisiblePageName() {
