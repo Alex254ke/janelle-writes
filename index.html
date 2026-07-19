@@ -3120,6 +3120,102 @@ body.dark-mode .google-auth-separator::after {
   color: var(--slate);
 }
 .feature-cell:hover p { color: rgba(15,25,35,0.82); }
+.landing-reviews-shell {
+  position:relative;
+  padding:clamp(26px,4vw,46px);
+  border-radius:30px;
+  overflow:hidden;
+  color:#fff;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(82,196,184,.22), transparent 30%),
+    linear-gradient(135deg,#0f1923 0%,#173548 100%);
+  box-shadow:0 30px 72px rgba(15,25,35,.16);
+}
+.landing-reviews-shell .section-heading { margin-bottom:26px; }
+.landing-reviews-shell .section-heading .eyebrow {
+  color:#9dece3;
+  background:rgba(82,196,184,.14);
+  border:1px solid rgba(157,236,227,.14);
+}
+.landing-reviews-shell .section-heading h2 { color:#fff; }
+.landing-reviews-shell .section-heading p { color:rgba(255,255,255,.68); }
+.landing-reviews-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+.landing-review-card {
+  min-height:275px;
+  padding:24px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:22px;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(12px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  transition:transform .25s ease,border-color .25s ease,background .25s ease;
+}
+.landing-review-card:hover {
+  transform:translateY(-4px);
+  border-color:rgba(157,236,227,.28);
+  background:rgba(255,255,255,.10);
+}
+.landing-review-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.landing-review-stars {
+  display:inline-flex;
+  gap:3px;
+  color:#d9b56b;
+  font-size:14px;
+}
+.landing-review-quote {
+  color:rgba(157,236,227,.65);
+  font-size:25px;
+  line-height:1;
+}
+.landing-review-card blockquote {
+  margin:22px 0 24px;
+  color:rgba(255,255,255,.90);
+  font-family:'Cormorant Garamond',serif;
+  font-size:25px;
+  line-height:1.22;
+  flex:1;
+}
+.landing-review-author {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.09);
+}
+.landing-review-avatar {
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  color:#0f1923;
+  background:#9dece3;
+  font-size:13px;
+  font-weight:900;
+}
+.landing-review-author strong { display:block; color:#fff; font-size:13px; }
+.landing-review-author small { display:block; margin-top:2px; color:rgba(255,255,255,.52); font-size:11px; }
+.landing-review-note {
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin-top:18px;
+  color:rgba(255,255,255,.54);
+  font-size:11px;
+  line-height:1.55;
+}
+.landing-review-note i { color:#9dece3; margin-top:1px; }
 .gallery-strip {
   display:grid;
   grid-template-columns: 1.1fr 0.75fr 1fr 0.9fr;
@@ -3259,6 +3355,8 @@ body.dark-mode .google-auth-separator::after {
   .landing-role-grid {
     grid-template-columns: 1fr;
   }
+  .landing-reviews-grid { grid-template-columns:1fr 1fr; }
+  .landing-review-card:last-child { grid-column:1 / -1; }
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3327,6 +3425,11 @@ body.dark-mode .google-auth-separator::after {
   .features-grid {
     grid-template-columns: 1fr;
   }
+  .landing-reviews-shell { padding:24px 18px; border-radius:24px; }
+  .landing-reviews-grid { grid-template-columns:1fr; }
+  .landing-review-card,
+  .landing-review-card:last-child { grid-column:auto; min-height:0; }
+  .landing-review-card blockquote { font-size:23px; }
   .gallery-scroll-wrap {
     overflow-x:auto;
     padding-bottom: 4px;
@@ -7948,6 +8051,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
     <div class="landing-mobile-links">
       <a href="#landing-features" onclick="closeLandingMenu()">Features</a>
       <a href="#landing-for-you" onclick="closeLandingMenu()">For You</a>
+      <a href="#landing-reviews" onclick="closeLandingMenu()">Reviews</a>
       <a href="#landing-gallery" onclick="closeLandingMenu()">Gallery</a>
       <a href="#landing-final" onclick="closeLandingMenu()">Start</a>
     </div>
@@ -7968,6 +8072,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
         <a href="#landing-how">How it Works</a>
         <a href="#landing-for-you">For You</a>
         <a href="#landing-features">Features</a>
+        <a href="#landing-reviews">Reviews</a>
         <a href="#landing-final">Start</a>
       </nav>
 
@@ -8121,6 +8226,56 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
           <h3>Auto-invoice</h3>
           <p>Payment details and order history are easier to track as work moves through the platform.</p>
         </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-reviews">
+      <div class="landing-reviews-shell">
+        <div class="section-heading">
+          <div class="eyebrow">User Reviews</div>
+          <h2>Built around a better working experience.</h2>
+          <p>A dedicated space for feedback from employers, writers, and students after completed work.</p>
+        </div>
+
+        <div class="landing-reviews-grid">
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Clear briefs, progress updates, and files stay connected to the same task.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">E</span>
+              <span><strong>Employer experience</strong><small>Example review layout</small></span>
+            </div>
+          </article>
+
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Deadlines, messages, and submissions are easy to follow from one focused workspace.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">W</span>
+              <span><strong>Writer experience</strong><small>Example review layout</small></span>
+            </div>
+          </article>
+
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Posting an assignment feels guided, organized, and much less overwhelming.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">S</span>
+              <span><strong>Student experience</strong><small>Example review layout</small></span>
+            </div>
+          </article>
+        </div>
+
+        <div class="landing-review-note"><i class="bi bi-shield-check" aria-hidden="true"></i><span>These cards are design placeholders. Replace them with approved feedback from completed orders before publishing.</span></div>
       </div>
     </section>
 
