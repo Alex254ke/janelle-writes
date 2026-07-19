@@ -17,6 +17,7 @@
 <meta property="og:site_name" content="Janelle Writes">
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 <!-- Supabase JS client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -7468,6 +7469,440 @@ body.dark .pesapal-result {
   color:#d7e8e6;
 }
 
+/* ══════════════════════════════════════════════════════
+   2026 UI / UX REFRESH
+   Editorial workspace styling and a consistent icon system.
+   ══════════════════════════════════════════════════════ */
+:root {
+  --ux-ink:#0b1720;
+  --ux-ink-soft:#18313d;
+  --ux-teal:#147d73;
+  --ux-teal-bright:#2da99b;
+  --ux-mint:#e8f6f3;
+  --ux-ivory:#f7f6f1;
+  --ux-line:#dce7e4;
+  --ux-shadow:0 24px 70px rgba(11,23,32,.12);
+}
+
+.bi,
+.jw-inline-icon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1em;
+  height:1em;
+  line-height:1;
+  flex:0 0 auto;
+}
+.jw-inline-icon { margin-right:.42em; color:currentColor; }
+.icon .jw-inline-icon,
+.stat-icon .jw-inline-icon,
+.qa-icon .jw-inline-icon,
+.empty-icon .jw-inline-icon,
+.role-icon .jw-inline-icon,
+.feature-icon .jw-inline-icon { margin-right:0; }
+
+button,
+a,
+[onclick] { -webkit-tap-highlight-color:transparent; }
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline:3px solid rgba(45,169,155,.28) !important;
+  outline-offset:3px !important;
+}
+
+/* Desktop authentication: clearer hierarchy and a calmer reading width. */
+#auth-screen {
+  min-height:100vh;
+  background:var(--ux-ivory);
+  color:var(--ux-ink);
+  overflow:auto;
+}
+#auth-screen .auth-visual {
+  width:56%;
+  min-height:100vh;
+  padding:clamp(42px,6vw,88px);
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 20% 16%,rgba(45,169,155,.24),transparent 34%),
+    linear-gradient(145deg,#09151e 0%,#102a33 48%,#0c5d57 100%);
+}
+#auth-screen .auth-visual::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:linear-gradient(90deg,rgba(7,18,26,.82),rgba(7,18,26,.22));
+}
+#auth-screen .auth-visual-photo { opacity:.26; filter:saturate(.55) contrast(1.08); }
+#auth-screen .auth-visual-pattern { opacity:.16; }
+#auth-screen .auth-visual-quote { display:none; }
+.auth-visual-mark {
+  position:absolute;
+  top:clamp(38px,5vw,70px);
+  left:clamp(42px,6vw,88px);
+  z-index:4;
+  width:58px;
+  height:58px;
+  border:1px solid rgba(255,255,255,.24);
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:rgba(255,255,255,.09);
+  backdrop-filter:blur(14px);
+  box-shadow:0 18px 44px rgba(0,0,0,.22);
+  font-family:'Cormorant Garamond',serif;
+  font-size:23px;
+  font-weight:700;
+  letter-spacing:-1px;
+}
+#auth-screen .auth-brand {
+  max-width:620px;
+  margin-top:auto;
+  padding-bottom:clamp(12px,2vh,30px);
+}
+#auth-screen .auth-brand-name {
+  max-width:590px;
+  font-size:clamp(54px,5.4vw,82px);
+  line-height:.88;
+  letter-spacing:-3px;
+}
+#auth-screen .auth-brand-sub {
+  margin-top:22px;
+  font-size:12px;
+  letter-spacing:2.2px;
+  color:rgba(255,255,255,.66);
+}
+#auth-screen .auth-tagline {
+  max-width:500px;
+  margin-top:16px;
+  color:rgba(255,255,255,.76);
+  font-size:16px;
+  line-height:1.7;
+}
+#auth-screen .auth-stats {
+  max-width:470px;
+  margin-top:34px;
+  padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.14);
+}
+#auth-screen .auth-stat-val { color:#fff; font-size:24px; }
+#auth-screen .auth-stat-lbl { color:rgba(255,255,255,.58); }
+#auth-screen .auth-showcase {
+  top:clamp(130px,19vh,210px);
+  right:clamp(28px,4vw,62px);
+  width:min(390px,42vw);
+  gap:12px;
+}
+#auth-screen .auth-glass-card {
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:20px;
+  background:rgba(8,24,32,.58);
+  backdrop-filter:blur(18px);
+  box-shadow:0 22px 58px rgba(0,0,0,.20);
+}
+#auth-screen .workflow-step span { background:rgba(45,169,155,.22); color:#bff8ef; }
+#auth-screen .order-preview-icon {
+  display:grid;
+  place-items:center;
+  background:rgba(45,169,155,.16);
+  color:#bff8ef;
+}
+
+#auth-screen .auth-panel {
+  width:44%;
+  min-width:470px;
+  min-height:100vh;
+  padding:clamp(38px,5vw,74px) clamp(42px,5.2vw,78px);
+  justify-content:center;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(45,169,155,.10),transparent 31%),
+    var(--ux-ivory);
+}
+#auth-screen .auth-panel > * { width:min(460px,100%); margin-left:auto; margin-right:auto; }
+.auth-panel-brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:42px;
+  color:var(--ux-ink);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.auth-mini-mark {
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:var(--ux-ink);
+  box-shadow:0 10px 24px rgba(11,23,32,.16);
+  font-family:'Cormorant Garamond',serif;
+  font-size:25px;
+  font-weight:700;
+}
+#auth-screen .auth-back-wrap { margin-bottom:28px; justify-content:flex-start; }
+#auth-screen .auth-back-link {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 0;
+  color:#60717a;
+  font-size:12px;
+  font-weight:600;
+  margin-bottom:0;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  box-shadow:none;
+}
+#auth-screen .auth-back-link:hover {
+  color:var(--ux-ink);
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+#auth-screen .auth-back-link .arrow {
+  width:auto;
+  height:auto;
+  border-radius:0;
+  color:var(--ux-teal);
+  background:transparent;
+  box-shadow:none;
+}
+#auth-screen .auth-panel-header { margin-bottom:26px; }
+#auth-screen .auth-panel-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(38px,3.2vw,50px);
+  line-height:.98;
+  letter-spacing:-1.4px;
+  color:var(--ux-ink);
+}
+#auth-screen .auth-panel-sub { margin-top:12px; color:#687982; line-height:1.6; }
+#auth-screen .auth-tabs {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+  padding:5px;
+  margin-bottom:28px;
+  border:1px solid var(--ux-line);
+  border-radius:14px;
+  background:#edf2f0;
+}
+#auth-screen .auth-tab {
+  min-height:42px;
+  border:0;
+  border-radius:10px;
+  color:#60717a;
+  background:transparent;
+  font:600 13px/1 'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+}
+#auth-screen .auth-tab.active {
+  color:var(--ux-ink);
+  background:#fff;
+  box-shadow:0 7px 18px rgba(11,23,32,.08);
+}
+#auth-screen .form-group { margin-bottom:18px; }
+#auth-screen .form-label { margin-bottom:8px; color:#273c46; font-size:12px; font-weight:650; }
+.auth-input-shell { position:relative; }
+.auth-input-shell > .bi {
+  position:absolute;
+  left:15px;
+  top:50%;
+  z-index:2;
+  transform:translateY(-50%);
+  color:#7c8d94;
+  font-size:16px;
+  pointer-events:none;
+}
+#auth-screen .auth-input-shell .form-input { padding-left:44px; }
+#auth-screen .form-input,
+#auth-screen .form-select {
+  min-height:50px;
+  border:1px solid #cfdcda;
+  border-radius:12px;
+  color:var(--ux-ink);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 1px 0 rgba(255,255,255,.8);
+  font-size:14px;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#auth-screen .form-input:hover,
+#auth-screen .form-select:hover { border-color:#adc5c1; }
+#auth-screen .form-input:focus,
+#auth-screen .form-select:focus {
+  border-color:var(--ux-teal-bright);
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(45,169,155,.11);
+}
+#auth-screen .btn-primary {
+  min-height:50px;
+  border-radius:12px;
+  background:var(--ux-ink);
+  box-shadow:0 14px 30px rgba(11,23,32,.16);
+  font-weight:650;
+}
+#auth-screen .btn-primary:hover { background:#16333c; transform:translateY(-1px); }
+#auth-screen .google-auth-btn {
+  min-height:50px;
+  border-radius:12px;
+  border-color:#cfdcda;
+  background:#fff;
+  font-weight:600;
+}
+.auth-login-note {
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  margin-top:18px;
+  padding:14px 15px;
+  border:1px solid #d4e6e2;
+  border-radius:12px;
+  color:#4b626b;
+  background:var(--ux-mint);
+  font-size:12px;
+  line-height:1.55;
+}
+.auth-login-note .bi { margin-top:2px; color:var(--ux-teal); font-size:15px; }
+#auth-screen .role-card {
+  min-height:126px;
+  border-radius:14px;
+  border-color:#d5e1df;
+  background:rgba(255,255,255,.72);
+}
+#auth-screen .role-card:hover { border-color:#8abbb4; transform:translateY(-2px); }
+#auth-screen .role-card.selected { border-color:var(--ux-teal); background:var(--ux-mint); box-shadow:0 0 0 3px rgba(45,169,155,.10); }
+#auth-screen .role-icon { color:var(--ux-teal); font-size:22px; }
+
+/* Support: compact, clear, and unmistakably human. */
+.floating-support-widget.jw-whatsapp-widget {
+  right:22px !important;
+  bottom:22px !important;
+  z-index:1200 !important;
+}
+.floating-support-widget.jw-whatsapp-widget::before,
+.floating-support-widget.jw-whatsapp-widget::after,
+.jw-whatsapp-widget .support-trigger::before,
+.jw-whatsapp-widget .support-trigger::after { content:none !important; display:none !important; }
+.jw-whatsapp-widget .support-popover { display:none !important; }
+.jw-whatsapp-widget .support-trigger {
+  min-width:0 !important;
+  height:58px !important;
+  padding:7px 16px 7px 8px !important;
+  gap:11px !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  border-radius:18px !important;
+  color:#fff !important;
+  background:var(--ux-ink) !important;
+  box-shadow:0 18px 46px rgba(11,23,32,.26) !important;
+}
+.jw-whatsapp-widget .support-trigger:hover,
+.jw-whatsapp-widget .support-trigger:focus-visible {
+  transform:translateY(-3px) !important;
+  background:#102c35 !important;
+  box-shadow:0 24px 56px rgba(11,23,32,.30) !important;
+}
+.jw-whatsapp-widget .support-trigger-icon {
+  position:relative;
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  color:#fff;
+  background:#20a86b;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+  font-size:20px;
+}
+.jw-whatsapp-widget .support-trigger-icon::after {
+  content:"";
+  position:absolute;
+  right:-1px;
+  bottom:-1px;
+  width:10px;
+  height:10px;
+  border:2px solid var(--ux-ink);
+  border-radius:50%;
+  background:#7ee2a8;
+}
+.jw-whatsapp-widget .support-trigger-copy { display:grid; gap:2px; text-align:left; }
+.jw-whatsapp-widget .support-trigger-copy strong { color:#fff; font-size:13px; line-height:1.1; }
+.jw-whatsapp-widget .support-trigger-copy small { color:rgba(255,255,255,.62); font-size:10px; line-height:1.1; }
+body:has(#auth-screen[style*="display: flex"]) .floating-support-widget.jw-whatsapp-widget {
+  top:20px !important;
+  right:20px !important;
+  bottom:auto !important;
+}
+body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trigger {
+  width:48px !important;
+  height:48px !important;
+  padding:4px !important;
+  border-radius:15px !important;
+}
+body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trigger-icon { width:38px; height:38px; }
+body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trigger-copy { display:none; }
+
+/* Notifications communicate status with icons, never emoji prefixes. */
+#notification.notification {
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  max-width:min(430px,calc(100vw - 32px));
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:15px;
+  background:var(--ux-ink);
+  box-shadow:0 20px 50px rgba(11,23,32,.25);
+}
+.notification-status-icon {
+  width:28px;
+  height:28px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  color:#c5f6ee;
+  background:rgba(45,169,155,.18);
+  flex:0 0 auto;
+}
+#notification.is-success .notification-status-icon { color:#b9f6d1; background:rgba(32,168,107,.20); }
+#notification.is-warning .notification-status-icon { color:#ffe6a8; background:rgba(227,164,56,.19); }
+#notification.is-error .notification-status-icon { color:#ffd0c8; background:rgba(226,91,68,.20); }
+
+@media (max-width:1180px) {
+  #auth-screen .auth-visual { width:52%; padding:48px; }
+  #auth-screen .auth-panel { width:48%; min-width:440px; padding:44px; }
+  #auth-screen .auth-showcase { right:28px; width:350px; }
+  .auth-visual-mark { left:48px; top:42px; }
+}
+@media (max-width:900px) {
+  #auth-screen .auth-visual { display:none; }
+  #auth-screen .auth-panel { width:100%; min-width:0; padding:42px 26px; }
+  #auth-screen .auth-panel > * { max-width:500px; }
+  .auth-panel-brand { margin-bottom:30px; }
+}
+@media (max-width:560px) {
+  #auth-screen .auth-panel { padding:28px 20px 42px; }
+  #auth-screen .auth-panel-title { font-size:38px; }
+  #auth-screen .auth-tabs { margin-bottom:22px; }
+  #auth-screen .auth-role-select { grid-template-columns:1fr; }
+  #auth-screen .role-card { min-height:0; }
+  .jw-whatsapp-widget .support-trigger { width:50px !important; height:50px !important; padding:4px !important; border-radius:15px !important; }
+  .jw-whatsapp-widget .support-trigger-icon { width:40px; height:40px; }
+  .jw-whatsapp-widget .support-trigger-copy { display:none; }
+  body:has(#auth-screen[style*="display: flex"]) .floating-support-widget.jw-whatsapp-widget { display:none !important; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -7786,12 +8221,12 @@ body.dark .pesapal-result {
     <div class="auth-visual-pattern"></div>
     <div class="auth-visual-quote">"</div>
 
-    <div class="auth-visual-img">✍️</div>
+    <div class="auth-visual-mark" aria-hidden="true"><span>JW</span></div>
 
 
     <div class="auth-showcase" aria-hidden="true">
       <div class="auth-glass-card">
-        <div class="auth-card-kicker">✦ How it works</div>
+        <div class="auth-card-kicker"><i class="bi bi-diagram-3" aria-hidden="true"></i> How it works</div>
         <div class="auth-workflow">
           <div class="workflow-step"><span>1</span> Employer posts a task</div>
           <div class="workflow-step"><span>2</span> Writer reviews instructions</div>
@@ -7802,7 +8237,7 @@ body.dark .pesapal-result {
 
       <div class="auth-glass-card">
         <div class="auth-order-preview">
-          <div class="order-preview-icon">📄</div>
+          <div class="order-preview-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></div>
           <div>
             <div class="order-preview-title">New Task Posted</div>
             <div class="order-preview-meta">JW-BK-0001 · Business Essay · 24h deadline</div>
@@ -7836,6 +8271,7 @@ body.dark .pesapal-result {
 
   <!-- Form Panel -->
   <div class="auth-panel">
+    <div class="auth-panel-brand"><span class="auth-mini-mark" aria-hidden="true">J</span><span>Janelle Writes workspace</span></div>
     <div class="auth-back-wrap">
       <a href="#" class="auth-back-link" onclick="showLandingPage(); return false;">
         <span class="arrow">←</span>
@@ -7847,30 +8283,36 @@ body.dark .pesapal-result {
       <div class="auth-panel-sub" id="auth-panel-sub">Sign in or create an account to continue</div>
     </div>
 
-    <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchAuthTab('login')">Sign In</div>
-      <div class="auth-tab" onclick="switchAuthTab('signup')">Create Account</div>
+    <div class="auth-tabs" role="tablist" aria-label="Account access">
+      <button type="button" class="auth-tab active" role="tab" aria-selected="true" onclick="switchAuthTab('login')">Sign In</button>
+      <button type="button" class="auth-tab" role="tab" aria-selected="false" onclick="switchAuthTab('signup')">Create Account</button>
     </div>
 
     <!-- LOGIN FORM -->
     <div id="login-form">
       <div class="form-group">
         <label class="form-label">Email Address</label>
-        <input type="email" class="form-input" id="login-email" placeholder="you@example.com">
+        <div class="auth-input-shell">
+          <i class="bi bi-envelope" aria-hidden="true"></i>
+          <input type="email" class="form-input" id="login-email" placeholder="you@example.com" autocomplete="email" inputmode="email">
+        </div>
       </div>
       <div class="form-group">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <label class="form-label">Password</label>
           <a style="font-size:11px;color:var(--teal);cursor:pointer;text-decoration:none;font-weight:500;" onclick="showForgotPassword()">Forgot password?</a>
         </div>
-        <input type="password" class="form-input" id="login-password" placeholder="••••••••">
+        <div class="auth-input-shell">
+          <i class="bi bi-lock" aria-hidden="true"></i>
+          <input type="password" class="form-input" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+        </div>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
+      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
       <div class="google-auth-separator">Or</div>
       <button type="button" class="google-auth-btn" onclick="startGoogleAuth('login')"><span class="google-auth-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 19.3-8 19.3-20c0-1.2-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.1 5.6l6.2 5.2c-.4.3 5.9-4.3 5.9-14.8 0-1.2-.1-2.3-.3-3.5z"/></svg></span><span>Login with Google</span></button>
-      <div style="margin-top:16px; padding:14px; background:var(--teal-pale); border-radius:9px; font-size:12px; color:var(--slate);">
-        <strong>Getting started:</strong><br>
-        Create an Employer account to post orders, and a Writer account to accept them.
+      <div class="auth-login-note">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        <span><strong>Secure account access</strong><br>Create an Employer account to post orders or a Writer account to accept them.</span>
       </div>
     </div>
 
@@ -7914,17 +8356,17 @@ body.dark .pesapal-result {
     <div id="signup-form" style="display:none;">
       <div class="auth-role-select">
         <div class="role-card" id="role-student" onclick="selectRole('student')">
-          <div class="role-icon">🎓</div>
+          <div class="role-icon"><i class="bi bi-mortarboard" aria-hidden="true"></i></div>
           <div class="role-name">International Student</div>
           <div class="role-desc">Post assignments with admin-guided support</div>
         </div>
         <div class="role-card selected" id="role-employer" onclick="selectRole('employer')">
-          <div class="role-icon">🏢</div>
+          <div class="role-icon"><i class="bi bi-building" aria-hidden="true"></i></div>
           <div class="role-name">Employer</div>
           <div class="role-desc">Post writing tasks & manage orders</div>
         </div>
         <div class="role-card" id="role-writer" onclick="selectRole('writer')">
-          <div class="role-icon">✍️</div>
+          <div class="role-icon"><i class="bi bi-pen" aria-hidden="true"></i></div>
           <div class="role-name">Writer</div>
           <div class="role-desc">Browse & complete writing orders</div>
         </div>
@@ -9297,7 +9739,10 @@ body.dark .pesapal-result {
 
 
 <!-- Notification -->
-<div class="notification" id="notification"><span id="notif-msg"></span></div>
+<div class="notification" id="notification" role="status" aria-live="polite">
+  <span class="notification-status-icon" aria-hidden="true"><i class="bi bi-info-circle"></i></span>
+  <span id="notif-msg"></span>
+</div>
 
 <!-- Floating WhatsApp Support -->
 <div class="floating-support-widget jw-whatsapp-widget" aria-label="Janelle Writes WhatsApp support">
@@ -9306,14 +9751,8 @@ body.dark .pesapal-result {
     <small>Open a chat with Janelle Writes support.</small>
   </a>
   <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">
-    <span class="support-trigger-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path d="M5.5 18.5l.8-3.1A7.5 7.5 0 1 1 9 17.4l-3.5 1.1z"></path>
-        <path d="M8.5 10h7"></path>
-        <path d="M8.5 13h4.6"></path>
-      </svg>
-    </span>
-    <span class="support-trigger-copy"><strong>Support</strong></span>
+    <span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span>
+    <span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>
   </a>
 </div>
 
@@ -10190,7 +10629,11 @@ function switchAuthTab(tab) {
   clearInterval(_otpTimerInterval);
   _otpResendCooldown = false;
   _pending2FA = null;
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+  document.querySelectorAll('.auth-tab').forEach((t,i) => {
+    const active = (i === 0 && tab === 'login') || (i === 1 && tab === 'signup');
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', String(active));
+  });
   document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('forgot-form').style.display = 'none';
@@ -13123,12 +13566,30 @@ let _notificationAction = null;
 function notify(msg, soundType = 'default', options = {}) {
   const el = document.getElementById('notification');
   const msgEl = document.getElementById('notif-msg');
+  const iconEl = el?.querySelector('.notification-status-icon i');
+  const rawMessage = String(msg || '');
+  const cleanMessage = rawMessage.replace(/\p{Extended_Pictographic}\uFE0F?/gu, '').replace(/\s{2,}/g, ' ').trim();
+  const rawBody = String(options.body || msg || '');
+  const cleanBody = rawBody.replace(/\p{Extended_Pictographic}\uFE0F?/gu, '').replace(/\s{2,}/g, ' ').trim();
+  const status = rawMessage.includes('❌') ? 'error'
+    : rawMessage.includes('⚠') ? 'warning'
+      : rawMessage.includes('✅') ? 'success'
+        : 'info';
+  const statusIcon = status === 'error' ? 'bi-x-circle'
+    : status === 'warning' ? 'bi-exclamation-triangle'
+      : status === 'success' ? 'bi-check-circle'
+        : rawMessage.includes('💬') ? 'bi-chat-dots'
+          : rawMessage.includes('🔔') ? 'bi-bell'
+            : 'bi-info-circle';
   _notificationAction = typeof options.onClick === 'function' ? options.onClick : null;
   el.classList.toggle('actionable', !!_notificationAction);
+  el.classList.remove('is-error', 'is-warning', 'is-success', 'is-info');
+  el.classList.add(`is-${status}`);
+  if (iconEl) iconEl.className = `bi ${statusIcon}`;
   if (options.title) {
-    msgEl.innerHTML = `<span class="notification-title">${esc(options.title)}</span><span class="notification-sub">${esc(options.body || msg || '')}</span>`;
+    msgEl.innerHTML = `<span class="notification-title">${esc(options.title)}</span><span class="notification-sub">${esc(cleanBody)}</span>`;
   } else {
-    msgEl.textContent = msg;
+    msgEl.textContent = cleanMessage;
   }
   el.classList.add('show');
   if (soundType) playSound(soundType);
@@ -23316,7 +23777,7 @@ window.jwEnsureGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(!
 window.jwShowGlobalLoader=function(m){var o=jwEnsureGlobalLoader(),c=q('jw-global-loader-caption');if(c)c.textContent=m||'Loading...';o.classList.add('open');o.style.display='flex'};
 window.jwHideGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(o){o.classList.remove('open');o.style.display='none'}};
 window.jwGlobalLoadingInline=function(m){return '<div class="jw-loader-inline"><div class="jw-blink-logo"><div class="jw-blink-mark">J</div><div class="jw-blink-text">Janelle <span>Writes!</span></div></div><div class="jw-loader-caption">'+esc(m||'Loading...')+'</div></div>'};
-window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget a,.support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:10px;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);">✦</span><span>Support</span>';el.setAttribute('aria-label','Support');el.setAttribute('title','Support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
+window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget .support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>';el.setAttribute('aria-label','Chat with Janelle Writes support on WhatsApp');el.setAttribute('title','Chat with support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
 setTimeout(jwPolishFloatingSupportButton,100);setTimeout(jwPolishFloatingSupportButton,900);setInterval(jwPolishFloatingSupportButton,2500);
 var activeTaskId='';window.__jwTaskDetailReturn=window.__jwTaskDetailReturn||{page:'',scrollY:0,taskId:''};
 function currentPageName(){var a=document.querySelector('.page.active'),p=a&&a.id?a.id.replace(/^page-/,''):'';if(p&&p!=='task-details')return p;if(typeof _currentPage!=='undefined'&&_currentPage&&_currentPage!=='task-details')return _currentPage;return''}
@@ -23358,9 +23819,9 @@ function jwClassicSupportButton() {
 
   candidates.forEach(el => {
     if (!el) return;
-    el.innerHTML = `<span class="jw-support-classic-icon" aria-hidden="true">☏</span><span class="jw-support-classic-text">Support</span>`;
-    el.setAttribute('aria-label', 'Support');
-    el.setAttribute('title', 'Support');
+    el.innerHTML = `<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>`;
+    el.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
+    el.setAttribute('title', 'Chat with support');
   });
 
   document.querySelectorAll('a, button').forEach(el => {
@@ -27513,6 +27974,102 @@ if (typeof sendPesapalStkPush === 'function') {
   };
 }
 
+</script>
+
+<script>
+/* Visual icon adapter: replaces legacy emoji glyphs in static and dynamic UI with Bootstrap Icons. */
+const JW_EMOJI_ICON_MAP = new Map([
+  ['⚠️','exclamation-triangle'],['⚠','exclamation-triangle'],['❌','x-circle'],['✅','check-circle'],
+  ['💬','chat-dots'],['📝','file-earmark-text'],['⚖️','scale'],['⚖','scale'],['🔒','lock'],
+  ['💳','credit-card'],['📎','paperclip'],['🔔','bell'],['⏳','hourglass-split'],['⌛','hourglass-split'],
+  ['📋','clipboard-check'],['📨','envelope'],['🚫','slash-circle'],['🎓','mortarboard'],['🔄','arrow-repeat'],
+  ['👤','person'],['💰','cash-stack'],['📤','upload'],['🔁','arrow-clockwise'],['⭐','star'],
+  ['📌','pin-angle'],['📄','file-earmark-text'],['🛡️','shield-check'],['⬇️','download'],['💸','cash-coin'],
+  ['🌙','moon-stars'],['🏦','bank'],['📊','graph-up'],['✍️','pen'],['✏️','pencil'],['⏰','clock'],
+  ['📭','inbox'],['👋','box-arrow-right'],['🖼️','image'],['🧾','receipt'],['💾','floppy'],
+  ['📥','inbox'],['🔗','link-45deg'],['🏠','house'],['📘','book'],['❓','question-circle'],
+  ['📜','journal-text'],['📸','instagram'],['✉️','envelope'],['✉','envelope'],['🔍','search'],
+  ['🎉','check2-circle'],['📡','broadcast-pin'],['📃','files'],['🧠','lightbulb'],['📍','geo-alt'],
+  ['📁','folder'],['🔐','key'],['🏢','building'],['🚪','door-open'],['🖨️','printer'],
+  ['📧','envelope'],['📞','telephone'],['☁️','cloud-arrow-up'],['📷','camera'],['☀️','sun'],
+  ['📲','phone'],['📚','collection']
+]);
+const JW_VISUAL_EMOJI_RE = /\p{Extended_Pictographic}\uFE0F?/gu;
+
+function jwIconifyTextNode(node) {
+  const parent = node?.parentElement;
+  if (!parent || !JW_VISUAL_EMOJI_RE.test(node.nodeValue || '')) return;
+  JW_VISUAL_EMOJI_RE.lastIndex = 0;
+  if (parent.closest('script,style,textarea,code,pre,svg,i,.bi')) return;
+  if (parent.tagName === 'OPTION') {
+    node.nodeValue = node.nodeValue.replace(JW_VISUAL_EMOJI_RE, '').replace(/\s{2,}/g, ' ').trimStart();
+    return;
+  }
+  const source = node.nodeValue;
+  const fragment = document.createDocumentFragment();
+  let cursor = 0;
+  for (const match of source.matchAll(JW_VISUAL_EMOJI_RE)) {
+    if (match.index > cursor) fragment.append(document.createTextNode(source.slice(cursor, match.index)));
+    const token = match[0];
+    if (token === '©') {
+      fragment.append(document.createTextNode(token));
+    } else {
+      const icon = document.createElement('i');
+      icon.className = `bi bi-${JW_EMOJI_ICON_MAP.get(token) || 'circle'} jw-inline-icon`;
+      icon.setAttribute('aria-hidden', 'true');
+      fragment.append(icon);
+    }
+    cursor = match.index + token.length;
+  }
+  if (cursor < source.length) fragment.append(document.createTextNode(source.slice(cursor)));
+  node.replaceWith(fragment);
+}
+
+function jwIconifyTree(root = document.body) {
+  if (!root) return;
+  if (root.nodeType === Node.TEXT_NODE) return jwIconifyTextNode(root);
+  root.querySelectorAll?.('input[placeholder],textarea[placeholder]').forEach((input) => {
+    input.placeholder = input.placeholder.replace(JW_VISUAL_EMOJI_RE, '').replace(/\s{2,}/g, ' ').trim();
+  });
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(jwIconifyTextNode);
+}
+
+function jwPolishSupportControl() {
+  const trigger = document.querySelector('.jw-whatsapp-widget .support-trigger');
+  if (!trigger) return;
+  trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Chat with support</strong><small>Usually replies quickly</small></span>';
+  trigger.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
+  trigger.setAttribute('title', 'Chat with support');
+}
+
+function jwInitializeUxRefresh() {
+  jwPolishSupportControl();
+  jwIconifyTree(document.body);
+  const email = document.getElementById('login-email');
+  const password = document.getElementById('login-password');
+  email?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); password?.focus(); }
+  });
+  password?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); doLogin(); }
+  });
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'characterData') jwIconifyTextNode(mutation.target);
+      mutation.addedNodes?.forEach(jwIconifyTree);
+    });
+  });
+  observer.observe(document.body, { childList:true, subtree:true, characterData:true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', jwInitializeUxRefresh, { once:true });
+} else {
+  jwInitializeUxRefresh();
+}
 </script>
 
 </body>
