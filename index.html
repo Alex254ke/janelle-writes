@@ -3667,6 +3667,19 @@ body.dark-mode .google-auth-separator::after {
   font-weight:800;
 }
 .landing-cta-row .btn-outline:hover { color:#102530; background:#ffd87f; border-color:#d8a43d; }
+#landing-page .student-cta-btn {
+  color:#102530 !important;
+  background:#f4c86b !important;
+  border:2px solid #d6a23b !important;
+  box-shadow:0 12px 26px rgba(151,103,18,.24) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+}
+#landing-page .student-cta-btn:hover {
+  color:#102530 !important;
+  background:#ffd87f !important;
+  border-color:#c9942f !important;
+}
 .landing-hero-action-card .landing-scroll-hint {
   margin-top:16px;
   color:#718489;
@@ -3800,6 +3813,12 @@ body.dark-mode .google-auth-separator::after {
     background:#f4c86b;
     border:2px solid #d6a23b;
     box-shadow:0 12px 26px rgba(151,103,18,.24);
+  }
+  #landing-page .landing-cta-row .student-cta-btn,
+  #landing-page .landing-mobile-actions .student-cta-btn {
+    display:inline-flex !important;
+    width:100% !important;
+    min-height:50px;
   }
   .landing-hero-visual { min-height:340px; border-radius:20px; }
   .landing-hero-badge { min-width:0; max-width:190px; }
@@ -8429,6 +8448,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
     <div class="landing-mobile-actions">
       <button class="btn btn-outline" onclick="closeLandingMenu(); openAuthScreen('login')">Sign In</button>
       <button class="btn btn-primary" onclick="closeLandingMenu(); openAuthScreen('signup','employer')">Get Started</button>
+      <button class="btn student-cta-btn" onclick="closeLandingMenu(); openAuthScreen('signup','student')">International Student</button>
     </div>
   </div>
 
@@ -8473,7 +8493,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
             <div class="landing-cta-row">
               <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
               <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
-              <button class="btn btn-outline" onclick="openAuthScreen('signup','student')">International Student</button>
+              <button class="btn btn-outline student-cta-btn" onclick="openAuthScreen('signup','student')">International Student</button>
             </div>
           </div>
           <div class="landing-hero-visual">
@@ -28517,6 +28537,180 @@ if (typeof sendPesapalStkPush === 'function') {
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = 'Send STK Push'; }
     }
+  };
+}
+
+// Production performance hardening: keep the initial workspace payload small,
+// coalesce duplicate boot requests, and fetch large file payloads only on demand.
+const JW_TASK_SUMMARY_COLUMNS = [
+  'id','subject','level','words','pages','price_per_page','total','style','deadline',
+  'description','requirements','order_date','status','payment','mpesa_code','posted_by',
+  'posted_by_name','taken_by','taken_by_name','submitted_link','submitted_text',
+  'submitted_notes','revision_notes','revision_at','created_at','messages','ratings',
+  'disputes','commission_rate','commission_amount','writer_payout','commission_paid',
+  'admin_override_at','admin_override_by','payhero_reference','paid_at','student_order',
+  'order_type','writer_page_rate','writer_payout_estimate','student_currency_code',
+  'student_currency_symbol'
+].join(',');
+
+let _jwTaskSummaryFlight = null;
+let _jwTaskSummaryCache = { key:'', at:0, rows:[] };
+const _jwFullTaskLoads = new Map();
+
+function jwTaskLoadUserKey() {
+  return [String(currentUser?.email || '').toLowerCase(), String(currentUser?.role || '')].join('|');
+}
+
+function jwMergeTaskSummariesWithLoadedRows(rows) {
+  const loaded = new Map((Array.isArray(tasks) ? tasks : [])
+    .filter(task => task && task._jwSummaryOnly === false)
+    .map(task => [String(task.id), task]));
+
+  return (rows || []).map(row => {
+    const full = loaded.get(String(row.id));
+    if (full) return { ...full, ...row, _jwSummaryOnly:false };
+    return { ...row, submitted_files:[], instruction_files:[], _jwSummaryOnly:true };
+  });
+}
+
+async function jwRunTaskSummaryQuery(builder, label) {
+  const result = typeof jwPromiseTimeout === 'function'
+    ? await jwPromiseTimeout(builder, 20000, label)
+    : await builder;
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function jwLoadTaskSummaries() {
+  if (!currentUser) return [];
+  const email = String(currentUser.email || '').trim().toLowerCase();
+  const role = String(currentUser.role || '').toLowerCase();
+  const limit = jwIsMobileDeviceView?.() ? 120 : 500;
+
+  if (typeof isJwAdmin === 'function' && isJwAdmin()) {
+    return jwRunTaskSummaryQuery(
+      _sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).order('created_at', { ascending:false }).limit(limit),
+      'Workspace loading'
+    );
+  }
+
+  if (role === 'writer') {
+    const [assigned, available] = await Promise.all([
+      jwRunTaskSummaryQuery(
+        _sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).eq('taken_by', email).order('created_at', { ascending:false }).limit(limit),
+        'Assigned tasks loading'
+      ),
+      jwRunTaskSummaryQuery(
+        _sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).is('taken_by', null).eq('status', 'pending').order('created_at', { ascending:false }).limit(limit),
+        'Available tasks loading'
+      )
+    ]);
+    return typeof dedupeTasks === 'function' ? dedupeTasks([...assigned, ...available]) : [...assigned, ...available];
+  }
+
+  if (role === 'employer' || role === 'student') {
+    return jwRunTaskSummaryQuery(
+      _sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).eq('posted_by', email).order('created_at', { ascending:false }).limit(limit),
+      'Your tasks loading'
+    );
+  }
+
+  return [];
+}
+
+dbGetTasks = async function() {
+  const key = jwTaskLoadUserKey();
+  const cacheAge = Date.now() - Number(_jwTaskSummaryCache.at || 0);
+  if (_jwTaskSummaryCache.key === key && cacheAge < 5000) {
+    return jwMergeTaskSummariesWithLoadedRows(_jwTaskSummaryCache.rows);
+  }
+  if (_jwTaskSummaryFlight?.key === key) return _jwTaskSummaryFlight.promise;
+
+  const promise = jwLoadTaskSummaries()
+    .then(rows => {
+      _jwTaskSummaryCache = { key, at:Date.now(), rows:rows || [] };
+      return jwMergeTaskSummariesWithLoadedRows(rows || []);
+    })
+    .catch(err => {
+      console.warn('Workspace summary load delayed; keeping current data:', err);
+      return Array.isArray(tasks) ? tasks : [];
+    })
+    .finally(() => {
+      if (_jwTaskSummaryFlight?.promise === promise) _jwTaskSummaryFlight = null;
+    });
+
+  _jwTaskSummaryFlight = { key, promise };
+  return promise;
+};
+
+async function jwEnsureFullTaskLoaded(taskId) {
+  const id = String(taskId || '').trim();
+  if (!id || typeof _sb === 'undefined') return null;
+  const current = typeof getTaskById === 'function' ? getTaskById(id) : null;
+  if (current && current._jwSummaryOnly === false) return current;
+  if (_jwFullTaskLoads.has(id)) return _jwFullTaskLoads.get(id);
+
+  const request = _sb.from('jw_tasks').select('*').eq('id', id).maybeSingle()
+    .then(({ data, error }) => {
+      if (error) throw error;
+      if (!data) return current;
+      const full = { ...data, _jwSummaryOnly:false };
+      if (typeof upsertLocalTask === 'function') upsertLocalTask(full);
+      return full;
+    })
+    .finally(() => _jwFullTaskLoads.delete(id));
+
+  _jwFullTaskLoads.set(id, request);
+  return request;
+}
+
+if (typeof hasSubmittedWork === 'function') {
+  const _jwOriginalHasSubmittedWorkSummary = hasSubmittedWork;
+  hasSubmittedWork = function(task) {
+    if (task?._jwSummaryOnly) {
+      const status = String(task.status || '').toLowerCase();
+      return !!(task.submitted_link || task.submitted_text || task.submitted_notes || ['submitted','revision','completed'].includes(status));
+    }
+    return _jwOriginalHasSubmittedWorkSummary.apply(this, arguments);
+  };
+}
+
+if (typeof jwOpenDedicatedTaskPageOnly === 'function') {
+  const _jwOriginalOpenDedicatedTaskSummary = jwOpenDedicatedTaskPageOnly;
+  jwOpenDedicatedTaskPageOnly = function(taskId, options = {}) {
+    const result = _jwOriginalOpenDedicatedTaskSummary.apply(this, arguments);
+    jwEnsureFullTaskLoaded(taskId)
+      .then(() => {
+        if (String(_activeTaskDetailId || '') !== String(taskId || '')) return;
+        if (typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+        if (typeof jwEnsureSubmittedMaterialsInTaskPage === 'function') jwEnsureSubmittedMaterialsInTaskPage(taskId);
+      })
+      .catch(err => console.warn('Full task details could not be loaded:', err));
+    return result;
+  };
+}
+
+// Historical scans should render known notifications, not recreate every old event.
+jwScanTaskNotifications = function() {
+  try { jwRenderNotifications?.(); } catch {}
+};
+
+function jwCompactDisplayName(value) {
+  const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'User';
+  const first = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+  return parts[1] ? `${first} ${parts[1].charAt(0).toUpperCase()}.` : first;
+}
+
+if (typeof updateUserDisplay === 'function') {
+  const _jwOriginalUpdateUserDisplayCompact = updateUserDisplay;
+  updateUserDisplay = function() {
+    const result = _jwOriginalUpdateUserDisplayCompact.apply(this, arguments);
+    if (currentUser && !(typeof isJwAdmin === 'function' && isJwAdmin())) {
+      const name = document.getElementById('nav-username');
+      if (name) name.textContent = jwCompactDisplayName(currentUser.name);
+    }
+    return result;
   };
 }
 
