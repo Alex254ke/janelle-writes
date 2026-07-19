@@ -12166,6 +12166,22 @@ function handleBackButtonAction(event) {
 
   const home = getHomePage();
 
+  // Task details are a child route of the page that opened them. Restore that
+  // exact page instead of treating the task page like a top-level app section.
+  if (_currentPage === 'task-details') {
+    const saved = window.__jwStableTaskReturn;
+    const target = saved?.page && saved.page !== 'task-details' ? saved.page : home;
+    resetBackLogoutWarning();
+    _suppressHistoryPush = true;
+    navigate(target, { skipHistory:true, fromBackButton:true });
+    _suppressHistoryPush = false;
+    setAppHistory(target, 'push');
+    setTimeout(() => {
+      try { window.scrollTo({ top:Number(saved?.scrollY || 0), behavior:'auto' }); } catch {}
+    }, 80);
+    return;
+  }
+
   // If the user is inside any app page, one back press returns to dashboard/home.
   if (_currentPage && _currentPage !== home) {
     resetBackLogoutWarning();
@@ -28720,6 +28736,15 @@ if (typeof openTaskDetailsPage === 'function') {
     const id = String(taskId || '').trim();
     if (!id) return false;
 
+    const activePage = document.querySelector('.page.active')?.id?.replace(/^page-/, '') || '';
+    if (activePage && activePage !== 'task-details') {
+      window.__jwStableTaskReturn = {
+        page:activePage,
+        scrollY:window.scrollY || document.documentElement.scrollTop || 0,
+        taskId:id
+      };
+    }
+
     const now = Date.now();
     if (_jwLastTaskOpen.id === id && now - _jwLastTaskOpen.at < 700) return false;
     _jwLastTaskOpen = { id, at:now };
@@ -28762,6 +28787,30 @@ empViewTask = function(taskId) {
 openTakeOrderModal = function(taskId) {
   return openTaskDetailsPage(taskId, { sameTab:true, inPlace:true });
 };
+
+if (typeof returnFromTaskDetails === 'function') {
+  const _jwOriginalReturnFromTaskDetailsStable = returnFromTaskDetails;
+  returnFromTaskDetails = function(event) {
+    const saved = window.__jwStableTaskReturn;
+    if (!saved?.page || saved.page === 'task-details') {
+      return _jwOriginalReturnFromTaskDetailsStable.apply(this, arguments);
+    }
+
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    try {
+      if (String(location.hash || '').startsWith('#task=')) {
+        history.replaceState(history.state || {}, document.title, location.pathname + location.search);
+      }
+    } catch {}
+
+    navigate(saved.page, { replaceHistory:true });
+    setTimeout(() => {
+      try { window.scrollTo({ top:Number(saved.scrollY || 0), behavior:'auto' }); } catch {}
+    }, 80);
+    return false;
+  };
+}
 
 // Historical scans should render known notifications, not recreate every old event.
 jwScanTaskNotifications = function() {

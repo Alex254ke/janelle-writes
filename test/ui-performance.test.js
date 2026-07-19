@@ -43,3 +43,9 @@ test('task cards open details in the current app tab', () => {
   assert.match(html, /function jwOpenTaskDetailInNewTab\(taskId\) \{[\s\S]*?jwOpenDedicatedTaskPageOnly\(id, \{ sameTab:true, inPlace:true \}\)/);
   assert.match(html, /now - _jwLastTaskOpen\.at < 700/);
 });
+
+test('task back navigation restores the exact source page', () => {
+  assert.match(html, /window\.__jwStableTaskReturn = \{[\s\S]*?page:activePage/);
+  assert.match(html, /if \(_currentPage === 'task-details'\) \{[\s\S]*?navigate\(target, \{ skipHistory:true, fromBackButton:true \}\)/);
+  assert.match(html, /returnFromTaskDetails = function\(event\) \{[\s\S]*?navigate\(saved\.page, \{ replaceHistory:true \}\)/);
+});
