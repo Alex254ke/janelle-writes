@@ -7824,6 +7824,14 @@ textarea:focus-visible {
   font-size:17px;
 }
 .jw-whatsapp-widget .support-trigger-icon::after { content:none !important; display:none !important; }
+.jw-whatsapp-widget .support-trigger-icon img {
+  width:24px;
+  height:24px;
+  display:block;
+  object-fit:contain;
+  filter:invert(1);
+  mix-blend-mode:screen;
+}
 .jw-whatsapp-widget .support-trigger-copy { display:flex; align-items:center; text-align:left; }
 .jw-whatsapp-widget .support-trigger-copy strong { color:var(--ux-ink); font-size:12.5px; line-height:1; white-space:nowrap; }
 .jw-whatsapp-widget .support-trigger-copy small { display:none; }
@@ -9742,7 +9750,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
     <small>Open a chat with Janelle Writes support.</small>
   </a>
   <a class="support-trigger" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-label="Open WhatsApp support with a pre-filled message">
-    <span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span>
+    <span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span>
     <span class="support-trigger-copy"><strong>Get support</strong></span>
   </a>
 </div>
@@ -23768,7 +23776,7 @@ window.jwEnsureGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(!
 window.jwShowGlobalLoader=function(m){var o=jwEnsureGlobalLoader(),c=q('jw-global-loader-caption');if(c)c.textContent=m||'Loading...';o.classList.add('open');o.style.display='flex'};
 window.jwHideGlobalLoader=function(){var o=q('jw-global-loading-overlay');if(o){o.classList.remove('open');o.style.display='none'}};
 window.jwGlobalLoadingInline=function(m){return '<div class="jw-loader-inline"><div class="jw-blink-logo"><div class="jw-blink-mark">J</div><div class="jw-blink-text">Janelle <span>Writes!</span></div></div><div class="jw-loader-caption">'+esc(m||'Loading...')+'</div></div>'};
-window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget .support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>';el.setAttribute('aria-label','Chat with Janelle Writes support on WhatsApp');el.setAttribute('title','Get support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
+window.jwPolishFloatingSupportButton=function(){document.querySelectorAll('.floating-support-widget .support-trigger,.whatsapp-floating,.live-support-float,#floating-support').forEach(function(el){if(!el)return;el.innerHTML='<span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span><span class="support-trigger-copy"><strong>Get support</strong></span>';el.setAttribute('aria-label','Chat with Janelle Writes support on WhatsApp');el.setAttribute('title','Get support')});document.querySelectorAll('a,button').forEach(function(el){var text=String(el.textContent||'').toLowerCase(),href=String(el.getAttribute('href')||'').toLowerCase();var isWa=text.indexOf('whatsapp support')>-1||href.indexOf('wa.me')>-1||href.indexOf('api.whatsapp.com')>-1;if(!isWa)return;var floating=!!el.closest('.floating-support-widget,#floating-support,.live-support-float,.whatsapp-floating');var footer=!!el.closest('.support-footer,.support-desk,.footer-support,.support-card,#support-footer,#support-desk,footer');if(footer&&!floating){el.style.display='none';el.setAttribute('aria-hidden','true')}})};
 setTimeout(jwPolishFloatingSupportButton,100);setTimeout(jwPolishFloatingSupportButton,900);setInterval(jwPolishFloatingSupportButton,2500);
 var activeTaskId='';window.__jwTaskDetailReturn=window.__jwTaskDetailReturn||{page:'',scrollY:0,taskId:''};
 function currentPageName(){var a=document.querySelector('.page.active'),p=a&&a.id?a.id.replace(/^page-/,''):'';if(p&&p!=='task-details')return p;if(typeof _currentPage!=='undefined'&&_currentPage&&_currentPage!=='task-details')return _currentPage;return''}
@@ -23810,7 +23818,7 @@ function jwClassicSupportButton() {
 
   candidates.forEach(el => {
     if (!el) return;
-    el.innerHTML = `<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>`;
+    el.innerHTML = `<span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span><span class="support-trigger-copy"><strong>Get support</strong></span>`;
     el.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
     el.setAttribute('title', 'Get support');
   });
@@ -28031,7 +28039,7 @@ function jwIconifyTree(root = document.body) {
 function jwPolishSupportControl() {
   const trigger = document.querySelector('.jw-whatsapp-widget .support-trigger');
   if (!trigger) return;
-  trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><i class="bi bi-whatsapp"></i></span><span class="support-trigger-copy"><strong>Get support</strong></span>';
+  trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span><span class="support-trigger-copy"><strong>Get support</strong></span>';
   trigger.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
   trigger.setAttribute('title', 'Get support');
 }
