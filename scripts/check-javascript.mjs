@@ -23,7 +23,7 @@ for (const file of javascriptFiles(join(root, 'api'))) {
 }
 
 const html = readFileSync(join(root, 'index.html'), 'utf8');
-const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 let match;
 let inlineIndex = 0;
 
