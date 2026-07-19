@@ -1,0 +1,14 @@
+{
+  "name": "janelle-writes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check:js": "node --experimental-vm-modules scripts/check-javascript.mjs",
+    "check": "npm run check:js && npm test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.78.0",
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
