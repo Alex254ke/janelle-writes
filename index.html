@@ -10334,6 +10334,16 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SUBMISSIONS_BUCKET = 'jw-submissions';
 const SECURE_PROFILE_API = '/api/auth/profile';
 const JW_SAFE_USER_COLUMNS = 'id,email,name,role,created_at,profile,auth_id,updated_at,is_admin';
+const JW_TASK_SUMMARY_COLUMNS = [
+  'id','subject','level','words','pages','price_per_page','total','style','deadline',
+  'description','requirements','order_date','status','payment','mpesa_code','posted_by',
+  'posted_by_name','taken_by','taken_by_name','submitted_link','submitted_text',
+  'submitted_notes','revision_notes','revision_at','created_at','messages','ratings',
+  'disputes','commission_rate','commission_amount','writer_payout','commission_paid',
+  'admin_override_at','admin_override_by','payhero_reference','paid_at','student_order',
+  'order_type','writer_page_rate','writer_payout_estimate','student_currency_code',
+  'student_currency_symbol'
+].join(',');
 
 // Google OAuth redirect setting.
 // Leave this blank so Google returns to the same domain that started the login.
@@ -23719,35 +23729,45 @@ function jwMergeTaskRows(...groups) {
 async function jwQueryTasksSimple(builder, label, ms = 22000) {
   const result = await jwPromiseTimeout(builder, ms, label);
   if (result.error) throw result.error;
-  return result.data || [];
+  return (result.data || []).map(row => ({
+    ...row,
+    submitted_files:[],
+    instruction_files:[],
+    _jwSummaryOnly:true
+  }));
 }
 
 async function jwFastGetTasks() {
   if (!currentUser) return [];
   const email = String(currentUser.email || '').toLowerCase();
   const isAdmin = typeof isJwAdmin === 'function' && isJwAdmin();
-  const limit = jwIsMobileDeviceView() ? 300 : 1000;
+  const limit = jwIsMobileDeviceView() ? 120 : 500;
 
   if (isAdmin) {
-    return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(limit), 'Admin tasks loading', 26000);
+    return await jwQueryTasksSimple(_sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).order('created_at', { ascending: false }).limit(limit), 'Admin tasks loading', 26000);
   }
 
   if (currentUser.role === 'writer') {
     const [assigned, available] = await Promise.all([
-      jwQueryTasksSimple(_sb.from('jw_tasks').select('*').ilike('taken_by', email).order('created_at', { ascending: false }).limit(limit), 'Writer assigned tasks loading', 24000),
-      jwQueryTasksSimple(_sb.from('jw_tasks').select('*').is('taken_by', null).eq('status', 'pending').order('created_at', { ascending: false }).limit(limit), 'Writer available tasks loading', 24000)
+      jwQueryTasksSimple(_sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).eq('taken_by', email).order('created_at', { ascending: false }).limit(limit), 'Writer assigned tasks loading', 24000),
+      jwQueryTasksSimple(_sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).is('taken_by', null).eq('status', 'pending').order('created_at', { ascending: false }).limit(limit), 'Writer available tasks loading', 24000)
     ]);
     return jwMergeTaskRows(assigned, available);
   }
 
   if (currentUser.role === 'employer' || currentUser.role === 'student') {
-    return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').ilike('posted_by', email).order('created_at', { ascending: false }).limit(limit), 'User tasks loading', 24000);
+    return await jwQueryTasksSimple(_sb.from('jw_tasks').select(JW_TASK_SUMMARY_COLUMNS).eq('posted_by', email).order('created_at', { ascending: false }).limit(limit), 'User tasks loading', 24000);
   }
 
-  return await jwQueryTasksSimple(_sb.from('jw_tasks').select('*').order('created_at', { ascending: false }).limit(limit), 'Tasks loading', 24000);
+  return [];
 }
 
-dbGetTasks = async function() { return await jwFastGetTasks(); };
+let _jwFastTaskLoadPromise = null;
+dbGetTasks = async function() {
+  if (_jwFastTaskLoadPromise) return _jwFastTaskLoadPromise;
+  _jwFastTaskLoadPromise = jwFastGetTasks().finally(() => { _jwFastTaskLoadPromise = null; });
+  return _jwFastTaskLoadPromise;
+};
 
 refreshTasks = async function() {
   tasks = dedupeTasks(await dbGetTasks());
@@ -24160,6 +24180,21 @@ function jwOpenDedicatedTaskPageOnly(taskId, options = {}) {
     try { jwHideGlobalLoader(); } catch {}
     setTimeout(jwFixRenderedTaskBackButtons, 80);
   }, options.fast ? 90 : 360);
+
+  // Summary rows intentionally omit large file payloads. Load the selected
+  // task in full only after its detail page has been requested.
+  setTimeout(() => {
+    if (typeof jwFetchFreshTaskRow !== 'function') return;
+    jwFetchFreshTaskRow(id).then(fresh => {
+      if (!fresh) return;
+      fresh._jwSummaryOnly = false;
+      if (typeof upsertLocalTask === 'function') upsertLocalTask(fresh);
+      if (String(_activeTaskDetailId || '') === id) {
+        renderTaskDetailsPage();
+        try { jwEnsureSubmittedMaterialsInTaskPage?.(id); } catch {}
+      }
+    }).catch(err => console.warn('Full task details could not be loaded:', err));
+  }, 0);
 
   return false;
 }
@@ -28542,17 +28577,6 @@ if (typeof sendPesapalStkPush === 'function') {
 
 // Production performance hardening: keep the initial workspace payload small,
 // coalesce duplicate boot requests, and fetch large file payloads only on demand.
-const JW_TASK_SUMMARY_COLUMNS = [
-  'id','subject','level','words','pages','price_per_page','total','style','deadline',
-  'description','requirements','order_date','status','payment','mpesa_code','posted_by',
-  'posted_by_name','taken_by','taken_by_name','submitted_link','submitted_text',
-  'submitted_notes','revision_notes','revision_at','created_at','messages','ratings',
-  'disputes','commission_rate','commission_amount','writer_payout','commission_paid',
-  'admin_override_at','admin_override_by','payhero_reference','paid_at','student_order',
-  'order_type','writer_page_rate','writer_payout_estimate','student_currency_code',
-  'student_currency_symbol'
-].join(',');
-
 let _jwTaskSummaryFlight = null;
 let _jwTaskSummaryCache = { key:'', at:0, rows:[] };
 const _jwFullTaskLoads = new Map();
