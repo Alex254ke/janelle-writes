@@ -26649,7 +26649,7 @@ function jwSafeHref(url) {
   return 'https://' + raw;
 }
 
-async function jwResolveSubmittedFileUrl(f, expiresIn = 3600) {
+async function jwResolveSubmittedFileUrl(f, expiresIn = 3600, options = {}) {
   if (!f) throw new Error('File not found.');
 
   if (f.data_url) return f.data_url;
@@ -26673,9 +26673,13 @@ async function jwResolveSubmittedFileUrl(f, expiresIn = 3600) {
 
   if (typeof _sb === 'undefined' || !_sb?.storage) throw new Error('Storage client is not available.');
 
-  const { data, error } = await _sb.storage.from(bucket).createSignedUrl(path, expiresIn, {
-    download: jwFileDisplayName(f)
-  });
+  const signedOptions = options.download === true
+    ? { download: jwFileDisplayName(f) }
+    : undefined;
+  const storage = _sb.storage.from(bucket);
+  const { data, error } = signedOptions
+    ? await storage.createSignedUrl(path, expiresIn, signedOptions)
+    : await storage.createSignedUrl(path, expiresIn);
 
   if (error) throw error;
   if (!data?.signedUrl) throw new Error('Could not create a download link for this file.');
@@ -26693,7 +26697,7 @@ async function jwDownloadSubmittedMaterial(taskId, index) {
   const f = files[index];
 
   try {
-    const url = await jwResolveSubmittedFileUrl(f, 3600);
+    const url = await jwResolveSubmittedFileUrl(f, 3600, { download:true });
     const name = jwFileDisplayName(f, index);
 
     if (!String(url).startsWith('data:')) {
@@ -26738,11 +26742,71 @@ async function jwOpenSubmittedMaterial(taskId, index) {
   }
 
   const f = jwSubmittedFilesForTask(t)[index];
+  const previewWindow = window.open('', '_blank');
+  if (!previewWindow) {
+    notify('Please allow pop-ups for Janelle Writes, then try opening the file again.');
+    return;
+  }
+
+  const name = jwFileDisplayName(f, index);
+  const safeName = esc(name);
+  const type = String(f?.type || '').toLowerCase();
+  const ext = String(name).includes('.') ? String(name).split('.').pop().toLowerCase() : '';
+  const isImage = type.startsWith('image/') || ['png','jpg','jpeg','gif','webp'].includes(ext);
+  const isPdf = type === 'application/pdf' || ext === 'pdf';
+  const isText = type.startsWith('text/') || ['txt','csv'].includes(ext);
+  const isOffice = ['doc','docx','ppt','pptx','xls','xlsx'].includes(ext);
+
+  const writePreviewPage = (body, title = safeName) => {
+    previewWindow.document.open();
+    previewWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f8f7;color:#0b1720;font:15px/1.55 system-ui,-apple-system,sans-serif}.file-state{width:min(520px,calc(100% - 40px));padding:34px;border:1px solid #d6e5e2;border-radius:18px;background:#fff;box-shadow:0 20px 55px rgba(11,23,32,.12)}h1{margin:0 0 10px;font-size:24px}p{margin:0 0 20px;color:#5d7078}.file-action{display:inline-flex;padding:12px 18px;border-radius:10px;background:#147d73;color:#fff;text-decoration:none;font-weight:700}.loader{width:30px;height:30px;margin-bottom:18px;border:3px solid #d7e9e5;border-top-color:#147d73;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body>${body}</body></html>`);
+    previewWindow.document.close();
+  };
+
+  writePreviewPage(`<main class="file-state"><div class="loader"></div><h1>Preparing ${safeName}</h1><p>Checking your access and securely loading the submitted file.</p></main>`);
+  try { previewWindow.opener = null; } catch {}
 
   try {
-    const url = await jwResolveSubmittedFileUrl(f, 3600);
-    window.open(url, '_blank', 'noopener');
+    const url = await jwResolveSubmittedFileUrl(f, 3600, { download:false });
+    const isEmbedded = /^(data:|blob:)/i.test(String(url));
+
+    if (isText) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('The text preview could not be loaded.');
+      const fileText = await response.text();
+      writePreviewPage(`<main class="file-state" style="width:min(900px,calc(100% - 40px));"><h1>${safeName}</h1><pre style="margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 ui-monospace,monospace;">${esc(fileText)}</pre></main>`);
+      return;
+    }
+
+    if (isEmbedded) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('The embedded file could not be prepared.');
+      const objectUrl = URL.createObjectURL(await response.blob());
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 5 * 60 * 1000);
+
+      if (isImage || isPdf) {
+        previewWindow.location.replace(objectUrl);
+        return;
+      }
+
+      const embeddedMessage = isOffice
+        ? 'This Microsoft Office file is embedded securely in the task. Web browsers cannot preview embedded Office files directly. Download it below, then open it in Word, PowerPoint, or Excel.'
+        : 'This file is embedded securely in the task, but its format cannot be previewed by the browser. Download it below to open it with the correct application.';
+      writePreviewPage(`<main class="file-state"><h1>${safeName}</h1><p>${embeddedMessage}</p><a class="file-action" href="${esc(objectUrl)}" download="${safeName}">Download and open file</a></main>`);
+      return;
+    }
+
+    if (isOffice && /^https?:/i.test(String(url))) {
+      const officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
+      previewWindow.location.replace(officeUrl);
+      return;
+    }
+
+    previewWindow.location.replace(url);
   } catch (err) {
+    try {
+      writePreviewPage(`<main class="file-state"><h1>File could not be opened</h1><p>${esc(err?.message || 'The submitted file is unavailable right now.')}</p></main>`, 'File unavailable');
+    } catch {}
     notify('⚠️ ' + (err?.message || 'Could not open this submitted file.'));
   }
 }

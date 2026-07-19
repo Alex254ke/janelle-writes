@@ -58,3 +58,18 @@ test('task back navigation restores the exact source page', () => {
   assert.match(html, /if \(_currentPage === 'task-details'\) \{[\s\S]*?navigate\(target, \{ skipHistory:true, fromBackButton:true \}\)/);
   assert.match(html, /returnFromTaskDetails = function\(event\) \{[\s\S]*?navigate\(saved\.page, \{ replaceHistory:true \}\)/);
 });
+
+test('submitted file previews reserve a tab before asynchronous URL resolution', () => {
+  const start = html.indexOf('async function jwOpenSubmittedMaterial');
+  const end = html.indexOf('function jwSubmissionViewerHtml', start);
+  assert.ok(start >= 0 && end > start, 'submitted-file opener should exist');
+  const opener = html.slice(start, end);
+
+  const reserveIndex = opener.indexOf("window.open('', '_blank')");
+  const resolveIndex = opener.indexOf('await jwResolveSubmittedFileUrl');
+  assert.ok(reserveIndex >= 0 && reserveIndex < resolveIndex, 'preview tab must be reserved during the click gesture');
+  assert.doesNotMatch(opener, /window\.open\(url/);
+  assert.match(opener, /URL\.createObjectURL\(await response\.blob\(\)\)/);
+  assert.match(opener, /download:false/);
+  assert.match(html, /jwDownloadSubmittedMaterial[\s\S]*?jwResolveSubmittedFileUrl\(f, 3600, \{ download:true \}\)/);
+});
