@@ -2789,71 +2789,114 @@ body.dark-mode .google-auth-separator::after {
   position:absolute;
   inset:0;
   background:
-    linear-gradient(90deg, rgba(15,25,35,0.86) 0%, rgba(15,25,35,0.62) 46%, rgba(15,25,35,0.20) 100%),
-    linear-gradient(180deg, rgba(15,25,35,0.08), rgba(15,25,35,0.34));
+    linear-gradient(90deg, rgba(8,22,30,.92) 0%, rgba(8,22,30,.72) 44%, rgba(8,22,30,.40) 100%),
+    linear-gradient(180deg, rgba(8,22,30,.10), rgba(8,22,30,.46));
 }
 .landing-hero-content {
   position: relative;
   z-index: 1;
   min-height: calc(100vh - 132px);
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding: 52px clamp(24px, 4vw, 56px);
-  max-width: 690px;
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(340px,.72fr);
+  align-items:center;
+  gap:clamp(34px,6vw,88px);
+  padding: 58px clamp(28px, 5vw, 72px);
+  max-width:none;
   color: #fff;
 }
+.landing-hero-copy { max-width:660px; }
 .landing-kicker {
   display:inline-flex;
   align-items:center;
   gap:8px;
   padding: 9px 14px;
   border-radius:999px;
-  background: rgba(82,196,184,0.15);
-  color: #93ece1;
+  background: rgba(82,196,184,.13);
+  color: #a7f2e8;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   width: fit-content;
-  border: 1px solid rgba(255,255,255,0.10);
+  border: 1px solid rgba(167,242,232,.20);
 }
 .landing-hero-content h1 {
-  margin: 20px 0 14px;
+  margin: 22px 0 0;
   font-family:'Cormorant Garamond', serif;
-  font-size: clamp(50px, 8vw, 88px);
-  line-height: 0.94;
-  letter-spacing: -1.4px;
+  font-size: clamp(54px, 6.4vw, 84px);
+  line-height: .96;
+  letter-spacing: -1.2px;
+  text-wrap:balance;
+  text-shadow:0 12px 34px rgba(0,0,0,.22);
+}
+.landing-hero-action-card {
+  width:min(100%,440px);
+  justify-self:end;
+  padding:clamp(24px,3vw,32px);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:24px;
+  background:rgba(9,25,34,.76);
+  box-shadow:0 24px 58px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(14px);
 }
 .landing-hero-subheading {
-  color: #d9b56b;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  margin-bottom: 12px;
+  color:#a7f2e8;
+  font-size:clamp(19px,2vw,23px);
+  font-family:'Cormorant Garamond',serif;
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:.1px;
+  margin-bottom:14px;
 }
 .landing-hero-content p {
   margin: 0;
-  max-width: 520px;
-  color: rgba(255,255,255,0.82);
-  font-size: clamp(16px, 2vw, 19px);
+  max-width: none;
+  color: rgba(255,255,255,.78);
+  font-size: 15px;
   line-height: 1.72;
 }
 .landing-cta-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:24px;
+}
+.landing-cta-row .btn {
+  width:100%;
+  min-height:46px;
+  padding:11px 13px;
+  justify-content:center;
+  white-space:nowrap;
+}
+.landing-cta-row .btn-primary {
+  background:#2aa999;
+  border-color:#2aa999;
+  color:#fff;
+}
+.landing-cta-row .btn-primary:hover { background:#35b9a8; border-color:#35b9a8; }
+.landing-cta-row .btn-outline {
+  grid-column:1 / -1;
+  background:#f3eee4;
+  border-color:#f3eee4;
+  color:#17303c;
+}
+.landing-cta-row .btn-outline:hover { background:#fff; border-color:#fff; color:#0f1923; }
+.landing-hero-action-card .landing-scroll-hint {
   display:flex;
   align-items:center;
-  gap:12px;
-  flex-wrap: wrap;
-  margin-top: 26px;
+  gap:7px;
+  margin-top:18px;
+  color:rgba(255,255,255,.48);
 }
 .gold-outline-btn {
-  background: transparent;
-  border: 1.5px solid rgba(217,181,107,0.45);
-  color: #fff;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(167,242,232,.48);
+  color:#f7fffe;
 }
 .gold-outline-btn:hover {
-  background: rgba(217,181,107,0.12);
-  border-color: #d9b56b;
+  background:rgba(82,196,184,.14);
+  border-color:#a7f2e8;
   color:#fff;
 }
 .landing-btn-light {
@@ -3393,7 +3436,18 @@ body.dark-mode .google-auth-separator::after {
   }
   .landing-hero-panel,
   .landing-hero-content {
-    min-height: 76vh;
+    min-height: auto;
+  }
+  .landing-hero-panel { min-height:760px; }
+  .landing-hero-content {
+    min-height:760px;
+    grid-template-columns:1fr;
+    align-content:center;
+    gap:30px;
+  }
+  .landing-hero-action-card {
+    width:min(100%,580px);
+    justify-self:start;
   }
   .section-heading h2 {
     font-size: clamp(34px, 8vw, 48px);
@@ -3407,20 +3461,24 @@ body.dark-mode .google-auth-separator::after {
     font-size: 26px;
   }
   .landing-hero-content {
-    padding: 28px 22px 32px;
+    min-height:760px;
+    padding:38px 22px;
+    gap:26px;
   }
   .landing-hero-content h1 {
     font-size: clamp(42px, 14vw, 58px);
   }
   .landing-hero-subheading {
-    font-size: 16px;
+    font-size:20px;
   }
-  .landing-cta-row .btn,
+  .landing-cta-row { grid-template-columns:1fr; }
+  .landing-cta-row .btn-outline { grid-column:auto; }
   .final-cta-actions .btn,
   .landing-mobile-actions .btn {
     width: 100%;
     justify-content:center;
   }
+  .landing-hero-action-card { padding:22px; border-radius:20px; }
   .step-card {
     grid-template-columns: 1fr;
   }
@@ -3464,7 +3522,7 @@ body.dark-mode .google-auth-separator::after {
     width: min(1640px, calc(100% - 64px));
   }
   .landing-hero-content {
-    max-width: 760px;
+    max-width:none;
   }
   .landing-hero-content h1 {
     font-size: clamp(58px, 5.8vw, 96px);
@@ -8123,16 +8181,20 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
         <img class="landing-hero-image" src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1800&q=80" alt="Writer at a desk working on a computer">
         <div class="landing-hero-overlay"></div>
         <div class="landing-hero-content">
-          <div class="landing-kicker">A clean workspace for writers and employers</div>
-          <h1>Beautifully simple work, from order to delivery.</h1>
-          <div class="landing-hero-subheading">Focused, elegant, and built for modern writing workflows.</div>
-          <p>Post orders, connect with trusted writers, track every step, submit files, and keep communication in one polished platform.</p>
-          <div class="landing-cta-row">
-            <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
-            <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
-            <button class="btn btn-outline" onclick="openAuthScreen('signup','student')">International Student</button>
+          <div class="landing-hero-copy">
+            <div class="landing-kicker">A clean workspace for writers and employers</div>
+            <h1>Beautifully simple work, from order to delivery.</h1>
           </div>
-          <div class="landing-scroll-hint">Scroll to explore</div>
+          <div class="landing-hero-action-card">
+            <div class="landing-hero-subheading">Focused, elegant, and built for modern writing workflows.</div>
+            <p>Post orders, connect with trusted writers, track every step, submit files, and keep communication in one polished platform.</p>
+            <div class="landing-cta-row">
+              <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
+              <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
+              <button class="btn btn-outline" onclick="openAuthScreen('signup','student')">International Student</button>
+            </div>
+            <div class="landing-scroll-hint"><i class="bi bi-arrow-down" aria-hidden="true"></i> Scroll to explore</div>
+          </div>
         </div>
       </div>
     </section>
