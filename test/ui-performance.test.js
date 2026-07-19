@@ -69,7 +69,19 @@ test('submitted file previews reserve a tab before asynchronous URL resolution',
   const resolveIndex = opener.indexOf('await jwResolveSubmittedFileUrl');
   assert.ok(reserveIndex >= 0 && reserveIndex < resolveIndex, 'preview tab must be reserved during the click gesture');
   assert.doesNotMatch(opener, /window\.open\(url/);
-  assert.match(opener, /URL\.createObjectURL\(await response\.blob\(\)\)/);
+  assert.match(opener, /jwDataUrlToBlob\(url\)/);
+  assert.match(opener, /URL\.createObjectURL\(embeddedBlob\)/);
   assert.match(opener, /download:false/);
   assert.match(html, /jwDownloadSubmittedMaterial[\s\S]*?jwResolveSubmittedFileUrl\(f, 3600, \{ download:true \}\)/);
+});
+
+test('embedded Base64 files are converted locally without fetching data URLs', async () => {
+  const match = html.match(/function jwDataUrlToBlob\(dataUrl\) \{([\s\S]*?)\n\}/);
+  assert.ok(match, 'embedded-file conversion helper should exist');
+  const convert = new Function('dataUrl', match[1]);
+  const blob = convert('data:text/plain;base64,SGVsbG8gSmFuZWxsZQ==');
+
+  assert.equal(blob.type, 'text/plain');
+  assert.equal(await blob.text(), 'Hello Janelle');
+  assert.doesNotMatch(match[1], /fetch\(/);
 });
