@@ -3530,7 +3530,30 @@ body.dark-mode .google-auth-separator::after {
 }
 
 /* Education-platform hero: bright split layout with a feature bridge. */
-.landing-hero { padding:24px 0 92px; }
+.landing-trustline {
+  min-height:44px;
+  margin:10px 0 18px;
+  padding:10px 14px;
+  border:1px solid #d3e9e3;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  color:#31545a;
+  background:rgba(255,255,255,.72);
+  box-shadow:0 10px 24px rgba(19,60,57,.05);
+}
+.landing-trustline strong {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#126f64;
+  font-size:13px;
+}
+.landing-trustline strong i { font-size:16px; }
+.landing-trustline span { color:#6a7e82; font-size:12px; }
+.landing-hero { min-height:0; display:block; padding:0 0 92px; }
 .landing-hero-panel {
   min-height:0;
   overflow:visible;
@@ -3637,12 +3660,12 @@ body.dark-mode .google-auth-separator::after {
 .landing-cta-row .gold-outline-btn:hover { color:#fff; background:#0d2632; border-color:#0d2632; }
 .landing-cta-row .btn-outline {
   grid-column:auto;
-  color:#176f65;
-  background:transparent;
-  border-color:transparent;
-  box-shadow:none;
+  color:#146e64;
+  background:#fff;
+  border-color:#a8d8cf;
+  box-shadow:0 8px 20px rgba(19,86,78,.08);
 }
-.landing-cta-row .btn-outline:hover { color:#0f594f; background:#dff2ed; border-color:#c6e7df; }
+.landing-cta-row .btn-outline:hover { color:#0f594f; background:#e9f7f3; border-color:#75c2b5; }
 .landing-hero-action-card .landing-scroll-hint {
   margin-top:16px;
   color:#718489;
@@ -3739,6 +3762,7 @@ body.dark-mode .google-auth-separator::after {
 .landing-hero-feature strong { display:block; color:#17313b; font-size:12px; }
 .landing-hero-feature small { display:block; margin-top:3px; color:#7b8c90; font-size:10px; line-height:1.35; }
 @media (max-width:980px) {
+  .landing-trustline { margin-top:6px; }
   .landing-hero { padding-bottom:48px; }
   .landing-hero-panel { min-height:0; overflow:hidden; }
   .landing-hero-content {
@@ -3759,6 +3783,7 @@ body.dark-mode .google-auth-separator::after {
   .landing-hero-feature:nth-child(-n+2) { border-bottom:1px solid #e4efec; }
 }
 @media (max-width:600px) {
+  .landing-trustline { align-items:flex-start; flex-direction:column; gap:3px; margin-bottom:14px; }
   .landing-hero { padding-top:14px; }
   .landing-hero-panel { border-radius:22px; }
   .landing-hero-content { padding:34px 20px 24px; gap:28px; }
@@ -8421,6 +8446,11 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
         <span></span>
       </button>
     </header>
+
+    <div class="landing-trustline" aria-label="Janelle Writes service promise">
+      <strong><i class="bi bi-patch-check" aria-hidden="true"></i> Reliable writing support for every deadline.</strong>
+      <span>Clear workflows, secure delivery, and responsive assistance in one place.</span>
+    </div>
 
     <section class="landing-hero">
       <div class="landing-hero-panel">
