@@ -39,5 +39,7 @@ test('task cards open details in the current app tab', () => {
   assert.ok(match, 'legacy new-tab route should have a final override');
   assert.match(match[1], /openTaskDetailsPage\(taskId, \{ sameTab:true, inPlace:true \}\)/);
   assert.doesNotMatch(match[1], /window\.open/);
+  assert.doesNotMatch(html, /window\.open\(jwTaskDetailUrl/);
+  assert.match(html, /function jwOpenTaskDetailInNewTab\(taskId\) \{[\s\S]*?jwOpenDedicatedTaskPageOnly\(id, \{ sameTab:true, inPlace:true \}\)/);
   assert.match(html, /now - _jwLastTaskOpen\.at < 700/);
 });

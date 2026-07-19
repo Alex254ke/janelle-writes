@@ -24216,28 +24216,23 @@ function jwTaskDetailUrl(taskId) {
 function jwOpenTaskDetailInNewTab(taskId) {
   const id = String(taskId || '').trim();
   if (!id) return false;
-  const opened = window.open(jwTaskDetailUrl(id), '_blank');
-  if (opened) {
-    try { opened.opener = null; } catch {}
-    return false;
-  }
-
-  return jwOpenDedicatedTaskPageOnly(id, { sameTab: true });
+  return jwOpenDedicatedTaskPageOnly(id, { sameTab:true, inPlace:true });
 }
 
 openTaskDetailsPage = function(taskId, options = {}) {
-  if (options.sameTab || options.inPlace || options.fromHash || options.skipHistory) {
-    return jwOpenDedicatedTaskPageOnly(taskId, options);
-  }
-  return jwOpenTaskDetailInNewTab(taskId);
+  return jwOpenDedicatedTaskPageOnly(taskId, {
+    ...options,
+    sameTab:true,
+    inPlace:true
+  });
 };
 
 empViewTask = function(id) {
-  return jwOpenTaskDetailInNewTab(id);
+  return openTaskDetailsPage(id, { sameTab:true, inPlace:true });
 };
 
 openTakeOrderModal = function(id) {
-  return jwOpenTaskDetailInNewTab(id);
+  return openTaskDetailsPage(id, { sameTab:true, inPlace:true });
 };
 
 document.addEventListener('click', function(e) {
@@ -24263,7 +24258,7 @@ document.addEventListener('click', function(e) {
   e.preventDefault();
   e.stopPropagation();
   if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-  jwOpenTaskDetailInNewTab(id);
+  openTaskDetailsPage(id, { sameTab:true, inPlace:true });
   return false;
 }, true);
 
