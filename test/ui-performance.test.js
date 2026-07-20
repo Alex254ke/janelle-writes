@@ -29,6 +29,37 @@ test('authentication uses a responsive full-screen workspace shell', () => {
   assert.match(html, /#notification:not\(\.show\) \{[\s\S]*?visibility:hidden;/);
 });
 
+test('mobile dark mode keeps the primary authentication action visible', () => {
+  assert.match(html, /body\.dark-mode #auth-screen \.btn-primary \{[\s\S]*?color:#fff !important;[\s\S]*?background:linear-gradient\([\s\S]*?!important;/);
+  assert.match(html, /body\.dark-mode #auth-screen \.auth-tab\.active \{[\s\S]*?color:#fff;/);
+  assert.match(html, /const isSignIn = text === 'sign in';/);
+  assert.doesNotMatch(html, /const isSignIn = text === 'sign in' \|\| text\.includes\('sign in'\)/);
+});
+
+test('password recovery uses a professional return action and safe failure state', () => {
+  const returnButtons = html.match(/class="auth-return-btn" onclick="showLogin\(\)">Back to sign in<\/button>/g) || [];
+  assert.equal(returnButtons.length, 2);
+
+  const start = html.indexOf('async function doForgotPassword()');
+  const end = html.indexOf('function showPasswordResetForm', start);
+  assert.ok(start >= 0 && end > start, 'password recovery handler should exist');
+  const recovery = html.slice(start, end);
+  assert.match(recovery, /localStorage\.removeItem\('jw_password_recovery_pending'\)/);
+  assert.match(recovery, /Password reset email is temporarily unavailable/);
+  assert.doesNotMatch(recovery, /Could not send reset email:[\s\S]*err\.message/);
+  assert.doesNotMatch(recovery, /Password reset error:[\s\S]*err\.message/);
+});
+
+test('mobile navigation cannot log users out accidentally', () => {
+  const backStart = html.indexOf('function handleBackButtonAction(event)');
+  const backEnd = html.indexOf("window.addEventListener('popstate'", backStart);
+  assert.ok(backStart >= 0 && backEnd > backStart, 'back-button handler should exist');
+  assert.doesNotMatch(html.slice(backStart, backEnd), /doLogout\s*\(/);
+
+  assert.match(html, /closest\?\.\('\.btn-logout, \[onclick\*="doLogout"\], \[data-action="logout"\]'\)/);
+  assert.doesNotMatch(html, /closest\?\.\('\.btn-logout, \[onclick\*="doLogout"\], button, div, a'\)/);
+});
+
 test('initial task summaries exclude large file payload columns', () => {
   const match = html.match(/const JW_TASK_SUMMARY_COLUMNS = \[([\s\S]*?)\]\.join\(','\);/);
   assert.ok(match, 'task summary column allowlist should exist');

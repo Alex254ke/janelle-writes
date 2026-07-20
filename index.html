@@ -8547,6 +8547,91 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
 #auth-screen .btn-primary:hover { background:linear-gradient(135deg,#11897d,#0e6e66); }
 #auth-screen .google-auth-btn:hover { border-color:#93bdb7; background:#f7fffd; }
 #auth-screen .auth-login-note { margin-top:16px; }
+#auth-screen .auth-return-btn {
+  width:100%;
+  min-height:46px;
+  margin-top:16px;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:1px solid #c7d9d6 !important;
+  border-radius:12px;
+  background:rgba(255,255,255,.72) !important;
+  color:#24414a !important;
+  font:600 14px/1.2 inherit;
+  cursor:pointer;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+#auth-screen .auth-return-btn::before {
+  content:'\2190';
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  flex:0 0 26px;
+  border-radius:50%;
+  background:#e2f4f1;
+  color:#147d73;
+  font-size:16px;
+  line-height:1;
+}
+#auth-screen .auth-return-btn:hover {
+  border-color:#7fbab2 !important;
+  background:#fff !important;
+  color:#163941 !important;
+  box-shadow:0 10px 24px rgba(20,125,115,.10);
+  transform:translateY(-1px);
+}
+#auth-screen .auth-return-btn:focus-visible {
+  outline:3px solid rgba(45,169,155,.28);
+  outline-offset:2px;
+}
+body.dark-mode #auth-screen .auth-panel {
+  color:#f5fbfa;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(45,169,155,.18),transparent 34%),
+    linear-gradient(155deg,#12242c 0%,#0c1920 72%);
+}
+body.dark-mode #auth-screen .auth-panel-brand,
+body.dark-mode #auth-screen .auth-panel-title,
+body.dark-mode #auth-screen .form-label { color:#f5fbfa; }
+body.dark-mode #auth-screen .auth-panel-sub { color:#b8ccc9; }
+body.dark-mode #auth-screen .auth-tabs {
+  border-color:#35535a;
+  background:#172a31;
+}
+body.dark-mode #auth-screen .auth-tab { color:#c8d8d6; }
+body.dark-mode #auth-screen .auth-tab.active {
+  color:#fff;
+  background:#1b9185;
+}
+body.dark-mode #auth-screen .btn-primary {
+  color:#fff !important;
+  background:linear-gradient(135deg,#24ad9e,#17877d) !important;
+  border-color:#39c2b2 !important;
+  box-shadow:0 15px 32px rgba(20,183,165,.24) !important;
+  opacity:1;
+}
+body.dark-mode #auth-screen .btn-primary:hover {
+  background:linear-gradient(135deg,#2fc1b0,#1a978b) !important;
+}
+body.dark-mode #auth-screen .btn-primary:disabled { opacity:.58; }
+body.dark-mode #auth-screen .auth-return-btn {
+  border-color:#38565d !important;
+  background:#172a31 !important;
+  color:#edf8f6 !important;
+}
+body.dark-mode #auth-screen .auth-return-btn::before {
+  background:#21433f;
+  color:#5fd2c3;
+}
+body.dark-mode #auth-screen .auth-return-btn:hover {
+  border-color:#54aa9f !important;
+  background:#1b323a !important;
+  color:#fff !important;
+}
 #notification:not(.show) {
   visibility:hidden;
   pointer-events:none;
@@ -9093,9 +9178,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
       </div>
       <div id="forgot-result" style="display:none;margin-bottom:16px;padding:14px;background:#e0f5f3;border-radius:9px;font-size:13px;color:var(--teal-dark);border-left:3px solid var(--teal);line-height:1.55;"></div>
       <button class="btn btn-primary btn-full" onclick="doForgotPassword()">Send Reset Link →</button>
-      <div class="auth-switch" style="margin-top:16px;">
-        <a onclick="showLogin()">← Back to Sign In</a>
-      </div>
+      <button type="button" class="auth-return-btn" onclick="showLogin()">Back to sign in</button>
     </div>
 
     <!-- SECURE PASSWORD RESET FORM -->
@@ -9113,9 +9196,7 @@ body:has(#auth-screen[style*="display: flex"]) .jw-whatsapp-widget .support-trig
       </div>
       <div id="reset-result" style="display:none;margin-bottom:16px;padding:14px;background:#e0f5f3;border-radius:9px;font-size:13px;color:var(--teal-dark);border-left:3px solid var(--teal);line-height:1.55;"></div>
       <button class="btn btn-primary btn-full" onclick="doUpdatePassword()">Update Password →</button>
-      <div class="auth-switch" style="margin-top:16px;">
-        <a onclick="showLogin()">← Back to Sign In</a>
-      </div>
+      <button type="button" class="auth-return-btn" onclick="showLogin()">Back to sign in</button>
     </div>
 
     <!-- SIGNUP FORM -->
@@ -11976,7 +12057,7 @@ async function doForgotPassword() {
   resultEl.style.background = 'var(--teal-pale)';
   resultEl.style.borderLeftColor = 'var(--teal)';
   resultEl.style.color = 'var(--teal-dark)';
-  resultEl.innerHTML = '⏳ Sending secure password reset link…';
+  resultEl.textContent = 'Sending a secure password reset link…';
 
   setLoading(true);
   try {
@@ -11999,12 +12080,20 @@ async function doForgotPassword() {
     notify('📨 Password reset email sent if the account exists.');
   } catch (err) {
     setLoading(false);
+    localStorage.removeItem('jw_password_recovery_pending');
+    localStorage.removeItem('jw_password_recovery_email');
+    console.error('[auth:password-reset] Recovery email request failed', {
+      name: typeof err?.name === 'string' ? err.name : 'AuthError',
+      message: typeof err?.message === 'string' ? err.message : 'No readable error message',
+      status: Number.isFinite(Number(err?.status)) ? Number(err.status) : null,
+      code: typeof err?.code === 'string' ? err.code : null
+    });
     resultEl.style.display = '';
     resultEl.style.background = '#fce8e6';
     resultEl.style.borderLeftColor = 'var(--danger)';
     resultEl.style.color = 'var(--danger)';
-    resultEl.innerHTML = '❌ Could not send reset email: ' + esc(err.message);
-    notify('❌ Password reset error: ' + err.message);
+    resultEl.textContent = 'Password reset email is temporarily unavailable. Please try again later or contact support.';
+    notify('Password reset email is temporarily unavailable.');
   }
 }
 
@@ -12394,19 +12483,11 @@ function handleBackButtonAction(event) {
     return;
   }
 
-  // If already at dashboard, the first back press is a warning only.
-  if (!_backLogoutArmed) {
-    _backLogoutArmed = true;
-    setAppHistory(home, 'push');
-    notify('⚠️ Press back again to log out and return to the login page.');
-    return;
-  }
-
-  // Third action: user intentionally confirmed by pressing back again.
-  _backLogoutArmed = false;
-  _appHistoryReady = false;
-  try { history.replaceState({ jwApp: false, page: 'login' }, '', window.location.pathname + window.location.search + '#login'); } catch (err) {}
-  doLogout();
+  // Back navigation must never end an authenticated session. Keep the user on
+  // their dashboard and require the explicit Sign Out control for logout.
+  resetBackLogoutWarning();
+  setAppHistory(home, 'push');
+  notify('You are at your dashboard. Use Sign Out to end your session.');
 }
 
 window.addEventListener('popstate', handleBackButtonAction);
@@ -21531,7 +21612,7 @@ renderStudentDashboard = function() {
       const text = (el.textContent || '').trim().toLowerCase();
       const onclick = (el.getAttribute('onclick') || '').toLowerCase();
       const href = (el.getAttribute('href') || '').toLowerCase();
-      const isSignIn = text === 'sign in' || text.includes('sign in');
+      const isSignIn = text === 'sign in';
       const opensLogin = onclick.includes('login') || onclick.includes('openauthscreen') || href.includes('login');
       if (isSignIn && (isMobileMenuElement(el) || opensLogin)) {
         el.classList.add('mobile-signin-strong');
@@ -22967,15 +23048,11 @@ if (typeof launchApp === 'function' && !launchApp.__jwMobileFastPatched) {
 // Make mobile logout work even if the sidebar overlay captures the normal onclick.
 function jwLooksLikeLogoutElement(el) {
   if (!el) return false;
-  const text = String(el.textContent || '').trim().toLowerCase();
   const onclick = String(el.getAttribute?.('onclick') || '').toLowerCase();
   return (
     el.classList?.contains('btn-logout') ||
-    onclick.includes('dologout') ||
-    text === 'sign out' ||
-    text.includes('sign out') ||
-    text.includes('log out') ||
-    text.includes('logout')
+    el.getAttribute?.('data-action') === 'logout' ||
+    onclick.includes('dologout')
   );
 }
 
@@ -23001,7 +23078,7 @@ async function jwForceMobileLogout(event) {
 
 ['click', 'touchend', 'pointerup'].forEach(eventName => {
   document.addEventListener(eventName, function(e) {
-    const el = e.target.closest?.('.btn-logout, [onclick*="doLogout"], button, div, a');
+    const el = e.target.closest?.('.btn-logout, [onclick*="doLogout"], [data-action="logout"]');
     if (!el || !jwLooksLikeLogoutElement(el)) return;
     jwForceMobileLogout(e);
   }, true);
