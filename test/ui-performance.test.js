@@ -29,6 +29,16 @@ test('authentication uses a responsive full-screen workspace shell', () => {
   assert.match(html, /#notification:not\(\.show\) \{[\s\S]*?visibility:hidden;/);
 });
 
+test('first-time visitors have a resilient Supabase browser-client load path', () => {
+  assert.match(html, /cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.110\.7\/dist\/umd\/supabase\.js/);
+  assert.match(html, /unpkg\.com\/@supabase\/supabase-js@2\.110\.7\/dist\/umd\/supabase\.js/);
+  assert.match(html, /window\.__jwBootFallbackTimer = window\.setTimeout/);
+  assert.match(html, /clearTimeout\(window\.__jwBootFallbackTimer\)/);
+
+  const vercelConfig = readFileSync(new URL('../vercel.json', import.meta.url), 'utf8');
+  assert.match(vercelConfig, /script-src[^"\n]*https:\/\/unpkg\.com/);
+});
+
 test('mobile dark mode keeps the primary authentication action visible', () => {
   assert.match(html, /body\.dark-mode #auth-screen \.btn-primary \{[\s\S]*?color:#fff !important;[\s\S]*?background:linear-gradient\([\s\S]*?!important;/);
   assert.match(html, /body\.dark-mode #auth-screen \.auth-tab\.active \{[\s\S]*?color:#fff;/);

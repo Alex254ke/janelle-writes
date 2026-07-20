@@ -18,11 +18,16 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
-<!-- Supabase JS client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase JS client: use a pinned browser build and a second CDN if the first is unavailable. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7/dist/umd/supabase.js" onerror="document.write('<script src=&quot;https://unpkg.com/@supabase/supabase-js@2.110.7/dist/umd/supabase.js&quot;><\\/script>')"></script>
 <script>
   try { history.scrollRestoration = 'manual'; } catch (err) {}
   document.documentElement.classList.add('jw-booting');
+  // Never leave first-time visitors on a blank page if a third-party script is
+  // blocked by their network, privacy extension, or a transient CDN outage.
+  window.__jwBootFallbackTimer = window.setTimeout(() => {
+    document.documentElement.classList.remove('jw-booting');
+  }, 4500);
 </script>
 <style>
 :root {
@@ -10916,6 +10921,7 @@ function checkGoogleRedirectSetup() {
 }
 
 function finishInitialPageBoot(scrollTop = true) {
+  try { clearTimeout(window.__jwBootFallbackTimer); } catch (err) {}
   document.documentElement.classList.remove('jw-booting');
   if (scrollTop) {
     try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (err) { window.scrollTo(0, 0); }
