@@ -8936,6 +8936,24 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   }
 }
 
+/* Signed-in mobile support stays above the thumb navigation. The navigation
+   deliberately has the higher stacking level, so its More action remains
+   usable even in unusual viewport/safe-area combinations. */
+@media (max-width:760px) {
+  #app-shell:not([style*="display: none"]) ~ .floating-support-widget.jw-whatsapp-widget {
+    right:max(16px,env(safe-area-inset-right)) !important;
+    bottom:calc(var(--mobile-nav-height) + 28px + env(safe-area-inset-bottom)) !important;
+    z-index:205 !important;
+  }
+  #app-shell:not([style*="display: none"]) ~ .floating-support-widget.jw-whatsapp-widget .support-trigger {
+    width:50px !important;
+    min-width:50px !important;
+    height:50px !important;
+    min-height:50px !important;
+    padding:4px !important;
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>

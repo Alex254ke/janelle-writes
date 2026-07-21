@@ -29,6 +29,12 @@ test('mobile experience includes thumb navigation and production touch targets',
   assert.match(html, /#auth-screen \.form-input, #auth-screen \.form-select \{ min-height:50px/);
 });
 
+test('signed-in mobile support stays clear of bottom navigation', () => {
+  assert.match(html, /#app-shell:not\(\[style\*="display: none"\]\) ~ \.floating-support-widget\.jw-whatsapp-widget \{[\s\S]*?bottom:calc\(var\(--mobile-nav-height\) \+ 28px \+ env\(safe-area-inset-bottom\)\) !important;/);
+  assert.match(html, /#app-shell:not\(\[style\*="display: none"\]\) ~ \.floating-support-widget\.jw-whatsapp-widget \{[\s\S]*?z-index:205 !important;/);
+  assert.match(html, /\.mobile-app-nav \{[\s\S]*?z-index:210;/);
+});
+
 test('mobile landing header provides immediate sign-in and sign-up actions', () => {
   assert.match(html, /class="landing-mobile-header-actions" aria-label="Account actions"/);
   assert.match(html, /class="mobile-header-auth" onclick="openAuthScreen\('login'\)">Sign In<\/button>/);
