@@ -36,6 +36,19 @@ test('mobile landing header provides immediate sign-in and sign-up actions', () 
   assert.match(html, /#landing-page \.landing-mobile-header-actions \{[\s\S]*?display:flex/);
 });
 
+test('mobile header contains the wordmark across browser font metrics', () => {
+  assert.match(html, /grid-template-columns:minmax\(0,1fr\) max-content 44px/);
+  assert.match(html, /#landing-page \.landing-nav > \.landing-brand \{[\s\S]*?overflow:hidden/);
+  assert.match(html, /#landing-page \.landing-nav > \.landing-brand \.landing-brand-text \{[\s\S]*?max-width:100%;[\s\S]*?overflow:hidden/);
+});
+
+test('workspace animation releases quickly while data continues in background', () => {
+  assert.match(html, /function jwLoadWorkspaceInBackground\(reason = 'login'\)/);
+  assert.match(html, /jwRefreshDashboardAfterLogin = function\(reason = 'login'\)/);
+  assert.match(html, /setTimeout\(jwReleaseWorkspaceAnimation, 1400\)/);
+  assert.match(html, /Math\.max\(0, 650 - \(Date\.now\(\) - startedAt\)\)/);
+});
+
 test('authentication uses a responsive full-screen workspace shell', () => {
   assert.match(html, /<div id="auth-screen"[^>]*>\s*<div class="auth-shell">/);
   assert.match(html, /\.auth-shell \{[\s\S]*?width:100%;[\s\S]*?height:100vh;[\s\S]*?grid-template-columns:[^;]+;/);

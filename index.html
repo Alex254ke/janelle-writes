@@ -8878,6 +8878,64 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   #landing-page .landing-brand-text { display:none; }
 }
 
+/* Cross-browser mobile header containment. Chrome and Firefox can calculate the
+   display font a little differently, so reserve explicit columns and never let
+   the wordmark paint underneath the account controls. */
+@media (max-width:760px) {
+  #landing-page .landing-nav {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) max-content 44px;
+    align-items:center;
+    column-gap:8px;
+  }
+  #landing-page .landing-nav > .landing-brand {
+    width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+  #landing-page .landing-nav > .landing-brand .landing-brand-text {
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:clip;
+    font-size:clamp(18px,5.35vw,23px);
+  }
+  #landing-page .landing-mobile-header-actions {
+    min-width:max-content;
+    margin-left:0;
+    flex:0 0 auto;
+  }
+  #landing-page .landing-menu-btn {
+    width:44px;
+    min-width:44px;
+    justify-self:end;
+  }
+}
+
+@media (max-width:390px) {
+  #landing-page .landing-nav {
+    grid-template-columns:minmax(0,1fr) max-content 40px;
+    column-gap:6px;
+  }
+  #landing-page .landing-nav > .landing-brand { gap:7px; }
+  #landing-page .landing-nav > .landing-brand .landing-brand-mark {
+    width:36px;
+    height:36px;
+  }
+  #landing-page .landing-mobile-header-actions { gap:4px; }
+  #landing-page .landing-mobile-header-actions .mobile-header-auth {
+    min-height:38px;
+    padding-inline:7px;
+    font-size:10px;
+  }
+  #landing-page .landing-menu-btn {
+    width:40px;
+    min-width:40px;
+    height:40px;
+  }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -29468,6 +29526,120 @@ if (typeof updateUserDisplay === 'function') {
     return result;
   };
 }
+
+/* Fast, resilient workspace transition.
+   Keep the branded animation for a short, intentional hand-off, then reveal
+   the workspace even on a slow mobile connection while data finishes in the
+   background. This replaces the legacy strict boot's sequential, blocking
+   profile/task waits and coalesces all duplicate launch refreshes. */
+let _jwWorkspaceBackgroundFlight = null;
+let _jwWorkspaceAnimationTimer = null;
+
+function jwReleaseWorkspaceAnimation() {
+  clearTimeout(_jwWorkspaceAnimationTimer);
+  _jwWorkspaceAnimationTimer = null;
+  __jwStrictWorkspaceBootCompleted = true;
+  __jwStrictWorkspaceBootRunning = false;
+  document.body.classList.remove('jw-workspace-booting');
+  document.body.classList.add('jw-workspace-ready');
+  try { jwStrictHideWorkspaceLoader(); } catch {
+    try { jwHideWorkspaceLoader(0); } catch {}
+    try { jwHideGlobalLoader(); } catch {}
+  }
+}
+
+function jwApplyBackgroundWorkspaceResults(profileResult, taskResult) {
+  if (profileResult?.status === 'fulfilled' && profileResult.value?.email && currentUser) {
+    const profile = profileResult.value;
+    const previousRole = currentUser.role;
+    const authUser = {
+      email:currentUser.email,
+      name:currentUser.name,
+      role:currentUser.role,
+      provider:currentUser.provider || 'email'
+    };
+    try {
+      saveCurrentSessionUser(platformUserFromRecord(profile, authUser, profile.role || currentUser.role));
+      refreshAppChromeAfterProfileUpdate(previousRole);
+    } catch (err) {
+      console.warn('Background profile render skipped:', err);
+    }
+  }
+
+  if (taskResult?.status === 'fulfilled') {
+    tasks = typeof dedupeTasks === 'function'
+      ? dedupeTasks(taskResult.value || [])
+      : (taskResult.value || []);
+  }
+
+  try { updateBadges(); } catch {}
+  try {
+    const target = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
+    if (target && document.getElementById('page-' + target)) {
+      navigate(target, { skipHistory:true });
+    }
+  } catch (err) {
+    console.warn('Background workspace render skipped:', err);
+  }
+}
+
+function jwLoadWorkspaceInBackground(reason = 'login') {
+  if (!currentUser) return Promise.resolve([]);
+  if (_jwWorkspaceBackgroundFlight) return _jwWorkspaceBackgroundFlight;
+
+  const profileRequest = currentUser.email && typeof dbGetUserByEmail === 'function'
+    ? dbGetUserByEmail(currentUser.email)
+    : Promise.resolve(null);
+  const taskRequest = typeof jwLoadTaskSummaries === 'function'
+    ? jwLoadTaskSummaries()
+    : (typeof dbGetTasks === 'function' ? dbGetTasks() : Promise.resolve([]));
+
+  const flight = Promise.allSettled([profileRequest, taskRequest])
+    .then(([profileResult, taskResult]) => {
+      jwApplyBackgroundWorkspaceResults(profileResult, taskResult);
+      if (profileResult.status === 'rejected') console.warn('Workspace profile refresh delayed:', profileResult.reason);
+      if (taskResult.status === 'rejected') console.warn('Workspace task refresh delayed:', taskResult.reason);
+      return taskResult.status === 'fulfilled' ? taskResult.value : (Array.isArray(tasks) ? tasks : []);
+    })
+    .finally(() => {
+      if (_jwWorkspaceBackgroundFlight === flight) _jwWorkspaceBackgroundFlight = null;
+    });
+
+  _jwWorkspaceBackgroundFlight = flight;
+  return flight;
+}
+
+// Legacy launch wrappers call this several times. They now share one quiet
+// background request and never reopen the full-screen loader.
+jwRefreshDashboardAfterLogin = function(reason = 'login') {
+  return jwLoadWorkspaceInBackground(reason);
+};
+
+// Preserve the animation for at least 650 ms, but never block the workspace for
+// more than 1.4 seconds. Data may safely finish after the shell is interactive.
+jwStrictWorkspaceBoot = function(reason = 'login') {
+  if (!currentUser) {
+    jwReleaseWorkspaceAnimation();
+    return Promise.resolve([]);
+  }
+  if (__jwStrictWorkspaceBootRunning) return _jwWorkspaceBackgroundFlight || Promise.resolve(tasks || []);
+
+  __jwStrictWorkspaceBootRunning = true;
+  __jwStrictWorkspaceBootCompleted = false;
+  jwStrictShowWorkspaceLoader('Loading your workspace...');
+
+  const startedAt = Date.now();
+  const work = jwLoadWorkspaceInBackground(reason);
+  const release = () => {
+    const remaining = Math.max(0, 650 - (Date.now() - startedAt));
+    clearTimeout(_jwWorkspaceAnimationTimer);
+    _jwWorkspaceAnimationTimer = setTimeout(jwReleaseWorkspaceAnimation, remaining);
+  };
+
+  work.then(release, release);
+  _jwWorkspaceAnimationTimer = setTimeout(jwReleaseWorkspaceAnimation, 1400);
+  return work;
+};
 
 </script>
 
