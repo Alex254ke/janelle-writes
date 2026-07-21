@@ -8684,6 +8684,176 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   #auth-screen .form-select { font-size:16px; }
 }
 
+/* ===== MOBILE PRODUCT EXPERIENCE =====
+   Phone layouts use their own rhythm and navigation instead of shrinking the
+   desktop interface. Keep this final so older responsive rules cannot dilute
+   touch targets or reintroduce horizontal overflow. */
+.mobile-app-nav { display:none; }
+
+@media (max-width:760px) {
+  :root { --mobile-gutter:16px; --mobile-nav-height:72px; }
+  html { scroll-padding-top:78px; overflow-x:hidden; }
+  body { min-width:0; overflow-x:hidden; -webkit-tap-highlight-color:transparent; }
+  button, a, input, select, textarea { touch-action:manipulation; }
+  .btn { min-height:46px; border-radius:13px; }
+
+  #landing-page { background:linear-gradient(180deg,#effaf7 0,#f8fbfa 34%,#fff 100%); }
+  #landing-page .landing-shell { width:100%; padding:0 12px; }
+  #landing-page .landing-nav {
+    position:sticky; top:0; z-index:120; min-height:68px; padding:10px 4px;
+    background:rgba(242,250,248,.94); border-bottom:1px solid rgba(42,157,143,.12);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  }
+  #landing-page .landing-brand { min-width:0; gap:10px; }
+  #landing-page .landing-brand-mark { width:40px; height:40px; border-radius:13px; font-size:22px; }
+  #landing-page .landing-brand-text { font-size:23px; white-space:nowrap; }
+  #landing-page .landing-menu-btn { width:44px; height:44px; border:1px solid #cde5df; border-radius:14px; background:#fff; }
+  #landing-page .landing-trustline {
+    min-height:0; margin:10px 0 12px; padding:10px 12px; border-radius:13px;
+    align-items:flex-start; flex-direction:column; gap:2px;
+  }
+  #landing-page .landing-trustline strong { font-size:12px; line-height:1.4; }
+  #landing-page .landing-trustline span { display:none; }
+  #landing-page .landing-hero { padding:0 0 8px; }
+  #landing-page .landing-hero-panel { border-radius:22px; overflow:hidden; box-shadow:0 18px 44px rgba(19,60,57,.11); }
+  #landing-page .landing-hero-content { display:flex; flex-direction:column; min-height:0; gap:24px; padding:28px 18px 20px; }
+  #landing-page .landing-kicker { width:fit-content; padding:7px 10px; font-size:10px; line-height:1.35; letter-spacing:.7px; }
+  #landing-page .landing-hero-content h1 {
+    margin:14px 0 12px; max-width:12ch; font-size:clamp(38px,11.5vw,50px); line-height:.98; letter-spacing:-.7px;
+  }
+  #landing-page .landing-hero-subheading { margin-bottom:8px; font-size:15px; line-height:1.45; }
+  #landing-page .landing-hero-content p { font-size:14px; line-height:1.65; }
+  #landing-page .landing-cta-row { display:grid; grid-template-columns:1fr; gap:10px; margin-top:20px; }
+  #landing-page .landing-cta-row .btn { width:100%; min-height:50px; justify-content:center; font-size:14px; }
+  #landing-page .landing-hero-visual { order:-1; min-height:265px; border-radius:18px; }
+  #landing-page .landing-hero-badge { padding:9px 10px; border-radius:12px; max-width:166px; }
+  #landing-page .landing-hero-badge i { width:31px; height:31px; }
+  #landing-page .landing-hero-badge strong { font-size:11px; }
+  #landing-page .landing-hero-badge small { font-size:9px; }
+  #landing-page .landing-hero-feature-strip {
+    width:auto; margin:12px 0 0; grid-template-columns:1fr 1fr; border-radius:18px;
+    box-shadow:0 14px 34px rgba(19,60,57,.09);
+  }
+  #landing-page .landing-hero-feature { min-height:82px; padding:13px 11px; gap:9px; border-bottom:1px solid #e4efec; }
+  #landing-page .landing-hero-feature:nth-child(odd) { border-right:1px solid #e4efec; }
+  #landing-page .landing-hero-feature:nth-child(even) { border-right:0; }
+  #landing-page .landing-hero-feature:nth-last-child(-n+2) { border-bottom:0; }
+  #landing-page .landing-hero-feature i { width:34px; height:34px; border-radius:11px; }
+  #landing-page .landing-hero-feature strong { font-size:11px; }
+  #landing-page .landing-hero-feature small { font-size:9px; }
+  #landing-page .landing-section { padding:52px 4px; }
+  #landing-page .section-heading { margin-bottom:24px; }
+  #landing-page .section-heading h2 { font-size:clamp(32px,9vw,42px); line-height:1.04; }
+  #landing-page .section-heading p { font-size:14px; line-height:1.65; }
+  #landing-page .landing-how, #landing-page .landing-role-grid { gap:16px; }
+  #landing-page .step-card, #landing-page .feature-cell, #landing-page .landing-review-card { border-radius:18px; }
+  #landing-page .step-card { padding:20px 17px; grid-template-columns:42px 1fr; }
+  #landing-page .role-bleed-card { min-height:390px; border-radius:20px; }
+  #landing-page .role-reveal { padding:22px 18px; }
+  #landing-page .gallery-scroll-wrap { margin:0 -12px; padding:0 12px 8px; scroll-snap-type:x mandatory; }
+  #landing-page .gallery-strip { min-width:0; display:flex; gap:12px; }
+  #landing-page .gallery-strip > * { flex:0 0 78vw; scroll-snap-align:start; }
+  #landing-page .landing-footer { padding:36px 18px 92px; border-radius:24px 24px 0 0; }
+  #landing-page .footer-grid { gap:28px; }
+  #landing-page .landing-mobile-menu { padding:calc(18px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom)); }
+  #landing-page .landing-mobile-top { padding-bottom:18px; border-bottom:1px solid rgba(18,73,70,.12); }
+  #landing-page .landing-mobile-close { width:44px; height:44px; border-radius:14px; background:#eef7f5; }
+  #landing-page .landing-mobile-links { gap:4px; padding:16px 0; }
+  #landing-page .landing-mobile-links a { min-height:48px; display:flex; align-items:center; padding:0 12px; border-radius:12px; font-size:16px; }
+  #landing-page .landing-mobile-links a:active { background:#e5f3ef; }
+  #landing-page .landing-mobile-actions { gap:10px; }
+  #landing-page .landing-mobile-actions .btn { width:100%; min-height:50px; justify-content:center; }
+
+  #auth-screen { min-height:100dvh; background:#f7faf9 !important; }
+  #auth-screen .auth-shell { min-height:100dvh; }
+  #auth-screen .auth-panel {
+    width:100%; min-height:100dvh; padding:calc(20px + env(safe-area-inset-top)) 18px calc(34px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,#fff 0,#f7faf9 100%);
+  }
+  #auth-screen .auth-panel > * { width:100%; max-width:500px; }
+  #auth-screen .auth-panel-brand { margin-bottom:20px; }
+  #auth-screen .auth-back-wrap { margin-bottom:16px; }
+  #auth-screen .auth-back-link { min-height:42px; padding:0 10px; margin-left:-10px; }
+  #auth-screen .auth-panel-header { margin-bottom:20px; }
+  #auth-screen .auth-panel-title { font-size:clamp(34px,10vw,42px); line-height:1.02; }
+  #auth-screen .auth-tabs { position:sticky; top:0; z-index:4; padding:5px; border-radius:15px; }
+  #auth-screen .auth-tab { min-height:44px; }
+  #auth-screen .form-group { margin-bottom:16px; }
+  #auth-screen .form-input, #auth-screen .form-select { min-height:50px; border-radius:13px; font-size:16px; }
+  #auth-screen .btn-primary, #auth-screen .google-auth-btn, #auth-screen .auth-return-btn { min-height:50px; border-radius:13px; }
+  #auth-screen .auth-role-select { gap:9px; }
+  #auth-screen .role-card { padding:14px; border-radius:14px; text-align:left; }
+
+  #app-shell { min-height:100dvh; }
+  #app-shell .main { width:100%; min-width:0; padding-bottom:calc(var(--mobile-nav-height) + 24px + env(safe-area-inset-bottom)); }
+  #app-shell .topbar {
+    position:sticky; top:0; z-index:90; height:64px; padding:0 var(--mobile-gutter);
+    background:rgba(255,255,255,.94); border-bottom:1px solid var(--border);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  #app-shell .topbar-left { min-width:0; gap:10px; }
+  #app-shell .mobile-menu-btn { width:42px; height:42px; flex:0 0 auto; border-radius:13px; }
+  #app-shell .topbar-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:17px; }
+  #app-shell .topbar-actions { gap:7px; }
+  #app-shell .topbar-actions > .btn:not(.btn-primary):not(.dark-toggle-btn) { display:none; }
+  #app-shell .topbar-actions > .btn { min-width:40px; min-height:40px; padding:8px 10px; border-radius:12px; font-size:11px; }
+  #app-shell .dark-toggle-label { display:none; }
+  #app-shell .content { width:100%; padding:18px var(--mobile-gutter) 28px; }
+  #app-shell .section-header { align-items:flex-start; flex-direction:column; gap:14px; margin-bottom:18px; }
+  #app-shell .section-header > .btn, #app-shell .section-header > div + .btn { width:100%; justify-content:center; }
+  #app-shell .section-title { font-size:clamp(27px,8vw,36px); line-height:1.04; }
+  #app-shell .text-muted { font-size:12px; line-height:1.55; }
+  #app-shell .hero-banner { padding:24px 18px; border-radius:20px; }
+  #app-shell .hero-text h1 { font-size:31px; }
+  #app-shell .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  #app-shell .stat-card { min-width:0; padding:16px 13px; border-radius:16px; }
+  #app-shell .stat-value { font-size:27px; }
+  #app-shell .quick-actions, #app-shell .orders-grid, #app-shell .features-grid { grid-template-columns:1fr; gap:12px; }
+  #app-shell .quick-action, #app-shell .order-card, #app-shell .task-card, #app-shell .card, #app-shell .form-card,
+  #app-shell .dashboard-panel, #app-shell .guide-card { border-radius:18px; }
+  #app-shell .dashboard-panel { padding:22px 17px; }
+  #app-shell .dashboard-check { padding:12px; }
+  #app-shell .form-grid { grid-template-columns:1fr; gap:14px; }
+  #app-shell .form-input, #app-shell .form-select, #app-shell textarea { min-height:48px; font-size:16px; }
+  #app-shell .table-wrap, #app-shell .admin-table-wrap { margin-left:calc(-1 * var(--mobile-gutter)); margin-right:calc(-1 * var(--mobile-gutter)); padding:0 var(--mobile-gutter) 8px; overflow-x:auto; }
+  #app-shell table { min-width:680px; }
+  #app-shell .submission-file-card, #app-shell .instruction-file-card { align-items:flex-start; padding:13px; }
+  #app-shell .submission-file-actions { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+  #app-shell .submission-file-actions .btn { width:100%; justify-content:center; }
+  #app-shell .message-sidebar, #app-shell .message-panel { padding:14px; border-radius:18px; }
+  #app-shell .message-thread { min-height:48dvh; max-height:58dvh; }
+  #app-shell .message-composer .btn { width:100%; justify-content:center; }
+  #app-shell .profile-layout { gap:14px; }
+
+  .mobile-app-nav {
+    position:fixed; left:10px; right:10px; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:210;
+    height:var(--mobile-nav-height); display:grid; grid-template-columns:repeat(4,1fr); align-items:stretch;
+    padding:6px; border:1px solid rgba(185,211,205,.86); border-radius:22px;
+    background:rgba(255,255,255,.96); box-shadow:0 16px 46px rgba(15,40,48,.20);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  }
+  .mobile-app-nav button {
+    min-width:0; border:0; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; color:#667b80; background:transparent; font:700 10px/1 'DM Sans',sans-serif; cursor:pointer;
+  }
+  .mobile-app-nav button i { font-size:20px; line-height:1; }
+  .mobile-app-nav button.active { color:#126f64; background:#e1f3ef; }
+  .mobile-app-nav button:active { transform:scale(.96); }
+  body.dark-mode .mobile-app-nav { background:rgba(16,36,44,.97); border-color:rgba(120,184,174,.25); }
+  body.dark-mode .mobile-app-nav button { color:#9fb4b3; }
+  body.dark-mode .mobile-app-nav button.active { color:#d8fff7; background:rgba(42,157,143,.22); }
+  #app-shell:not([style*="display: none"]) ~ .floating-support-widget { bottom:calc(94px + env(safe-area-inset-bottom)); }
+  .jw-whatsapp-widget .support-trigger { min-width:52px; min-height:52px; }
+}
+
+@media (max-width:380px) {
+  #landing-page .landing-brand-text { font-size:20px; }
+  #landing-page .landing-hero-content h1 { font-size:37px; }
+  #landing-page .landing-hero-feature { padding:11px 9px; }
+  #app-shell .stats-grid { grid-template-columns:1fr; }
+  #app-shell .topbar-actions > .btn-primary { display:none; }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -9352,6 +9522,8 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     </div>
     <div class="topbar-actions" id="topbar-actions"></div>
   </div>
+
+  <nav class="mobile-app-nav" id="mobile-app-nav" aria-label="Mobile workspace navigation"></nav>
 
 
   <!-- PLATFORM GUIDE -->
@@ -12545,6 +12717,7 @@ function launchApp(options = {}) {
 //  SIDEBAR / NAV
 // ══════════════════════════════════════════════════════
 function buildSidebar() {
+  setTimeout(renderMobileAppNav, 0);
   const nav = document.getElementById('sidebar-nav');
   if (isJwAdmin()) {
     nav.innerHTML = `
@@ -13088,6 +13261,7 @@ function navigate(page, options = {}) {
   if (el) el.classList.add('active');
   document.getElementById('page-title').textContent = pageTitles[page] || 'Janelle Writes';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  document.querySelectorAll('#mobile-app-nav [data-mobile-page]').forEach(n => n.classList.toggle('active', n.dataset.mobilePage === page));
   closeMobileMenu();
   if (currentUser && !options.skipHistory) setAppHistory(page, options.replaceHistory ? 'replace' : 'push');
 
@@ -16720,6 +16894,53 @@ function recoveryRedirectUrl() {
   // Supabase appends its own recovery parameters. Supplying a fragment here can
   // hide or replace those parameters in client-only implicit flows.
   return canonicalSiteBase();
+}
+
+function renderMobileAppNav() {
+  const nav = document.getElementById('mobile-app-nav');
+  if (!nav || !currentUser) return;
+
+  let home = 'writer-dashboard';
+  let tasksPage = 'writer-available';
+  let tasksLabel = 'Find work';
+  let tasksIcon = 'briefcase';
+  let messagesAction = "openMessagesInbox()";
+
+  if (isJwAdmin()) {
+    home = 'admin-control';
+    tasksPage = 'admin-student-orders';
+    tasksLabel = 'Orders';
+    tasksIcon = 'clipboard-data';
+    messagesAction = "navigate('admin-student-messages')";
+  } else if (currentUser.role === 'student') {
+    home = 'student-dashboard';
+    tasksPage = 'emp-tasks';
+    tasksLabel = 'My orders';
+    tasksIcon = 'clipboard-check';
+  } else if (currentUser.role === 'employer') {
+    home = 'emp-dashboard';
+    tasksPage = 'emp-tasks';
+    tasksLabel = 'My orders';
+    tasksIcon = 'clipboard-check';
+  }
+
+  nav.innerHTML = `
+    <button type="button" data-mobile-page="${home}" onclick="navigate('${home}')" aria-label="Dashboard">
+      <i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span>
+    </button>
+    <button type="button" data-mobile-page="${tasksPage}" onclick="navigate('${tasksPage}')" aria-label="${tasksLabel}">
+      <i class="bi bi-${tasksIcon}" aria-hidden="true"></i><span>${tasksLabel}</span>
+    </button>
+    <button type="button" data-mobile-page="messages" onclick="${messagesAction}" aria-label="Messages">
+      <i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span>
+    </button>
+    <button type="button" onclick="openMobileMenu()" aria-label="Open all navigation">
+      <i class="bi bi-grid" aria-hidden="true"></i><span>More</span>
+    </button>`;
+
+  nav.querySelectorAll('[data-mobile-page]').forEach(button => {
+    button.classList.toggle('active', button.dataset.mobilePage === _currentPage);
+  });
 }
 
 function recoveryEmailTemplateHtml() {
