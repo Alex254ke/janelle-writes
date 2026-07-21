@@ -29542,6 +29542,15 @@ function jwReleaseWorkspaceAnimation() {
   __jwStrictWorkspaceBootRunning = false;
   document.body.classList.remove('jw-workspace-booting');
   document.body.classList.add('jw-workspace-ready');
+  // Mobile launchApp historically opens a second, older data overlay. Always
+  // release it together with the branded loader so a successful session can
+  // never remain hidden behind either loading layer.
+  try { jwHideDataOverlay(); } catch {}
+  const dataOverlay = document.getElementById('jw-data-loading-overlay');
+  if (dataOverlay) {
+    dataOverlay.classList.remove('open');
+    dataOverlay.style.display = 'none';
+  }
   try { jwStrictHideWorkspaceLoader(); } catch {
     try { jwHideWorkspaceLoader(0); } catch {}
     try { jwHideGlobalLoader(); } catch {}
@@ -29602,6 +29611,7 @@ function jwLoadWorkspaceInBackground(reason = 'login') {
       return taskResult.status === 'fulfilled' ? taskResult.value : (Array.isArray(tasks) ? tasks : []);
     })
     .finally(() => {
+      try { jwHideDataOverlay(); } catch {}
       if (_jwWorkspaceBackgroundFlight === flight) _jwWorkspaceBackgroundFlight = null;
     });
 
