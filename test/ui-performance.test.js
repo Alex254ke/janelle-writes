@@ -29,6 +29,13 @@ test('mobile experience includes thumb navigation and production touch targets',
   assert.match(html, /#auth-screen \.form-input, #auth-screen \.form-select \{ min-height:50px/);
 });
 
+test('mobile landing header provides immediate sign-in and sign-up actions', () => {
+  assert.match(html, /class="landing-mobile-header-actions" aria-label="Account actions"/);
+  assert.match(html, /class="mobile-header-auth" onclick="openAuthScreen\('login'\)">Sign In<\/button>/);
+  assert.match(html, /class="mobile-header-auth primary" onclick="openAuthScreen\('signup','employer'\)">Sign Up<\/button>/);
+  assert.match(html, /#landing-page \.landing-mobile-header-actions \{[\s\S]*?display:flex/);
+});
+
 test('authentication uses a responsive full-screen workspace shell', () => {
   assert.match(html, /<div id="auth-screen"[^>]*>\s*<div class="auth-shell">/);
   assert.match(html, /\.auth-shell \{[\s\S]*?width:100%;[\s\S]*?height:100vh;[\s\S]*?grid-template-columns:[^;]+;/);

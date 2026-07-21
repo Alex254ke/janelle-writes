@@ -8688,7 +8688,8 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
    Phone layouts use their own rhythm and navigation instead of shrinking the
    desktop interface. Keep this final so older responsive rules cannot dilute
    touch targets or reintroduce horizontal overflow. */
-.mobile-app-nav { display:none; }
+.mobile-app-nav,
+.landing-mobile-header-actions { display:none; }
 
 @media (max-width:760px) {
   :root { --mobile-gutter:16px; --mobile-nav-height:72px; }
@@ -8707,6 +8708,19 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   #landing-page .landing-brand { min-width:0; gap:10px; }
   #landing-page .landing-brand-mark { width:40px; height:40px; border-radius:13px; font-size:22px; }
   #landing-page .landing-brand-text { font-size:23px; white-space:nowrap; }
+  #landing-page .landing-mobile-header-actions {
+    display:flex; align-items:center; gap:6px; margin-left:auto;
+  }
+  #landing-page .landing-mobile-header-actions .mobile-header-auth {
+    min-height:40px; padding:0 11px; border:1px solid #aed8cf; border-radius:12px;
+    color:#126f64; background:rgba(255,255,255,.9); font:800 11px/1 'DM Sans',sans-serif;
+    white-space:nowrap; box-shadow:0 7px 18px rgba(19,60,57,.07); cursor:pointer;
+  }
+  #landing-page .landing-mobile-header-actions .mobile-header-auth.primary {
+    color:#fff; border-color:#168f83; background:linear-gradient(135deg,#22a99a,#147c73);
+    box-shadow:0 9px 20px rgba(24,143,131,.2);
+  }
+  #landing-page .landing-mobile-header-actions .mobile-header-auth:active { transform:scale(.96); }
   #landing-page .landing-menu-btn { width:44px; height:44px; border:1px solid #cde5df; border-radius:14px; background:#fff; }
   #landing-page .landing-trustline {
     min-height:0; margin:10px 0 12px; padding:10px 12px; border-radius:13px;
@@ -8847,11 +8861,21 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 }
 
 @media (max-width:380px) {
-  #landing-page .landing-brand-text { font-size:20px; }
+  #landing-page .landing-nav { gap:6px; }
+  #landing-page .landing-brand { gap:7px; }
+  #landing-page .landing-brand-mark { width:36px; height:36px; }
+  #landing-page .landing-brand-text { font-size:18px; }
+  #landing-page .landing-mobile-header-actions { gap:4px; }
+  #landing-page .landing-mobile-header-actions .mobile-header-auth { min-height:38px; padding:0 7px; font-size:10px; }
+  #landing-page .landing-menu-btn { width:40px; height:40px; }
   #landing-page .landing-hero-content h1 { font-size:37px; }
   #landing-page .landing-hero-feature { padding:11px 9px; }
   #app-shell .stats-grid { grid-template-columns:1fr; }
   #app-shell .topbar-actions > .btn-primary { display:none; }
+}
+
+@media (max-width:340px) {
+  #landing-page .landing-brand-text { display:none; }
 }
 
 </style>
@@ -8925,6 +8949,11 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
         <a href="#landing-reviews">Reviews</a>
         <a href="#landing-final">Start</a>
       </nav>
+
+      <div class="landing-mobile-header-actions" aria-label="Account actions">
+        <button type="button" class="mobile-header-auth" onclick="openAuthScreen('login')">Sign In</button>
+        <button type="button" class="mobile-header-auth primary" onclick="openAuthScreen('signup','employer')">Sign Up</button>
+      </div>
 
       <div class="landing-actions">
         <button class="btn btn-outline" onclick="openAuthScreen('login')">Sign In</button>
