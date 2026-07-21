@@ -57,6 +57,12 @@ test('workspace animation releases quickly while data continues in background', 
   assert.match(html, /document\.getElementById\('jw-data-loading-overlay'\)[\s\S]*?dataOverlay\.style\.display = 'none'/);
 });
 
+test('an empty mobile workspace does not trigger an endless task refresh', () => {
+  assert.doesNotMatch(html, /jwRefreshDashboardAfterLogin\('zero-retry'\)/);
+  assert.doesNotMatch(html, /setInterval\([\s\S]{0,500}tasks\.length === 0[\s\S]{0,500}, 6000\)/);
+  assert.match(html, /An empty task list is a valid workspace state/);
+});
+
 test('authentication uses a responsive full-screen workspace shell', () => {
   assert.match(html, /<div id="auth-screen"[^>]*>\s*<div class="auth-shell">/);
   assert.match(html, /\.auth-shell \{[\s\S]*?width:100%;[\s\S]*?height:100vh;[\s\S]*?grid-template-columns:[^;]+;/);

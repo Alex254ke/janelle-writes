@@ -23438,19 +23438,10 @@ function jwAddMobileRefreshButton() {
   actions.insertBefore(btn, actions.firstChild);
 }
 
-setInterval(() => {
-  try {
-    if (currentUser && jwIsMobileDeviceView()) {
-      jwAddMobileRefreshButton();
-      const zeroish = Array.isArray(tasks) && tasks.length === 0;
-      if (zeroish && !_dashboardDataRefreshRunning) {
-        // one quiet retry when mobile wakes up from poor network
-        _dashboardDataRefreshRunning = true;
-        jwRefreshDashboardAfterLogin('zero-retry').finally(() => { _dashboardDataRefreshRunning = false; });
-      }
-    }
-  } catch {}
-}, 6000);
+// An empty task list is a valid workspace state. The former six-second mobile
+// retry treated it as a failed load, repeatedly queried Supabase, and navigated
+// back to the active dashboard after every response. Realtime subscriptions and
+// the normal notification sync already keep authenticated workspaces current.
 
 
 
