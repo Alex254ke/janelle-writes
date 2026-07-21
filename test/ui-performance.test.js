@@ -60,6 +60,15 @@ test('password recovery uses a professional return action and safe failure state
   assert.doesNotMatch(recovery, /Password reset error:[\s\S]*err\.message/);
 });
 
+test('password recovery links are scanner-resistant and processed only once', () => {
+  assert.match(html, /\{\{ \.SiteURL \}\}\/\?token_hash=\{\{ \.TokenHash \}\}&amp;type=recovery&amp;view=reset-password/);
+  assert.doesNotMatch(html, /href="\{\{ \.ConfirmationURL \}\}"/);
+  assert.match(html, /let __jwPasswordRecoveryPromise = null;/);
+  assert.match(html, /if \(__jwPasswordRecoveryPromise\) return await __jwPasswordRecoveryPromise;/);
+  assert.match(html, /_sb\.auth\.setSession\(\{[\s\S]*?access_token: accessToken,[\s\S]*?refresh_token: refreshToken/);
+  assert.doesNotMatch(html, /if \(isPasswordRecoveryUrl\(\)\) \{\s*handlePasswordRecoveryReturn\(\);\s*\}/);
+});
+
 test('mobile navigation cannot log users out accidentally', () => {
   const backStart = html.indexOf('function handleBackButtonAction(event)');
   const backEnd = html.indexOf("window.addEventListener('popstate'", backStart);
