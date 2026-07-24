@@ -22,6 +22,8 @@ test('mobile navigation and hero both expose the student CTA', () => {
 
 test('international students have a dedicated integrity-first support journey', () => {
   assert.match(html, /<section class="landing-section" id="landing-students">/);
+  assert.match(html, /<nav class="landing-nav-links">[\s\S]*?<a href="#landing-students">Students<\/a>/);
+  assert.match(html, /class="landing-mobile-links"[\s\S]*?<a href="#landing-students" onclick="closeLandingMenu\(\)">Students<\/a>/);
   assert.match(html, /Academic guidance that feels clear from the start\./);
   assert.match(html, /Editing and proofreading/);
   assert.match(html, /Research guidance/);
