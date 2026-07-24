@@ -20,6 +20,26 @@ test('mobile navigation and hero both expose the student CTA', () => {
   assert.match(html, /#landing-page \.student-cta-btn[\s\S]*visibility:visible !important/);
 });
 
+test('international students have a dedicated integrity-first support journey', () => {
+  assert.match(html, /<section class="landing-section" id="landing-students">/);
+  assert.match(html, /Academic guidance that feels clear from the start\./);
+  assert.match(html, /Editing and proofreading/);
+  assert.match(html, /Research guidance/);
+  assert.match(html, /Citations and formatting/);
+  assert.match(html, /Time-zone friendly communication/);
+  assert.match(html, /Academic integrity matters\./);
+  assert.match(html, /onsubmit="return buildStudentEstimate\(event\)"/);
+  assert.match(html, /localStorage\.setItem\('jw_student_estimate_draft'/);
+  assert.match(html, /openAuthScreen\('signup', 'student'\)/);
+  assert.doesNotMatch(html, /student-estimate-result[\s\S]{0,500}(guaranteed|instant quote)/i);
+});
+
+test('student support layout collapses cleanly on mobile', () => {
+  assert.match(html, /\.student-support-intro \{[\s\S]*?grid-template-columns:minmax\(0,1\.08fr\) minmax\(300px,\.72fr\)/);
+  assert.match(html, /@media \(max-width: 680px\) \{[\s\S]*?\.student-service-grid,[\s\S]*?\.student-estimate-grid,[\s\S]*?\.student-workflow,[\s\S]*?\.student-trust-strip \{ grid-template-columns:1fr; \}/);
+  assert.match(html, /\.student-estimate-field select,[\s\S]*?\.student-estimate-field input \{[\s\S]*?min-height:46px/);
+});
+
 test('mobile experience includes thumb navigation and production touch targets', () => {
   assert.match(html, /<nav class="mobile-app-nav" id="mobile-app-nav"/);
   assert.match(html, /function renderMobileAppNav\(\)/);

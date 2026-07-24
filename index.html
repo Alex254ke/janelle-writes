@@ -3122,6 +3122,238 @@ body.dark-mode .google-auth-separator::after {
   font-weight: 800;
   text-decoration:none;
 }
+.student-support-section {
+  position:relative;
+  overflow:hidden;
+  padding:clamp(28px,5vw,64px);
+  border:1px solid rgba(42,157,143,.18);
+  border-radius:34px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(42,157,143,.14), transparent 30%),
+    linear-gradient(145deg, #f8fcfb 0%, #edf8f5 58%, #f9f4e8 100%);
+  box-shadow:0 28px 70px rgba(15,40,48,.10);
+}
+.student-support-section::after {
+  content:"";
+  position:absolute;
+  right:-90px;
+  bottom:-110px;
+  width:280px;
+  height:280px;
+  border:1px solid rgba(42,157,143,.18);
+  border-radius:50%;
+  box-shadow:0 0 0 46px rgba(42,157,143,.045),0 0 0 92px rgba(42,157,143,.025);
+  pointer-events:none;
+}
+.student-support-intro {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(300px,.72fr);
+  gap:clamp(28px,5vw,70px);
+  align-items:start;
+}
+.student-support-copy h2 {
+  max-width:760px;
+  margin:14px 0 14px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(40px,5.4vw,66px);
+  line-height:.98;
+  color:var(--ink);
+}
+.student-support-copy > p {
+  max-width:720px;
+  margin:0;
+  color:var(--slate);
+  font-size:16px;
+  line-height:1.75;
+}
+.student-service-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:26px;
+}
+.student-service-item {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-height:60px;
+  padding:12px 14px;
+  border:1px solid rgba(15,40,48,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.76);
+  color:#17303c;
+  font-size:13px;
+  font-weight:750;
+}
+.student-service-item i,
+.student-trust-item i {
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  background:#dff3ef;
+  color:#137e72;
+  font-size:16px;
+}
+.student-estimate-card {
+  position:relative;
+  padding:24px;
+  border:1px solid rgba(15,40,48,.11);
+  border-radius:24px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 22px 52px rgba(15,40,48,.12);
+}
+.student-estimate-card h3 {
+  margin:0 0 6px;
+  font-size:22px;
+  color:var(--ink);
+}
+.student-estimate-card > p {
+  margin:0 0 18px;
+  color:var(--slate);
+  font-size:13px;
+  line-height:1.55;
+}
+.student-estimate-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.student-estimate-field { min-width:0; }
+.student-estimate-field.full { grid-column:1 / -1; }
+.student-estimate-field label {
+  display:block;
+  margin:0 0 6px;
+  color:#31535a;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.65px;
+  text-transform:uppercase;
+}
+.student-estimate-field select,
+.student-estimate-field input {
+  width:100%;
+  min-height:46px;
+  padding:10px 12px;
+  border:1px solid #c9ded9;
+  border-radius:12px;
+  outline:none;
+  background:#fff;
+  color:#17303c;
+  font:600 13px/1.25 'DM Sans',sans-serif;
+}
+.student-estimate-field select:focus,
+.student-estimate-field input:focus {
+  border-color:#2a9d8f;
+  box-shadow:0 0 0 3px rgba(42,157,143,.12);
+}
+.student-estimate-action {
+  width:100%;
+  min-height:48px;
+  margin-top:14px;
+  justify-content:center;
+}
+.student-estimate-note {
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:12px;
+  color:#61777b;
+  font-size:11px;
+  line-height:1.5;
+}
+.student-estimate-note i { color:#178578; margin-top:2px; }
+.student-estimate-result {
+  display:none;
+  margin-top:14px;
+  padding:14px;
+  border:1px solid rgba(42,157,143,.22);
+  border-radius:14px;
+  background:#eaf7f4;
+  color:#23474d;
+  font-size:12px;
+  line-height:1.55;
+}
+.student-estimate-result.show { display:block; }
+.student-estimate-result strong {
+  display:block;
+  margin-bottom:3px;
+  color:#0f6259;
+  font-size:13px;
+}
+.student-workflow {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:32px;
+}
+.student-workflow-step {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:12px;
+  padding:18px;
+  border:1px solid rgba(15,40,48,.08);
+  border-radius:18px;
+  background:rgba(255,255,255,.68);
+}
+.student-workflow-step .student-workflow-number {
+  display:grid;
+  place-items:center;
+  width:36px;
+  height:36px;
+  margin:0;
+  border-radius:12px;
+  background:#12303d;
+  color:#fff;
+  font-size:14px;
+  line-height:1;
+  font-weight:800;
+}
+.student-workflow-step strong { display:block; color:#17303c; font-size:14px; }
+.student-workflow-step span { display:block; margin-top:4px; color:#667d81; font-size:12px; line-height:1.5; }
+.student-trust-strip {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  overflow:hidden;
+  margin-top:18px;
+  border:1px solid rgba(15,40,48,.09);
+  border-radius:18px;
+  background:rgba(15,40,48,.09);
+}
+.student-trust-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:78px;
+  padding:15px;
+  background:rgba(255,255,255,.88);
+}
+.student-trust-item span { color:#31535a; font-size:12px; font-weight:750; line-height:1.4; }
+.student-integrity-note {
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:flex-start;
+  gap:13px;
+  margin-top:18px;
+  padding:16px 18px;
+  border-radius:16px;
+  background:#12303d;
+  color:rgba(255,255,255,.78);
+  font-size:12px;
+  line-height:1.6;
+}
+.student-integrity-note i { flex:0 0 auto; color:#7ee0d2; font-size:20px; }
+.student-integrity-note strong { color:#fff; }
 .features-grid {
   display:grid;
   grid-template-columns: repeat(3, 1fr);
@@ -3405,6 +3637,9 @@ body.dark-mode .google-auth-separator::after {
   .landing-role-grid {
     grid-template-columns: 1fr;
   }
+  .student-support-intro { grid-template-columns:1fr; }
+  .student-estimate-card { max-width:720px; }
+  .student-trust-strip { grid-template-columns:repeat(2,1fr); }
   .landing-reviews-grid { grid-template-columns:1fr 1fr; }
   .landing-review-card:last-child { grid-column:1 / -1; }
   .features-grid {
@@ -3462,6 +3697,23 @@ body.dark-mode .google-auth-separator::after {
   .landing-section {
     padding: 38px 0;
   }
+  .student-support-section {
+    padding:24px 18px;
+    border-radius:24px;
+  }
+  .student-support-copy h2 { font-size:clamp(38px,12vw,50px); }
+  .student-support-copy > p { font-size:14px; }
+  .student-service-grid,
+  .student-estimate-grid,
+  .student-workflow,
+  .student-trust-strip { grid-template-columns:1fr; }
+  .student-service-item { min-height:56px; }
+  .student-estimate-card { padding:19px 16px; border-radius:19px; }
+  .student-estimate-field.full { grid-column:auto; }
+  .student-workflow { gap:10px; margin-top:22px; }
+  .student-trust-strip { gap:1px; }
+  .student-trust-item { min-height:64px; }
+  .student-integrity-note { padding:15px; }
   .landing-brand-text {
     font-size: 26px;
   }
@@ -9127,7 +9379,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     <section class="landing-section" id="landing-for-you">
       <div class="section-heading">
         <div class="eyebrow">For You</div>
-        <h2>Made for both sides of the workflow.</h2>
+        <h2>Made for every side of the workflow.</h2>
         <p>Choose the path that fits you and start from a cleaner, better-looking workspace.</p>
       </div>
 
@@ -9156,11 +9408,100 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
           <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80" alt="International students studying together">
           <div class="role-reveal">
             <div class="tag">International Students</div>
-            <h3>Post assignments with guided support.</h3>
-            <p>Share your task, deadline, and length. Admin handles communication and payment guidance while qualified writers work through the platform.</p>
-            <a href="javascript:void(0)" class="arrow-link" onclick="openAuthScreen('signup','student')">Start here →</a>
+            <h3>Get clear academic support.</h3>
+            <p>Build a guided brief for editing, research guidance, citations, presentations, and language improvement.</p>
+            <a href="#landing-students" class="arrow-link">Explore student support <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
           </div>
         </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-students">
+      <div class="student-support-section">
+        <div class="student-support-intro">
+          <div class="student-support-copy">
+            <div class="section-heading">
+              <div class="eyebrow">International Student Support</div>
+              <h2>Academic guidance that feels clear from the start.</h2>
+            </div>
+            <p>Tell us what you are working on, where you need support, and when it is due. Your private workspace keeps the brief, messages, progress, and files connected in one place.</p>
+
+            <div class="student-service-grid" aria-label="Student support services">
+              <div class="student-service-item"><i class="bi bi-spellcheck" aria-hidden="true"></i><span>Editing and proofreading</span></div>
+              <div class="student-service-item"><i class="bi bi-search" aria-hidden="true"></i><span>Research guidance</span></div>
+              <div class="student-service-item"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Citations and formatting</span></div>
+              <div class="student-service-item"><i class="bi bi-easel2" aria-hidden="true"></i><span>Presentation support</span></div>
+              <div class="student-service-item"><i class="bi bi-translate" aria-hidden="true"></i><span>Language and clarity</span></div>
+              <div class="student-service-item"><i class="bi bi-chat-square-text" aria-hidden="true"></i><span>Feedback and revisions</span></div>
+            </div>
+          </div>
+
+          <form class="student-estimate-card" id="student-estimate-form" onsubmit="return buildStudentEstimate(event)">
+            <h3>Build a quick estimate request</h3>
+            <p>No account is needed to prepare your brief. Pricing is confirmed before any work begins.</p>
+
+            <div class="student-estimate-grid">
+              <div class="student-estimate-field full">
+                <label for="student-estimate-service">Support needed</label>
+                <select id="student-estimate-service" required>
+                  <option value="">Choose a service</option>
+                  <option>Editing and proofreading</option>
+                  <option>Research guidance</option>
+                  <option>Citations and formatting</option>
+                  <option>Presentation support</option>
+                  <option>Language and clarity</option>
+                  <option>Feedback and revisions</option>
+                </select>
+              </div>
+              <div class="student-estimate-field">
+                <label for="student-estimate-level">Academic level</label>
+                <select id="student-estimate-level" required>
+                  <option value="">Select level</option>
+                  <option>College / Diploma</option>
+                  <option>Undergraduate</option>
+                  <option>Postgraduate</option>
+                  <option>Professional</option>
+                </select>
+              </div>
+              <div class="student-estimate-field">
+                <label for="student-estimate-length">Pages / slides</label>
+                <input id="student-estimate-length" type="number" min="1" max="200" inputmode="numeric" placeholder="e.g. 5" required>
+              </div>
+              <div class="student-estimate-field full">
+                <label for="student-estimate-deadline">Deadline</label>
+                <select id="student-estimate-deadline" required>
+                  <option value="">Choose a timeframe</option>
+                  <option>Within 24 hours</option>
+                  <option>2–3 days</option>
+                  <option>4–7 days</option>
+                  <option>More than 7 days</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary student-estimate-action" type="submit">Prepare My Request <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <div class="student-estimate-note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>This prepares your request only. It does not place an order or charge you.</span></div>
+            <div class="student-estimate-result" id="student-estimate-result" aria-live="polite"></div>
+          </form>
+        </div>
+
+        <div class="student-workflow" aria-label="Student support workflow">
+          <div class="student-workflow-step"><span class="student-workflow-number">1</span><span><strong>Share your requirements</strong><span>Upload the brief, rubric, deadline, and preferred referencing style.</span></span></div>
+          <div class="student-workflow-step"><span class="student-workflow-number">2</span><span><strong>Confirm the support plan</strong><span>Review the scope and price before work begins in your private workspace.</span></span></div>
+          <div class="student-workflow-step"><span class="student-workflow-number">3</span><span><strong>Track and review</strong><span>Follow progress, ask questions, receive files, and keep feedback organized.</span></span></div>
+        </div>
+
+        <div class="student-trust-strip" aria-label="International student benefits">
+          <div class="student-trust-item"><i class="bi bi-globe2" aria-hidden="true"></i><span>Time-zone friendly communication</span></div>
+          <div class="student-trust-item"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Private messages and secure files</span></div>
+          <div class="student-trust-item"><i class="bi bi-journal-check" aria-hidden="true"></i><span>Major referencing styles supported</span></div>
+          <div class="student-trust-item"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Clear payment guidance before work</span></div>
+        </div>
+
+        <div class="student-integrity-note">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <span><strong>Academic integrity matters.</strong> Janelle Writes provides editing, feedback, research guidance, formatting, and learning support. Students remain responsible for following their institution's rules and submitting work that represents their own learning.</span>
+        </div>
       </div>
     </section>
 
@@ -29729,6 +30070,34 @@ function jwPolishSupportControl() {
   trigger.innerHTML = '<span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span><span class="support-trigger-copy"><strong>Get support</strong></span>';
   trigger.setAttribute('aria-label', 'Chat with Janelle Writes support on WhatsApp');
   trigger.setAttribute('title', 'Get support');
+}
+
+function buildStudentEstimate(event) {
+  event?.preventDefault();
+  const service = document.getElementById('student-estimate-service')?.value || '';
+  const level = document.getElementById('student-estimate-level')?.value || '';
+  const length = Number.parseInt(document.getElementById('student-estimate-length')?.value || '0', 10);
+  const deadline = document.getElementById('student-estimate-deadline')?.value || '';
+  const result = document.getElementById('student-estimate-result');
+  if (!service || !level || !Number.isFinite(length) || length < 1 || !deadline || !result) return false;
+
+  const draft = { service, level, length, deadline, createdAt:new Date().toISOString() };
+  try { localStorage.setItem('jw_student_estimate_draft', JSON.stringify(draft)); } catch (_) {}
+
+  result.replaceChildren();
+  const title = document.createElement('strong');
+  title.textContent = 'Your request is ready to continue';
+  const summary = document.createElement('span');
+  summary.textContent = `${service} · ${level} · ${length} ${length === 1 ? 'page / slide' : 'pages / slides'} · ${deadline}.`;
+  const action = document.createElement('button');
+  action.type = 'button';
+  action.className = 'btn btn-primary student-estimate-action';
+  action.textContent = 'Continue to Student Sign Up';
+  action.addEventListener('click', () => openAuthScreen('signup', 'student'));
+  result.append(title, summary, action);
+  result.classList.add('show');
+  action.focus({ preventScroll:true });
+  return false;
 }
 
 function jwInitializeUxRefresh() {
