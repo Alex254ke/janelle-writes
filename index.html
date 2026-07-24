@@ -2687,6 +2687,30 @@ body.dark-mode .google-auth-separator::after {
   font-weight:600;
 }
 .landing-nav-links a:hover { color: var(--teal-dark); }
+.landing-nav-links a.student-nav-link,
+.landing-mobile-links a.student-nav-link {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:9px 14px;
+  border:1px solid rgba(255,255,255,.34);
+  border-radius:999px;
+  background:linear-gradient(110deg,#168d80 0%,#249f91 48%,#a86f1e 100%);
+  background-size:180% auto;
+  color:#fff;
+  font-weight:800;
+  box-shadow:0 9px 22px rgba(22,141,128,.22);
+  transition:transform .2s ease,box-shadow .2s ease,background-position .35s ease;
+}
+.landing-nav-links a.student-nav-link:hover,
+.landing-mobile-links a.student-nav-link:hover {
+  color:#fff;
+  background-position:right center;
+  box-shadow:0 12px 28px rgba(22,141,128,.30);
+  transform:translateY(-1px);
+}
+.student-nav-link i { font-size:15px; line-height:1; }
 .landing-actions {
   display:flex;
   align-items:center;
@@ -9252,7 +9276,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     <div class="landing-mobile-links">
       <a href="#landing-features" onclick="closeLandingMenu()">Features</a>
       <a href="#landing-for-you" onclick="closeLandingMenu()">For You</a>
-      <a href="#landing-students" onclick="closeLandingMenu()">Students</a>
+      <a class="student-nav-link" href="#landing-students" onclick="closeLandingMenu()">Students <i class="bi bi-mortarboard" aria-hidden="true"></i></a>
       <a href="#landing-reviews" onclick="closeLandingMenu()">Reviews</a>
       <a href="#landing-gallery" onclick="closeLandingMenu()">Gallery</a>
       <a href="#landing-final" onclick="closeLandingMenu()">Start</a>
@@ -9276,7 +9300,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
         <a href="#landing-for-you">For You</a>
         <a href="#landing-features">Features</a>
         <a href="#landing-reviews">Reviews</a>
-        <a href="#landing-students">Students</a>
+        <a class="student-nav-link" href="#landing-students">Students <i class="bi bi-mortarboard" aria-hidden="true"></i></a>
       </nav>
 
       <div class="landing-mobile-header-actions" aria-label="Account actions">
