@@ -10775,6 +10775,82 @@ body.dark-mode .jw-room-fact {
   45% { box-shadow:inset 0 0 0 3px rgba(38,154,143,.22); }
 }
 
+.message-room-head {
+  display:grid;
+  grid-template-columns:42px 48px minmax(0,1fr) 42px;
+  gap:10px;
+  align-items:center;
+  padding:14px 16px;
+}
+
+.jw-room-header-button {
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:13px;
+  background:rgba(255,255,255,.1);
+  color:#fff;
+  cursor:pointer;
+  font-size:16px;
+  transition:background .2s,transform .2s;
+}
+
+.jw-room-header-button:hover {
+  background:rgba(255,255,255,.18);
+  transform:translateY(-1px);
+}
+
+.jw-room-contact-avatar {
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  border:2px solid rgba(255,255,255,.3);
+  border-radius:15px;
+  background:linear-gradient(145deg,#49b7aa,#1b8077);
+  color:#fff;
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px;
+  font-weight:850;
+}
+
+.jw-room-contact-copy {
+  min-width:0;
+}
+
+.jw-room-contact-copy .message-room-kicker {
+  margin:0 0 2px;
+  font-size:7.5px;
+}
+
+.jw-room-contact-copy .message-room-title {
+  margin:0;
+  overflow:hidden;
+  color:#fff;
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;
+  font-weight:850;
+  line-height:1.25;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-room-contact-copy .message-room-sub {
+  margin-top:3px;
+  overflow:hidden;
+  color:rgba(255,255,255,.68);
+  font-size:8px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-admin-chat-back {
+  display:none;
+}
+
 .jw-context-empty {
   display:grid;
   place-items:center;
@@ -11271,6 +11347,123 @@ body.dark-mode .jw-mobile-task-context-grid strong {
 
   .jw-message-panel-actions .jw-message-head-action[data-action="context"] {
     display:none;
+  }
+
+  #page-message-room.content {
+    padding:8px 7px 92px;
+  }
+
+  .message-room-shell {
+    min-height:calc(100dvh - 90px);
+    overflow:hidden;
+    border-radius:18px;
+  }
+
+  .message-room-head {
+    position:sticky;
+    top:0;
+    z-index:8;
+    grid-template-columns:40px 42px minmax(0,1fr) 40px;
+    gap:8px;
+    padding:10px;
+  }
+
+  .jw-room-header-button {
+    width:40px;
+    height:40px;
+    border-radius:12px;
+  }
+
+  .jw-room-contact-avatar {
+    width:42px;
+    height:42px;
+    border-radius:13px;
+    font-size:15px;
+  }
+
+  .jw-room-contact-copy .message-room-kicker {
+    display:none;
+  }
+
+  .jw-room-contact-copy .message-room-title {
+    font-size:14px;
+  }
+
+  .jw-room-contact-copy .message-room-sub {
+    font-size:7.5px;
+  }
+
+  .message-room-body {
+    gap:8px;
+    padding:8px;
+  }
+
+  .message-room-summary {
+    display:none;
+  }
+
+  .jw-mobile-task-context {
+    margin-bottom:6px;
+  }
+
+  .message-room-thread {
+    min-height:56vh;
+    max-height:62vh;
+    padding:12px 9px;
+    border-radius:14px;
+  }
+
+  .message-room-composer {
+    bottom:72px;
+    margin-top:2px;
+    border-radius:18px;
+  }
+
+  .message-room-composer textarea {
+    min-height:44px;
+    max-height:112px;
+  }
+
+  .jw-message-safety {
+    justify-content:center;
+    padding-inline:8px;
+    text-align:center;
+  }
+
+  #page-admin-student-messages.jw-admin-mobile-chat-open .jw-message-page-head,
+  #page-admin-student-messages.jw-admin-mobile-chat-open .message-sidebar,
+  #page-admin-student-messages.jw-admin-mobile-chat-open .jw-message-context-rail {
+    display:none !important;
+  }
+
+  #page-admin-student-messages.jw-admin-mobile-chat-open .message-shell {
+    display:block;
+  }
+
+  #page-admin-student-messages.jw-admin-mobile-chat-open .message-panel {
+    display:flex !important;
+    min-height:calc(100dvh - 185px);
+    padding:10px;
+    border:1px solid #d7e5e3;
+    border-radius:18px;
+  }
+
+  #page-admin-student-messages.jw-admin-mobile-chat-open .jw-admin-chat-back {
+    display:inline-flex;
+    align-items:center;
+    align-self:flex-start;
+    gap:7px;
+    min-height:40px;
+    margin-bottom:8px;
+    padding:8px 12px;
+    border:1px solid #d5e5e2;
+    border-radius:12px;
+    background:#f6faf9;
+    color:#246d67;
+    cursor:pointer;
+    font:inherit;
+    font-size:10px;
+    font-weight:800;
   }
 }
 
@@ -12253,6 +12446,7 @@ body.dark-mode .jw-mobile-task-context-grid strong {
         <div id="admin-student-msg-list" class="message-conversation-list"></div>
       </div>
       <div class="message-panel">
+        <button class="jw-admin-chat-back" type="button" onclick="jwCloseAdminMobileChat()"><i class="bi bi-arrow-left" aria-hidden="true"></i> Conversations</button>
         <div id="admin-student-msg-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Student Messages</div>
         <div id="admin-student-msg-summary" class="text-muted" style="line-height:1.6;margin-bottom:10px;">Select a student order from the left.</div>
         <div id="admin-student-msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select a student assignment conversation.</p></div></div>
@@ -19004,6 +19198,11 @@ function markTaskMessagesRead(t) {
   return next;
 }
 function openMessagesForTask(id) {
+  const mobile = window.matchMedia?.('(max-width: 820px)').matches;
+  if (mobile && typeof openMessageRoom === 'function') {
+    openMessageRoom(id);
+    return;
+  }
   _preselectMessageTaskId = id;
   navigate('messages');
 }
@@ -19065,15 +19264,8 @@ function renderMessagesPage() {
   const list = messageableTasks();
   sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(messageOptionLabel(t))}</option>`).join('');
 
-  const previousSelected = sel.value;
   const preselected = _preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId) ? _preselectMessageTaskId : '';
-  const latestExistingConversation = [...list]
-    .filter(t => visibleMessagesForCurrentUser(t).length > 0)
-    .sort((a, b) => messageSortValue(b) - messageSortValue(a))[0]?.id || '';
-  const fallbackAssignedTask = list.length === 1 ? list[0].id : '';
-  const selectedId = preselected || (previousSelected && list.some(t => t.id === previousSelected) ? previousSelected : '') || latestExistingConversation || fallbackAssignedTask;
-
-  if (selectedId) sel.value = selectedId;
+  if (preselected) sel.value = preselected;
   _preselectMessageTaskId = null;
   renderMessageConversationList(list, sel.value);
   loadMessageThread();
@@ -21386,6 +21578,11 @@ let _adminStudentMessageTaskId = null;
 function adminOpenStudentOrderMessages(id) {
   _adminStudentMessageTaskId = id;
   navigate('admin-student-messages');
+  setTimeout(() => {
+    if (!window.matchMedia?.('(max-width: 820px)').matches) return;
+    if (typeof jwRestoreMessagePanelHome === 'function') jwRestoreMessagePanelHome('admin-student');
+    document.getElementById('page-admin-student-messages')?.classList.add('jw-admin-mobile-chat-open');
+  }, 120);
 }
 
 function adminStudentMessageLabel(t) {
@@ -21415,13 +21612,12 @@ function renderAdminStudentMessagesPage() {
     if (composer) composer.style.display = 'none';
     return;
   }
-  const selected = list.find(t => t.id === _adminStudentMessageTaskId) || list[0];
-  _adminStudentMessageTaskId = selected.id;
+  const selected = list.find(t => t.id === _adminStudentMessageTaskId) || null;
 
   listWrap.innerHTML = list.map(t => {
     const info = adminStudentMessageLabel(t);
     const preview = info.last ? `${info.last.sender_name || info.last.sender_email || 'User'}: ${info.last.body || ''}` : 'No messages yet.';
-    return `<div class="message-conversation-card ${t.id === selected.id ? 'active' : ''}" onclick="adminSelectStudentMessageThread('${esc(t.id)}')">
+    return `<div class="message-conversation-card ${t.id === selected?.id ? 'active' : ''}" onclick="adminSelectStudentMessageThread('${esc(t.id)}')">
       <div class="message-conversation-top">
         <span class="message-conversation-id">${esc(t.id)}</span>
         <span class="message-unread-badge show">${info.messages.length}</span>
@@ -21431,6 +21627,14 @@ function renderAdminStudentMessagesPage() {
       <div class="message-conversation-preview">${esc(preview)}</div>
     </div>`;
   }).join('');
+
+  if (!selected) {
+    if (title) title.textContent = 'Student Messages';
+    if (summary) summary.textContent = 'Choose a conversation to read and reply.';
+    thread.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-chat-square-text" aria-hidden="true"></i></div><p>Select a student assignment conversation.</p></div>`;
+    if (composer) composer.style.display = 'none';
+    return;
+  }
 
   const messages = getTaskMessages(selected);
   if (title) title.innerHTML = `${esc(selected.id)} — ${esc(selected.subject || 'Student order')}`;
@@ -21461,6 +21665,21 @@ function renderAdminStudentMessagesPage() {
 
 function adminSelectStudentMessageThread(id) {
   _adminStudentMessageTaskId = id;
+  renderAdminStudentMessagesPage();
+  setTimeout(() => {
+    const mobile = typeof jwFinalMobileView === 'function'
+      ? jwFinalMobileView()
+      : window.matchMedia?.('(max-width: 820px)').matches;
+    if (!mobile) return;
+    if (typeof jwRestoreMessagePanelHome === 'function') jwRestoreMessagePanelHome('admin-student');
+    document.getElementById('page-admin-student-messages')?.classList.add('jw-admin-mobile-chat-open');
+  }, 120);
+}
+
+function jwCloseAdminMobileChat() {
+  document.getElementById('page-admin-student-messages')?.classList.remove('jw-admin-mobile-chat-open');
+  if (typeof jwRestoreMessagePanelHome === 'function') jwRestoreMessagePanelHome('admin-student');
+  _adminStudentMessageTaskId = null;
   renderAdminStudentMessagesPage();
 }
 
@@ -24327,8 +24546,7 @@ async function openStudentAdminMessages() {
   let task = jwLatestStudentOrderForMessaging();
 
   if (task) {
-    _preselectMessageTaskId = task.id;
-    navigate('messages');
+    openMessagesForTask(task.id);
     return;
   }
 
@@ -24405,8 +24623,7 @@ async function openStudentAdminMessages() {
     }
   }
 
-  _preselectMessageTaskId = task.id;
-  navigate('messages');
+  openMessagesForTask(task.id);
 }
 
 // This function is declared in a module but is called by inline dashboard
@@ -31204,18 +31421,24 @@ function renderMessageRoomPage() {
   const msgs = markTaskMessagesRead(t);
   const visible = visibleMessagesForCurrentUser(t, msgs);
   const other = conversationOtherName(t);
+  const otherInitials = String(other || 'JW').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'JW';
   const status = typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || '—');
 
   wrap.innerHTML = `
     <div class="message-room-shell">
       <div class="message-room-head">
-        <div class="message-room-kicker"><i class="bi bi-chat-dots" aria-hidden="true"></i> Private conversation</div>
-        <h1 class="message-room-title">${jwMessageRoomTitle(t)}</h1>
-        <div class="message-room-sub">Conversation with ${esc(other)}. Messages, decisions, and updates stay connected to this task.</div>
-        <div class="message-room-actions">
-          <button class="btn btn-outline" onclick="jwMessageRoomBack(event)"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Messages</button>
-          <button class="btn btn-primary" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'message-room' })"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open Task</button>
+        <button class="jw-room-header-button" type="button" onclick="jwMessageRoomBack(event)" aria-label="Back to conversations">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        </button>
+        <span class="jw-room-contact-avatar" aria-hidden="true">${esc(otherInitials)}</span>
+        <div class="jw-room-contact-copy">
+          <div class="message-room-kicker"><i class="bi bi-lock" aria-hidden="true"></i> Private task chat</div>
+          <h1 class="message-room-title">${esc(other)}</h1>
+          <div class="message-room-sub">${esc(t.id)} · ${esc(t.subject || 'Order messages')}</div>
         </div>
+        <button class="jw-room-header-button" type="button" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'message-room' })" aria-label="Open linked task">
+          <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+        </button>
       </div>
       <div class="message-room-body">
         <div class="message-room-summary">
@@ -32748,13 +32971,7 @@ if (typeof openStudentAdminMessages === 'function' && !openStudentAdminMessages.
 
     const existing = typeof jwLatestStudentOrderForMessaging === 'function' ? jwLatestStudentOrderForMessaging() : null;
     if (existing) {
-      _preselectMessageTaskId = existing.id;
-      navigate('messages');
-      setTimeout(() => {
-        const select = document.getElementById('msg-order-select');
-        if (select) select.value = existing.id;
-        if (typeof loadMessageThread === 'function') loadMessageThread();
-      }, 60);
+      openMessagesForTask(existing.id);
       return;
     }
 

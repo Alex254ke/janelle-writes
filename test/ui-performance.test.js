@@ -243,6 +243,29 @@ test('messaging workspace provides task-bound context without exposing private c
   assert.doesNotMatch(renderer, /task\.(phone|email)|Phone number|Email address/);
 });
 
+test('message inbox stays list-first and mobile chats use a familiar dedicated room', () => {
+  const inboxStart = html.indexOf('function renderMessagesPage()');
+  const inboxEnd = html.indexOf('function loadMessageThread()', inboxStart);
+  assert.ok(inboxStart >= 0 && inboxEnd > inboxStart, 'message inbox renderer should exist');
+  const inbox = html.slice(inboxStart, inboxEnd);
+  assert.match(inbox, /const preselected = _preselectMessageTaskId/);
+  assert.doesNotMatch(inbox, /latestExistingConversation|fallbackAssignedTask|list\[0\]/);
+
+  const adminStart = html.indexOf('function renderAdminStudentMessagesPage()');
+  const adminEnd = html.indexOf('function adminSelectStudentMessageThread', adminStart);
+  assert.ok(adminStart >= 0 && adminEnd > adminStart, 'admin message inbox renderer should exist');
+  const adminInbox = html.slice(adminStart, adminEnd);
+  assert.match(adminInbox, /const selected = list\.find[\s\S]*?\|\| null/);
+  assert.match(adminInbox, /if \(!selected\)/);
+  assert.doesNotMatch(adminInbox, /\|\| list\[0\]/);
+
+  assert.match(html, /class="jw-room-header-button"[^>]*aria-label="Back to conversations"/);
+  assert.match(html, /class="jw-room-contact-avatar"/);
+  assert.match(html, /class="jw-room-contact-copy"/);
+  assert.match(html, /function openMessagesForTask\(id\) \{[\s\S]*?openMessageRoom\(id\)/);
+  assert.match(html, /jw-admin-mobile-chat-open/);
+});
+
 test('Pesapal top-up clearly communicates its secure hosted checkout flow', () => {
   assert.match(html, /Continue to secure checkout/);
   assert.match(html, /PesaPal opens in a secure payment window/);
