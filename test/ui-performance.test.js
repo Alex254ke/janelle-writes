@@ -201,3 +201,51 @@ test('embedded Base64 files are converted locally without fetching data URLs', a
   assert.equal(await blob.text(), 'Hello Janelle');
   assert.doesNotMatch(match[1], /fetch\(/);
 });
+
+test('student message-admin action is exposed and opens the inbox immediately', () => {
+  assert.match(html, /window\.openStudentAdminMessages = openStudentAdminMessages;/);
+
+  const start = html.indexOf('async function openStudentAdminMessages()');
+  const end = html.indexOf('window.openStudentAdminMessages = openStudentAdminMessages;', start);
+  assert.ok(start >= 0 && end > start, 'student message-admin handler should exist');
+  const handler = html.slice(start, end);
+  const immediateNavigate = handler.indexOf("navigate('messages');");
+  const createThread = handler.indexOf('await dbInsertTaskSafe(supportTask)');
+  assert.ok(immediateNavigate >= 0 && immediateNavigate < createThread, 'the inbox should open before support-thread creation finishes');
+  assert.match(handler, /jw-message-loading/);
+});
+
+test('all user messaging views use the premium conversation workspace', () => {
+  assert.match(html, /class="jw-message-page-head"/);
+  assert.match(html, /id="message-search"/);
+  assert.match(html, /id="admin-message-search"/);
+  assert.match(html, /data-message-scope="standard" data-filter="unread"/);
+  assert.match(html, /data-message-scope="admin" data-filter="unread"/);
+  assert.match(html, /function jwEnhanceMessageCards\(scope = 'standard'\)/);
+  assert.match(html, /function jwBindPremiumMessageComposer\(\)/);
+  assert.match(html, /\.message-room-summary \{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(html, /class="jw-message-safety"/);
+});
+
+test('messaging workspace provides task-bound context without exposing private contact fields', () => {
+  assert.match(html, /id="message-context" aria-label="Task and participant context"/);
+  assert.match(html, /id="admin-message-context" aria-label="Student order context"/);
+  assert.match(html, /grid-template-columns:minmax\(250px,300px\) minmax\(420px,1fr\) minmax\(240px,275px\)/);
+  assert.match(html, /function jwUpdateMessageContext\(scope = 'standard'\)/);
+  assert.match(html, /function jwMessageMobileContextHtml\(task\)/);
+  assert.match(html, /class="jw-mobile-task-context"/);
+  assert.match(html, /Messages and files stay inside this task and are visible only to authorized participants/);
+
+  const start = html.indexOf("function jwMessageContextHtml(task, scope = 'standard')");
+  const end = html.indexOf('function jwMessageMobileContextHtml(task)', start);
+  assert.ok(start >= 0 && end > start, 'task context renderer should exist');
+  const renderer = html.slice(start, end);
+  assert.doesNotMatch(renderer, /task\.(phone|email)|Phone number|Email address/);
+});
+
+test('Pesapal top-up clearly communicates its secure hosted checkout flow', () => {
+  assert.match(html, /Continue to secure checkout/);
+  assert.match(html, /PesaPal opens in a secure payment window/);
+  assert.doesNotMatch(html, /id="pesapal-stk-btn"[^>]*>Send STK Push/);
+  assert.match(html, /if \(data\.redirect_url\) \{[\s\S]*?payWindow\.location\.href = data\.redirect_url/);
+});

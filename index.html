@@ -4282,7 +4282,8 @@ body.dark-mode .google-auth-separator::after {
   gap: 24px;
   align-items: center;
 }
-.app-support-footer h3 {
+.app-support-footer h3,
+.app-support-footer .app-support-title {
   margin: 0 0 6px;
   font-family: 'Cormorant Garamond', serif;
   font-size: 30px;
@@ -9124,7 +9125,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   }
   .mobile-app-nav button {
     min-width:0; border:0; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:3px; color:#667b80; background:transparent; font:700 10px/1 'DM Sans',sans-serif; cursor:pointer;
+    gap:3px; color:#586d73; background:transparent; font:700 10px/1 'DM Sans',sans-serif; cursor:pointer;
   }
   .mobile-app-nav button i { font-size:20px; line-height:1; }
   .mobile-app-nav button.active { color:#126f64; background:#e1f3ef; }
@@ -9227,6 +9228,2049 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     height:50px !important;
     min-height:50px !important;
     padding:4px !important;
+  }
+}
+
+/* ========================================================================
+   PREMIUM AUTHENTICATED EXPERIENCE
+   A quiet, task-first product system shared by every workspace role.
+   ======================================================================== */
+:root {
+  --premium-ink:#0b1f2a;
+  --premium-ink-soft:#15323d;
+  --premium-teal:#168f83;
+  --premium-teal-bright:#2aa99a;
+  --premium-mint:#e9f6f3;
+  --premium-surface:#ffffff;
+  --premium-canvas:#f3f7f6;
+  --premium-line:#dce8e5;
+  --premium-muted:#6c8187;
+  --premium-warning:#d96c4a;
+  --premium-shadow:0 18px 50px rgba(18,55,63,.08);
+  --premium-shadow-soft:0 8px 26px rgba(18,55,63,.06);
+  --sidebar-w:248px;
+}
+
+/* Login: give the product form more room and make trust signals factual. */
+@media (min-width:861px) {
+  #auth-screen .auth-shell {
+    grid-template-columns:minmax(430px,.82fr) minmax(540px,1.18fr);
+  }
+  #auth-screen .auth-panel {
+    justify-content:flex-start;
+    padding:34px clamp(46px,6vw,96px);
+  }
+  #auth-screen .auth-panel > * { width:min(520px,100%); }
+  #auth-screen .auth-showcase .auth-glass-card:last-child { display:none; }
+  #auth-screen .auth-showcase { top:118px; }
+}
+#auth-screen .auth-panel {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(42,169,154,.11),transparent 32%),
+    linear-gradient(155deg,#fff 0%,#f7faf8 100%);
+}
+#auth-screen .auth-panel-title { letter-spacing:-1.7px; }
+#auth-screen .auth-tabs {
+  border-color:#d8e4e1;
+  background:#edf3f1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+#auth-screen .auth-tab.active {
+  color:#fff !important;
+  border-color:transparent !important;
+  background:linear-gradient(135deg,var(--premium-ink),#173d46) !important;
+  box-shadow:0 9px 20px rgba(11,31,42,.16);
+}
+#auth-screen .auth-stats {
+  width:min(440px,100%);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+}
+#auth-screen .auth-stats > div {
+  display:grid;
+  gap:6px;
+  padding-right:20px;
+}
+#auth-screen .auth-stat-val {
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(160,237,224,.28);
+  border-radius:12px;
+  color:#c9fff7;
+  background:rgba(42,169,154,.15);
+  font-size:17px;
+}
+#auth-screen .auth-stat-lbl {
+  color:rgba(255,255,255,.68);
+  font:700 10px/1.3 'DM Sans',sans-serif;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+#auth-screen .auth-role-select { gap:10px; }
+#auth-screen .role-card {
+  min-height:108px;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 8px 26px rgba(18,55,63,.035);
+}
+#auth-screen .role-card.selected {
+  border-color:var(--premium-teal);
+  background:linear-gradient(145deg,#f4fffc,#e3f5f1);
+  box-shadow:0 0 0 3px rgba(22,143,131,.09),0 14px 30px rgba(18,55,63,.06);
+}
+
+/* Workspace shell */
+#app-shell {
+  color:var(--premium-ink);
+  background:var(--premium-canvas);
+}
+#app-shell .main {
+  background:
+    radial-gradient(circle at 90% 0%,rgba(42,169,154,.07),transparent 28%),
+    var(--premium-canvas);
+}
+#app-shell .sidebar {
+  width:var(--sidebar-w);
+  color:#dbe9e7;
+  background:
+    radial-gradient(circle at 25% 0%,rgba(42,169,154,.20),transparent 30%),
+    linear-gradient(180deg,#0b202a 0%,#0a1821 100%);
+  border-right:1px solid rgba(255,255,255,.06);
+  box-shadow:16px 0 50px rgba(5,18,24,.07);
+}
+#app-shell .sidebar-brand {
+  min-height:94px;
+  padding:25px 22px 18px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+#app-shell .sidebar-brand-logo {
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background-color:#f6fbfa;
+  box-shadow:0 12px 28px rgba(0,0,0,.18);
+}
+#app-shell .brand-title { color:#fff; font-size:22px; }
+#app-shell .brand-sub { color:#7fa7a4; letter-spacing:1.6px; }
+#app-shell .sidebar-user {
+  margin:14px 14px 8px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  background:rgba(255,255,255,.045);
+}
+#app-shell .sidebar-user:hover { background:rgba(255,255,255,.075); }
+#app-shell .user-avatar {
+  background:linear-gradient(145deg,#2aa99a,#167d74);
+  box-shadow:0 8px 20px rgba(17,127,117,.26);
+}
+#app-shell .user-name { color:#fff; }
+#app-shell .user-role { color:#79cfc4; }
+#app-shell .sidebar-profile-link {
+  min-width:34px;
+  padding:7px 9px;
+  border-color:rgba(255,255,255,.10);
+  color:#dce9e7;
+  background:rgba(255,255,255,.06);
+}
+#app-shell .sidebar-profile-link span:last-child { display:none; }
+#app-shell .sidebar-nav { padding:10px 10px 16px; }
+#app-shell .nav-section {
+  margin:18px 10px 8px;
+  color:#668b89;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+#app-shell .nav-item {
+  min-height:42px;
+  margin:3px 0;
+  padding:8px 10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid transparent;
+  border-radius:12px;
+  color:#adc2c1;
+  font-size:12px;
+  font-weight:650;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
+}
+#app-shell .nav-item:hover {
+  color:#fff;
+  background:rgba(255,255,255,.055);
+  transform:translateX(2px);
+}
+#app-shell .nav-item.active {
+  color:#effffc;
+  border-color:rgba(87,214,197,.22);
+  background:linear-gradient(90deg,rgba(42,169,154,.26),rgba(42,169,154,.10));
+  box-shadow:inset 3px 0 0 #52c8b9;
+}
+#app-shell .nav-item .icon {
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  flex:0 0 30px;
+  border-radius:9px;
+  color:#8ab8b4;
+  background:rgba(255,255,255,.055);
+  font-size:15px;
+}
+#app-shell .nav-item.active .icon { color:#d7fff9; background:rgba(82,200,185,.17); }
+#app-shell .nav-badge,
+#app-shell .message-unread-badge,
+#app-shell .nav-badge-revision {
+  margin-left:auto;
+  border:0;
+  color:#07221f;
+  background:#79d8cb;
+  box-shadow:none;
+}
+#app-shell .sidebar-footer {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:12px;
+  border-top:1px solid rgba(255,255,255,.07);
+  background:rgba(5,16,22,.32);
+}
+#app-shell .premium-sidebar-support,
+#app-shell .btn-logout {
+  min-height:42px;
+  padding:9px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  color:#b9cfcd;
+  background:rgba(255,255,255,.045);
+  font-size:11px;
+  font-weight:750;
+  text-decoration:none;
+  cursor:pointer;
+}
+#app-shell .premium-sidebar-support:hover,
+#app-shell .btn-logout:hover { color:#fff; border-color:rgba(105,213,199,.25); background:rgba(42,169,154,.13); }
+#app-shell .topbar {
+  position:sticky;
+  top:0;
+  z-index:85;
+  height:72px;
+  padding:0 30px;
+  border-bottom:1px solid rgba(204,222,218,.82);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 6px 24px rgba(18,55,63,.035);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+#app-shell .topbar-title {
+  color:var(--premium-ink);
+  font-size:18px;
+  font-weight:750;
+}
+#app-shell .topbar-actions .btn {
+  min-height:40px;
+  border-radius:11px;
+  font-size:11px;
+}
+@media (min-width:761px) {
+  #app-shell .topbar-left { flex:1 1 auto; min-width:180px; }
+  #app-shell .topbar-title { width:auto; min-width:max-content; }
+  #app-shell .topbar-actions,
+  #app-shell #topbar-actions {
+    width:auto !important;
+    max-width:calc(100% - 200px);
+    flex:0 0 auto !important;
+    justify-content:flex-end;
+    overflow:visible;
+  }
+}
+#app-shell .content {
+  width:min(1480px,100%);
+  margin:0 auto;
+  padding:28px clamp(22px,3vw,42px) 46px;
+}
+
+/* Role dashboards: work first, decoration second. */
+#page-writer-dashboard .hero-visual-strip,
+#page-emp-dashboard .hero-visual-strip,
+#page-student-dashboard .hero-visual-strip,
+#page-writer-dashboard .dashboard-lift,
+#page-emp-dashboard .dashboard-lift { display:none; }
+#page-writer-dashboard .hero-banner,
+#page-emp-dashboard .hero-banner,
+#page-student-dashboard .hero-banner {
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:26px;
+  min-height:230px;
+  margin-bottom:20px;
+  padding:32px 34px;
+  border:1px solid rgba(113,210,197,.15);
+  border-radius:24px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 82% 0%,rgba(82,200,185,.30),transparent 33%),
+    radial-gradient(circle at 0% 100%,rgba(71,129,146,.24),transparent 34%),
+    linear-gradient(135deg,#0b202a 0%,#123b43 58%,#126f66 100%);
+  box-shadow:0 24px 62px rgba(11,32,42,.14);
+}
+#page-writer-dashboard .hero-banner::after,
+#page-emp-dashboard .hero-banner::after,
+#page-student-dashboard .hero-banner::after {
+  content:"";
+  position:absolute;
+  right:-70px;
+  bottom:-105px;
+  width:260px;
+  height:260px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:50%;
+  box-shadow:0 0 0 34px rgba(255,255,255,.025),0 0 0 72px rgba(255,255,255,.018);
+  pointer-events:none;
+}
+#page-writer-dashboard .hero-text,
+#page-emp-dashboard .hero-text,
+#page-student-dashboard .hero-text { position:relative; z-index:2; max-width:720px; }
+.premium-hero-eyebrow {
+  margin-bottom:11px;
+  color:#89ded2;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+}
+#app-shell .hero-text h1 {
+  margin:0;
+  color:#fff;
+  font-size:clamp(38px,4.3vw,58px);
+  line-height:.96;
+  letter-spacing:-1.3px;
+}
+#app-shell .hero-text h1 span { color:#a8eee5; }
+#app-shell .hero-text p {
+  max-width:610px;
+  margin:13px 0 0;
+  color:rgba(235,250,248,.73);
+  font-size:14px;
+  line-height:1.65;
+}
+.premium-hero-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.premium-hero-actions .btn {
+  min-height:44px;
+  padding:10px 16px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:750;
+}
+.premium-hero-primary {
+  border:1px solid #6bd3c5 !important;
+  color:#07221f !important;
+  background:#8fe0d5 !important;
+  box-shadow:0 12px 28px rgba(5,25,30,.18);
+}
+.premium-hero-primary:hover { background:#a9eadf !important; transform:translateY(-1px); }
+.premium-hero-secondary {
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  background:rgba(255,255,255,.08) !important;
+  backdrop-filter:blur(10px);
+}
+.premium-hero-secondary:hover { border-color:rgba(255,255,255,.32) !important; background:rgba(255,255,255,.13) !important; }
+#app-shell .hero-stats {
+  position:relative;
+  z-index:2;
+  min-width:340px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(108px,1fr));
+  gap:9px;
+}
+#page-emp-dashboard .hero-stats,
+#page-student-dashboard .hero-stats { grid-template-columns:repeat(3,minmax(96px,1fr)); min-width:360px; }
+#app-shell .hero-stat {
+  min-width:0;
+  padding:15px 14px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:16px;
+  background:rgba(255,255,255,.075);
+  backdrop-filter:blur(12px);
+}
+#app-shell .hero-stat-value {
+  color:#fff;
+  font:800 27px/1 'DM Sans',sans-serif;
+  letter-spacing:-.6px;
+}
+#app-shell .hero-stat-label { margin-top:4px; color:rgba(231,250,247,.67); font-size:9px; letter-spacing:.7px; }
+
+#app-shell .stats-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+  margin:0 0 24px;
+}
+#app-shell .stat-card {
+  min-height:118px;
+  padding:18px;
+  border:1px solid var(--premium-line);
+  border-radius:18px;
+  background:rgba(255,255,255,.94);
+  box-shadow:var(--premium-shadow-soft);
+}
+#app-shell .stat-card::before { height:3px; }
+#app-shell .stat-card::after { display:none; }
+#app-shell .stat-card:hover { transform:translateY(-2px); border-color:#bddbd5; box-shadow:var(--premium-shadow); }
+#app-shell .stat-icon,
+#app-shell .qa-icon {
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  margin-bottom:13px;
+  border-radius:12px;
+  color:var(--premium-teal);
+  background:var(--premium-mint);
+  font-size:17px;
+}
+#app-shell .stat-value {
+  color:var(--premium-ink);
+  font:800 29px/1 'DM Sans',sans-serif;
+  letter-spacing:-.7px;
+}
+#app-shell .stat-label { margin-top:7px; color:var(--premium-muted); font-size:10px; font-weight:750; letter-spacing:.8px; text-transform:uppercase; }
+.premium-section-heading {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  margin:28px 0 13px;
+}
+.premium-section-heading span,
+.premium-panel-heading span {
+  display:block;
+  margin-bottom:5px;
+  color:var(--premium-teal);
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+}
+.premium-section-heading h2,
+.premium-panel-heading h2 {
+  margin:0;
+  color:var(--premium-ink);
+  font:700 25px/1.05 'Cormorant Garamond',serif;
+}
+#app-shell .quick-actions {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:26px;
+}
+#app-shell .qa-card {
+  min-height:96px;
+  padding:16px 18px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:13px;
+  align-items:center;
+  text-align:left;
+  border:1px solid var(--premium-line);
+  border-radius:18px;
+  background:rgba(255,255,255,.94);
+  box-shadow:var(--premium-shadow-soft);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+#app-shell .qa-card::after { display:none; }
+#app-shell .qa-card:hover { border-color:#b4d8d1; box-shadow:var(--premium-shadow); transform:translateY(-2px); }
+#app-shell .qa-card .qa-icon { grid-row:1 / span 2; margin:0; }
+#app-shell .qa-title { align-self:end; color:var(--premium-ink); font-size:14px; font-weight:750; }
+#app-shell .qa-sub { align-self:start; margin-top:4px; color:var(--premium-muted); font-size:11px; }
+
+.premium-work-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);
+  gap:14px;
+  margin:0 0 4px;
+}
+.premium-focus-panel,
+.premium-insight-panel {
+  min-width:0;
+  padding:22px;
+  border:1px solid var(--premium-line);
+  border-radius:20px;
+  background:rgba(255,255,255,.95);
+  box-shadow:var(--premium-shadow-soft);
+}
+.premium-panel-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.premium-text-action {
+  min-height:36px;
+  padding:7px 11px;
+  border:1px solid var(--premium-line);
+  border-radius:10px;
+  color:#476168;
+  background:#fff;
+  font:700 10px/1 'DM Sans',sans-serif;
+  cursor:pointer;
+}
+.premium-text-action:hover { color:var(--premium-teal); border-color:#acd4cd; background:#f4fbf9; }
+.premium-current-work { display:grid; gap:9px; }
+.premium-work-item {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:13px 14px;
+  border:1px solid #e3ecea;
+  border-radius:14px;
+  background:#fbfdfc;
+  cursor:pointer;
+}
+.premium-work-item:hover { border-color:#b9dcd5; background:#f5fbf9; }
+.premium-work-item strong { display:block; overflow:hidden; color:var(--premium-ink); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.premium-work-item small { display:block; margin-top:5px; color:var(--premium-muted); font-size:10px; }
+.premium-work-deadline { text-align:right; }
+.premium-work-deadline b { display:block; color:var(--premium-warning); font-size:10px; }
+.premium-work-deadline span { color:var(--premium-muted); font-size:9px; }
+.premium-empty-work {
+  min-height:138px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:20px;
+  border:1px dashed #cce0dc;
+  border-radius:15px;
+  text-align:center;
+  background:#f8fbfa;
+}
+.premium-empty-work i { color:var(--premium-teal); font-size:24px; }
+.premium-empty-work strong { color:var(--premium-ink); font-size:13px; }
+.premium-empty-work span { max-width:300px; color:var(--premium-muted); font-size:10px; line-height:1.5; }
+.premium-insight-list { display:grid; gap:8px; }
+.premium-insight-list button {
+  width:100%;
+  min-height:65px;
+  padding:11px 12px;
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  border:1px solid transparent;
+  border-radius:13px;
+  text-align:left;
+  color:var(--premium-ink);
+  background:#f7faf9;
+  cursor:pointer;
+}
+.premium-insight-list button:hover { border-color:#c7e0db; background:#f0f8f6; }
+.premium-insight-list button > i:first-child {
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:var(--premium-teal);
+  background:#e4f4f0;
+}
+.premium-insight-list strong { display:block; font-size:11px; }
+.premium-insight-list small { display:block; margin-top:3px; color:var(--premium-muted); font-size:9px; line-height:1.35; }
+.premium-insight-list b {
+  min-width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  color:#fff;
+  background:var(--premium-teal);
+  font-size:10px;
+}
+
+#page-emp-dashboard .table-wrap,
+#page-student-dashboard .table-wrap {
+  overflow:hidden;
+  border:1px solid var(--premium-line);
+  border-radius:19px;
+  background:#fff;
+  box-shadow:var(--premium-shadow-soft);
+}
+#page-emp-dashboard table thead,
+#page-student-dashboard table thead { background:#f2f7f5; }
+#page-emp-dashboard table th,
+#page-student-dashboard table th { color:#668087; font-size:9px; letter-spacing:.8px; }
+#page-emp-dashboard table td,
+#page-student-dashboard table td { border-color:#edf2f1; font-size:11px; }
+
+/* Loading retains the familiar logo, but feels like part of the product. */
+.jw-global-loading-overlay,
+.jw-data-loading-overlay {
+  background:rgba(241,247,246,.84) !important;
+  backdrop-filter:blur(18px) saturate(.9) !important;
+}
+.jw-global-loading-card,
+.jw-data-loading-card,
+.jw-loader-card {
+  width:min(350px,calc(100vw - 38px)) !important;
+  padding:28px !important;
+  border:1px solid rgba(183,215,209,.9) !important;
+  border-radius:24px !important;
+  background:rgba(255,255,255,.94) !important;
+  box-shadow:0 28px 80px rgba(17,49,57,.14) !important;
+}
+.jw-global-blink-logo-mark,
+.jw-data-loading-logo,
+.jw-blink-mark {
+  border-radius:18px !important;
+  background:linear-gradient(145deg,#0b202a,#14766e) !important;
+  box-shadow:0 16px 36px rgba(20,118,110,.22) !important;
+}
+body.jw-workspace-ready .floating-support-widget.jw-whatsapp-widget { display:none !important; }
+
+body.dark-mode #app-shell,
+body.dark-mode #app-shell .main { background:#0d171d; }
+body.dark-mode #app-shell .topbar { border-color:#24373e; background:rgba(15,28,35,.92); }
+body.dark-mode #app-shell .topbar-title,
+body.dark-mode .premium-section-heading h2,
+body.dark-mode .premium-panel-heading h2 { color:#f2fbf9; }
+body.dark-mode #app-shell .stat-card,
+body.dark-mode #app-shell .qa-card,
+body.dark-mode .premium-focus-panel,
+body.dark-mode .premium-insight-panel,
+body.dark-mode #page-emp-dashboard .table-wrap,
+body.dark-mode #page-student-dashboard .table-wrap {
+  border-color:#263c42;
+  background:#14232a;
+}
+body.dark-mode .premium-work-item,
+body.dark-mode .premium-insight-list button,
+body.dark-mode .premium-empty-work { border-color:#294047; background:#101e24; }
+body.dark-mode .premium-work-item strong,
+body.dark-mode .premium-empty-work strong,
+body.dark-mode .premium-insight-list button,
+body.dark-mode #app-shell .qa-title,
+body.dark-mode #app-shell .stat-value { color:#eef9f7; }
+body.dark-mode .premium-work-item:hover,
+body.dark-mode .premium-insight-list button:hover { border-color:#3b6a67; background:#172a30; }
+
+@media (max-width:1080px) {
+  #page-writer-dashboard .hero-banner,
+  #page-emp-dashboard .hero-banner,
+  #page-student-dashboard .hero-banner { grid-template-columns:1fr; }
+  #app-shell .hero-stats,
+  #page-emp-dashboard .hero-stats,
+  #page-student-dashboard .hero-stats { width:100%; min-width:0; }
+  .premium-work-grid { grid-template-columns:1fr; }
+}
+
+@media (max-width:760px) {
+  #auth-screen .auth-role-select {
+    width:calc(100vw - 36px);
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    padding:2px 2px 8px;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+  }
+  #auth-screen .auth-role-select::-webkit-scrollbar { display:none; }
+  #auth-screen .role-card {
+    min-width:140px;
+    max-width:160px;
+    min-height:104px;
+    flex:0 0 40vw;
+    scroll-snap-align:start;
+  }
+  #app-shell .content { padding:16px 14px calc(var(--mobile-nav-height) + 34px); }
+  #app-shell .topbar { height:62px; padding:0 14px; }
+  #page-writer-dashboard .hero-banner,
+  #page-emp-dashboard .hero-banner,
+  #page-student-dashboard .hero-banner {
+    min-height:0;
+    padding:23px 18px;
+    border-radius:20px;
+    box-shadow:0 18px 44px rgba(11,32,42,.13);
+  }
+  #app-shell .hero-text h1 { font-size:36px; }
+  #app-shell .hero-text p { font-size:12px; }
+  .premium-hero-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .premium-hero-actions .btn { width:100%; padding-inline:10px; font-size:10px; }
+  #app-shell .hero-stats,
+  #page-emp-dashboard .hero-stats,
+  #page-student-dashboard .hero-stats { grid-template-columns:repeat(2,1fr); gap:7px; }
+  #page-emp-dashboard .hero-stat:last-child,
+  #page-student-dashboard .hero-stat:last-child { grid-column:span 2; }
+  #app-shell .hero-stat { padding:12px; border-radius:13px; }
+  #app-shell .hero-stat-value { font-size:23px; }
+  #app-shell .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  #page-writer-dashboard .stats-grid .stat-card:last-child { grid-column:1 / -1; min-height:96px; }
+  #app-shell .stat-card { min-height:110px; padding:14px; border-radius:16px; }
+  #app-shell .quick-actions { grid-template-columns:1fr; gap:9px; }
+  #app-shell .qa-card {
+    min-height:86px;
+    padding:14px;
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:12px;
+    align-items:center;
+  }
+  #app-shell .qa-icon { grid-row:1 / span 2; margin:0; }
+  #app-shell .qa-title { align-self:end; }
+  #app-shell .qa-sub { align-self:start; }
+  .premium-section-heading { margin-top:24px; }
+  .premium-section-heading h2,
+  .premium-panel-heading h2 { font-size:23px; }
+  .premium-focus-panel,
+  .premium-insight-panel { padding:17px; border-radius:18px; }
+  .premium-work-item { grid-template-columns:minmax(0,1fr); }
+  .premium-work-deadline { display:flex; gap:6px; text-align:left; }
+
+  #page-emp-dashboard .table-wrap,
+  #page-student-dashboard .table-wrap {
+    margin:0;
+    padding:0;
+    overflow:visible;
+    border:0;
+    background:transparent;
+    box-shadow:none;
+  }
+  #page-emp-dashboard .table-scroll,
+  #page-student-dashboard .table-scroll { overflow:visible; }
+  #page-emp-dashboard table,
+  #page-student-dashboard table { min-width:0; display:block; }
+  #page-emp-dashboard table thead,
+  #page-student-dashboard table thead { display:none; }
+  #page-emp-dashboard table tbody,
+  #page-student-dashboard table tbody { display:grid; gap:10px; }
+  #page-emp-dashboard table tr,
+  #page-student-dashboard table tr {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px 16px;
+    padding:16px;
+    border:1px solid var(--premium-line);
+    border-radius:17px;
+    background:#fff;
+    box-shadow:var(--premium-shadow-soft);
+  }
+  #page-emp-dashboard table td,
+  #page-student-dashboard table td {
+    min-width:0;
+    padding:0;
+    display:grid;
+    gap:3px;
+    border:0;
+    white-space:normal !important;
+  }
+  #page-emp-dashboard table td[style*="color:var(--rust)"],
+  #page-student-dashboard table td[style*="color:var(--rust)"] { color:#b4472d !important; }
+  #page-emp-dashboard .badge-paid,
+  #page-student-dashboard .badge-paid {
+    color:#12685f !important;
+    background:#d9f0ec !important;
+  }
+  #page-emp-dashboard table td::before,
+  #page-student-dashboard table td::before {
+    content:attr(data-label);
+    color:#7a8e93;
+    font-size:8px;
+    font-weight:850;
+    letter-spacing:.7px;
+    text-transform:uppercase;
+  }
+  #page-emp-dashboard table td:nth-child(2),
+  #page-student-dashboard table td:nth-child(2) { grid-column:1 / -1; grid-row:1; }
+  #page-emp-dashboard table td[colspan],
+  #page-student-dashboard table td[colspan] { grid-column:1 / -1; }
+  #page-emp-dashboard table td .empty-state,
+  #page-student-dashboard table td .empty-state { grid-column:1 / -1; }
+  body.dark-mode #page-emp-dashboard table tr,
+  body.dark-mode #page-student-dashboard table tr { border-color:#263c42; background:#14232a; }
+
+  body.jw-workspace-ready .floating-support-widget.jw-whatsapp-widget { display:none !important; }
+}
+
+@media (max-width:380px) {
+  #app-shell .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .premium-hero-actions { grid-template-columns:1fr; }
+}
+
+/* Premium messaging workspace */
+#page-messages,
+#page-admin-student-messages,
+#page-message-room {
+  max-width: 1480px;
+  margin-inline: auto;
+}
+
+.jw-message-page-head {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:18px;
+}
+
+.jw-message-page-copy {
+  max-width:720px;
+}
+
+.jw-message-eyebrow {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:7px;
+  color:#147d73;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+
+.jw-message-page-copy p {
+  margin:5px 0 0;
+  color:#6e858a;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.jw-message-trust {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:260px;
+  padding:11px 14px;
+  border:1px solid #d7e7e4;
+  border-radius:14px;
+  background:rgba(255,255,255,.78);
+  box-shadow:0 12px 30px rgba(14,39,45,.05);
+}
+
+.jw-message-trust > i {
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  border-radius:10px;
+  background:#dff3ef;
+  color:#16877b;
+  font-size:16px;
+}
+
+.jw-message-trust strong,
+.jw-message-trust small {
+  display:block;
+}
+
+.jw-message-trust strong {
+  color:#173039;
+  font-size:11px;
+}
+
+.jw-message-trust small {
+  margin-top:2px;
+  color:#71878c;
+  font-size:9px;
+}
+
+#page-messages .message-shell,
+#page-admin-student-messages .message-shell {
+  grid-template-columns:minmax(300px,350px) minmax(0,1fr);
+  gap:0;
+  min-height:650px;
+  overflow:hidden;
+  border:1px solid #d7e5e3;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 24px 70px rgba(12,39,46,.08);
+}
+
+#page-messages .message-sidebar,
+#page-admin-student-messages .message-sidebar,
+#page-messages .message-panel,
+#page-admin-student-messages .message-panel {
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+
+#page-messages .message-sidebar,
+#page-admin-student-messages .message-sidebar {
+  padding:16px 14px;
+  border-right:1px solid #e1ecea;
+  background:linear-gradient(180deg,#f5faf9 0%,#eef7f5 100%);
+}
+
+#page-messages .message-context-chip,
+#page-admin-student-messages .message-context-chip {
+  display:none;
+}
+
+#page-messages .message-panel,
+#page-admin-student-messages .message-panel {
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  padding:20px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(82,196,184,.08),transparent 30%),
+    #fff;
+}
+
+.jw-message-sidebar-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:11px;
+}
+
+.jw-message-sidebar-title {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#15313a;
+  font-size:13px;
+  font-weight:800;
+}
+
+.jw-message-sidebar-title i {
+  color:#17877c;
+}
+
+.jw-message-count {
+  display:inline-grid;
+  place-items:center;
+  min-width:26px;
+  height:26px;
+  padding:0 7px;
+  border-radius:999px;
+  background:#15313a;
+  color:#fff;
+  font-size:9px;
+  font-weight:850;
+}
+
+.jw-message-search {
+  position:relative;
+  margin-bottom:10px;
+}
+
+.jw-message-search i {
+  position:absolute;
+  left:12px;
+  top:50%;
+  z-index:1;
+  color:#758b90;
+  transform:translateY(-50%);
+}
+
+.jw-message-search input {
+  width:100%;
+  min-height:42px;
+  padding:9px 12px 9px 36px;
+  border:1px solid #d8e6e3;
+  border-radius:12px;
+  outline:none;
+  background:rgba(255,255,255,.88);
+  color:#18323a;
+  font:inherit;
+  font-size:11px;
+  transition:border-color .2s,box-shadow .2s;
+}
+
+.jw-message-search input:focus {
+  border-color:#36a79b;
+  box-shadow:0 0 0 3px rgba(42,157,143,.12);
+}
+
+.jw-message-filters {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+  margin-bottom:13px;
+  padding:4px;
+  border:1px solid #dce8e6;
+  border-radius:11px;
+  background:rgba(255,255,255,.7);
+}
+
+.jw-message-filter {
+  min-height:32px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#6d8388;
+  cursor:pointer;
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+}
+
+.jw-message-filter.active {
+  background:#17323b;
+  color:#fff;
+  box-shadow:0 7px 16px rgba(19,48,57,.16);
+}
+
+#page-messages .message-conversation-list,
+#page-admin-student-messages .message-conversation-list {
+  max-height:510px;
+  gap:7px;
+  margin-bottom:10px;
+  padding-right:2px;
+}
+
+#page-messages .message-conversation-card,
+#page-admin-student-messages .message-conversation-card {
+  position:relative;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  column-gap:10px;
+  padding:11px;
+  border:1px solid transparent;
+  border-radius:13px;
+  background:transparent;
+  box-shadow:none;
+}
+
+#page-messages .message-conversation-card:hover,
+#page-admin-student-messages .message-conversation-card:hover {
+  border-color:#cfe2df;
+  background:rgba(255,255,255,.82);
+  transform:none;
+}
+
+#page-messages .message-conversation-card.active,
+#page-admin-student-messages .message-conversation-card.active {
+  border-color:#b8dcd6;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(15,54,61,.08);
+}
+
+.jw-conversation-avatar {
+  grid-row:1 / span 4;
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  background:linear-gradient(145deg,#193540,#268f84);
+  color:#fff;
+  font-size:15px;
+  box-shadow:0 8px 16px rgba(26,92,87,.15);
+}
+
+.message-conversation-top,
+.message-conversation-subject,
+.message-conversation-meta,
+.message-conversation-preview {
+  grid-column:2;
+}
+
+.message-conversation-id {
+  font-size:9px;
+  letter-spacing:.4px;
+}
+
+.message-conversation-subject {
+  font-size:12px;
+}
+
+.message-conversation-meta,
+.message-conversation-preview {
+  font-size:9.5px;
+}
+
+.message-conversation-meta {
+  color:#557276;
+}
+
+#page-messages .admin-message-meta,
+#page-admin-student-messages .admin-message-meta {
+  color:#745716;
+}
+
+#page-messages .message-bubble:not(.mine) .message-meta,
+#page-admin-student-messages .message-bubble:not(.mine) .message-meta {
+  color:#745716 !important;
+}
+
+#page-messages .dark,
+#page-admin-student-messages .dark {
+  color:#74510f;
+}
+
+.message-unread-badge.show {
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#e5a637;
+  color:#17313a;
+  font-size:8px;
+  font-weight:900;
+}
+
+.jw-message-panel-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:0 2px 14px;
+  border-bottom:1px solid #e6efed;
+}
+
+.jw-message-panel-head #msg-thread-title,
+.jw-message-panel-head #admin-student-msg-title {
+  margin:0 !important;
+  color:#132c34 !important;
+  font-family:'DM Sans',sans-serif !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+}
+
+.jw-message-panel-head #msg-order-summary,
+.jw-message-panel-head #admin-student-msg-summary {
+  max-width:580px;
+  margin:2px 0 0 !important;
+  overflow:hidden;
+  color:#75898d !important;
+  font-size:9px !important;
+  line-height:1.4 !important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-message-person {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+
+.jw-message-person-avatar {
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  border-radius:13px;
+  background:linear-gradient(145deg,#16333d,#299b8f);
+  color:#fff;
+  font-size:17px;
+}
+
+.jw-message-person-copy {
+  min-width:0;
+}
+
+.jw-message-person-copy strong,
+.jw-message-person-copy small {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-message-person-copy strong {
+  color:#132c34;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+}
+
+.jw-message-person-copy small {
+  margin-top:2px;
+  color:#75898d;
+  font-size:9px;
+}
+
+.jw-message-secure-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 10px;
+  border:1px solid #d5e6e3;
+  border-radius:999px;
+  color:#39726d;
+  font-size:9px;
+  font-weight:750;
+  white-space:nowrap;
+}
+
+#page-messages .message-thread,
+#page-admin-student-messages .message-thread {
+  flex:1;
+  min-height:390px;
+  max-height:540px;
+  margin-top:14px;
+  padding:18px;
+  border:1px solid #e1ecea;
+  border-radius:17px;
+  background:
+    linear-gradient(rgba(248,251,250,.94),rgba(248,251,250,.94)),
+    radial-gradient(circle at 1px 1px,#d7e6e3 1px,transparent 0);
+  background-size:auto,20px 20px;
+}
+
+.message-bubble {
+  position:relative;
+  max-width:min(76%,580px);
+  padding:11px 13px;
+  border-color:#dbe7e5;
+  border-radius:4px 15px 15px;
+  background:#fff;
+  box-shadow:0 8px 20px rgba(15,43,49,.05);
+}
+
+.message-bubble.mine {
+  border-color:#1f8c81;
+  border-radius:15px 4px 15px 15px;
+  background:linear-gradient(145deg,#1a887d,#14746c);
+}
+
+.message-bubble.mine .message-meta {
+  color:rgba(255,255,255,.64);
+}
+
+.message-bubble.mine .message-text {
+  color:#fff;
+}
+
+.message-meta {
+  font-size:8px;
+  letter-spacing:.65px;
+}
+
+.message-text {
+  font-size:11.5px;
+}
+
+#page-messages .message-composer,
+#page-admin-student-messages .message-composer,
+.message-room-composer {
+  gap:8px;
+  margin-top:12px;
+  padding:8px;
+  border:1px solid #dbe8e5;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 12px 30px rgba(13,45,51,.06);
+}
+
+#page-messages .message-composer textarea,
+#page-admin-student-messages .message-composer textarea,
+.message-room-composer textarea {
+  min-height:52px;
+  padding:11px 12px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  resize:none;
+}
+
+#page-messages .message-composer textarea:focus,
+#page-admin-student-messages .message-composer textarea:focus,
+.message-room-composer textarea:focus {
+  box-shadow:none;
+}
+
+#page-messages .message-composer .btn,
+#page-admin-student-messages .message-composer .btn,
+.message-room-composer .btn {
+  min-width:48px;
+  min-height:44px;
+  padding:10px 14px;
+  border-radius:11px;
+}
+
+.jw-message-safety {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:9px 3px 0;
+  color:#74898d;
+  font-size:9px;
+}
+
+.jw-message-safety i {
+  color:#1e9286;
+}
+
+.message-room-shell {
+  max-width:1120px;
+  border-color:#d7e6e3;
+  border-radius:24px;
+  box-shadow:0 28px 80px rgba(12,38,45,.1);
+}
+
+.message-room-head {
+  padding:21px 24px;
+  background:
+    radial-gradient(circle at 88% -20%,rgba(75,214,193,.22),transparent 42%),
+    linear-gradient(135deg,#102934,#15564f);
+}
+
+.message-room-title {
+  font-size:clamp(28px,4vw,40px);
+}
+
+.message-room-body {
+  gap:12px;
+  padding:16px;
+}
+
+.message-room-summary {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+
+.jw-room-fact {
+  padding:10px 12px;
+  border:1px solid #dce9e6;
+  border-radius:12px;
+  background:#f7faf9;
+}
+
+.jw-room-fact small,
+.jw-room-fact strong {
+  display:block;
+}
+
+.jw-room-fact small {
+  margin-bottom:3px;
+  color:#788d91;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+
+.jw-room-fact strong {
+  overflow:hidden;
+  color:#18323a;
+  font-size:10px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.message-room-thread {
+  min-height:390px;
+  border-color:#e0ebe9;
+  background:#f7faf9;
+}
+
+.jw-message-loading {
+  display:grid;
+  place-items:center;
+  min-height:270px;
+  padding:28px;
+  color:#6f858a;
+  text-align:center;
+}
+
+.jw-message-loading i {
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  margin:0 auto 12px;
+  border-radius:16px;
+  background:#e1f3ef;
+  color:#17887c;
+  font-size:22px;
+  animation:jwMessagePulse 1.3s ease-in-out infinite;
+}
+
+@keyframes jwMessagePulse {
+  50% { transform:translateY(-2px); box-shadow:0 12px 26px rgba(31,142,129,.16); }
+}
+
+body.dark-mode #page-messages .message-shell,
+body.dark-mode #page-admin-student-messages .message-shell,
+body.dark-mode .message-room-shell {
+  border-color:#294148;
+  background:#13242b;
+}
+
+body.dark-mode #page-messages .message-sidebar,
+body.dark-mode #page-admin-student-messages .message-sidebar {
+  border-color:#294148;
+  background:linear-gradient(180deg,#152a31,#12242b);
+}
+
+body.dark-mode #page-messages .message-panel,
+body.dark-mode #page-admin-student-messages .message-panel {
+  background:#13242b;
+}
+
+body.dark-mode .jw-message-page-copy p,
+body.dark-mode .jw-message-trust small,
+body.dark-mode .jw-message-safety,
+body.dark-mode .message-conversation-meta,
+body.dark-mode .message-conversation-preview {
+  color:#9ab0b3;
+}
+
+body.dark-mode .jw-message-trust,
+body.dark-mode .jw-message-search input,
+body.dark-mode .jw-message-filters,
+body.dark-mode #page-messages .message-conversation-card.active,
+body.dark-mode #page-admin-student-messages .message-conversation-card.active,
+body.dark-mode #page-messages .message-composer,
+body.dark-mode #page-admin-student-messages .message-composer,
+body.dark-mode .message-room-composer {
+  border-color:#2c474d;
+  background:#192e35;
+}
+
+body.dark-mode .jw-message-trust strong,
+body.dark-mode .jw-message-sidebar-title,
+body.dark-mode .jw-message-person-copy strong,
+body.dark-mode .message-conversation-subject,
+body.dark-mode .jw-room-fact strong,
+body.dark-mode .jw-message-panel-head #msg-thread-title,
+body.dark-mode .jw-message-panel-head #admin-student-msg-title {
+  color:#eef8f6;
+}
+
+body.dark-mode #page-messages .message-thread,
+body.dark-mode #page-admin-student-messages .message-thread,
+body.dark-mode .message-room-thread {
+  border-color:#294148;
+  background:#102128;
+}
+
+body.dark-mode .message-bubble:not(.mine),
+body.dark-mode .jw-room-fact {
+  border-color:#30484e;
+  background:#1a3037;
+}
+
+@media (max-width:800px) {
+  .jw-message-page-head {
+    align-items:stretch;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .jw-message-trust {
+    min-width:0;
+  }
+
+  #page-messages .message-shell,
+  #page-admin-student-messages .message-shell {
+    display:block;
+    min-height:0;
+    overflow:visible;
+    border:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  #page-messages .message-sidebar,
+  #page-admin-student-messages .message-sidebar {
+    min-height:calc(100vh - 235px);
+    padding:13px 10px;
+    border:1px solid #d7e5e3;
+    border-radius:18px;
+    box-shadow:0 18px 45px rgba(12,39,46,.07);
+  }
+
+  #page-messages .message-panel:not(.jw-mobile-inline-message-panel),
+  #page-admin-student-messages .message-panel:not(.jw-mobile-inline-message-panel) {
+    display:none;
+  }
+
+  #page-messages .message-conversation-list,
+  #page-admin-student-messages .message-conversation-list {
+    max-height:none;
+  }
+
+  #page-messages .message-conversation-card,
+  #page-admin-student-messages .message-conversation-card {
+    min-height:74px;
+    border-color:#e1ebe9;
+    background:rgba(255,255,255,.76);
+  }
+
+  .message-room-summary {
+    grid-template-columns:1fr 1fr;
+  }
+
+  .message-room-thread {
+    min-height:48vh;
+    max-height:55vh;
+  }
+
+  .message-room-composer {
+    position:sticky;
+    bottom:76px;
+    z-index:5;
+    flex-direction:row;
+    align-items:flex-end;
+  }
+
+  .message-room-composer .btn {
+    width:auto;
+    flex:0 0 48px;
+    font-size:0;
+  }
+
+  .message-room-composer .btn i {
+    font-size:17px;
+  }
+}
+
+/* Messaging workspace V2: focused chat + task context */
+@media (min-width:1221px) {
+  #page-messages .message-shell,
+  #page-admin-student-messages .message-shell {
+    grid-template-columns:minmax(250px,300px) minmax(420px,1fr) minmax(240px,275px);
+  }
+}
+
+#page-messages .message-panel,
+#page-admin-student-messages .message-panel {
+  border-right:1px solid #e1ecea;
+}
+
+.jw-message-context-rail {
+  min-width:0;
+  padding:18px 16px;
+  overflow-y:auto;
+  background:
+    radial-gradient(circle at 100% 0,rgba(55,177,164,.08),transparent 30%),
+    #fbfdfd;
+}
+
+.jw-message-context-rail.jw-context-highlight {
+  animation:jwContextHighlight .75s ease;
+}
+
+@keyframes jwContextHighlight {
+  0%,100% { box-shadow:inset 0 0 0 0 rgba(38,154,143,0); }
+  45% { box-shadow:inset 0 0 0 3px rgba(38,154,143,.22); }
+}
+
+.jw-context-empty {
+  display:grid;
+  place-items:center;
+  min-height:100%;
+  padding:28px 14px;
+  color:#7a8e93;
+  text-align:center;
+}
+
+.jw-context-empty i {
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  margin-bottom:12px;
+  border:1px solid #d8e7e4;
+  border-radius:15px;
+  background:#edf7f5;
+  color:#208f84;
+  font-size:20px;
+}
+
+.jw-context-empty strong,
+.jw-context-empty span {
+  display:block;
+}
+
+.jw-context-empty strong {
+  color:#19343c;
+  font-size:12px;
+}
+
+.jw-context-empty span {
+  margin-top:5px;
+  font-size:9px;
+  line-height:1.55;
+}
+
+.jw-context-profile {
+  padding-bottom:17px;
+  border-bottom:1px solid #e2ecea;
+  text-align:center;
+}
+
+.jw-context-avatar {
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:68px;
+  height:68px;
+  margin:0 auto 10px;
+  border:5px solid #fff;
+  border-radius:22px;
+  background:linear-gradient(145deg,#183640,#2b9b90);
+  color:#fff;
+  font-family:'Cormorant Garamond',serif;
+  font-size:27px;
+  font-weight:850;
+  box-shadow:0 14px 30px rgba(18,76,72,.18);
+}
+
+.jw-context-avatar::after {
+  content:'';
+  position:absolute;
+  right:-2px;
+  bottom:-2px;
+  width:12px;
+  height:12px;
+  border:3px solid #fff;
+  border-radius:999px;
+  background:#31b59e;
+}
+
+.jw-context-profile h3 {
+  margin:0;
+  color:#17313a;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  font-weight:850;
+}
+
+.jw-context-profile p {
+  margin:4px 0 0;
+  color:#799095;
+  font-size:9px;
+  line-height:1.5;
+}
+
+.jw-context-role {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:8px;
+  padding:5px 8px;
+  border:1px solid #d5e7e3;
+  border-radius:999px;
+  background:#eef8f6;
+  color:#28756e;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.55px;
+  text-transform:uppercase;
+}
+
+.jw-context-section {
+  padding:15px 0;
+  border-bottom:1px solid #e5eeec;
+}
+
+.jw-context-section:last-child {
+  border-bottom:0;
+}
+
+.jw-context-section-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.jw-context-section-head strong {
+  color:#1b353d;
+  font-size:10px;
+  font-weight:850;
+}
+
+.jw-context-section-head span {
+  color:#84979b;
+  font-size:8px;
+}
+
+.jw-context-task-card {
+  padding:11px;
+  border:1px solid #dce9e6;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 8px 22px rgba(13,45,51,.04);
+}
+
+.jw-context-task-id {
+  color:#17877c;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.65px;
+  text-transform:uppercase;
+}
+
+.jw-context-task-card h4 {
+  margin:5px 0 9px;
+  color:#173039;
+  font-size:11px;
+  line-height:1.4;
+}
+
+.jw-context-progress {
+  height:5px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e6f0ee;
+}
+
+.jw-context-progress span {
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#17877c,#55c4b6);
+}
+
+.jw-context-progress-copy {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:6px;
+  color:#768c90;
+  font-size:8px;
+}
+
+.jw-context-facts {
+  display:grid;
+  gap:7px;
+}
+
+.jw-context-fact {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+
+.jw-context-fact span {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#7b9094;
+  font-size:8.5px;
+}
+
+.jw-context-fact span i {
+  color:#248f84;
+}
+
+.jw-context-fact strong {
+  max-width:132px;
+  overflow:hidden;
+  color:#243e45;
+  font-size:8.5px;
+  text-align:right;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-context-participants {
+  display:grid;
+  gap:7px;
+}
+
+.jw-context-participant {
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+  padding:7px;
+  border:1px solid #e0ebe9;
+  border-radius:11px;
+  background:#fff;
+}
+
+.jw-context-participant-avatar {
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border-radius:9px;
+  background:#e4f4f1;
+  color:#167d74;
+  font-size:9px;
+  font-weight:900;
+}
+
+.jw-context-participant strong,
+.jw-context-participant small {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-context-participant strong {
+  color:#1c353d;
+  font-size:9px;
+}
+
+.jw-context-participant small {
+  margin-top:2px;
+  color:#819397;
+  font-size:7.5px;
+  text-transform:capitalize;
+}
+
+.jw-context-files {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+
+.jw-context-file-stat {
+  padding:9px 7px;
+  border:1px solid #dfeae8;
+  border-radius:11px;
+  background:#fff;
+  text-align:center;
+}
+
+.jw-context-file-stat i,
+.jw-context-file-stat strong,
+.jw-context-file-stat small {
+  display:block;
+}
+
+.jw-context-file-stat i {
+  margin-bottom:4px;
+  color:#238e83;
+  font-size:14px;
+}
+
+.jw-context-file-stat strong {
+  color:#19323a;
+  font-size:12px;
+}
+
+.jw-context-file-stat small {
+  margin-top:2px;
+  color:#819397;
+  font-size:7px;
+}
+
+.jw-context-action {
+  width:100%;
+  min-height:38px;
+  margin-top:10px;
+  border:1px solid #cbe1dd;
+  border-radius:11px;
+  background:#fff;
+  color:#166f68;
+  cursor:pointer;
+  font:inherit;
+  font-size:9px;
+  font-weight:850;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+
+.jw-context-action:hover {
+  border-color:#5bb7ac;
+  box-shadow:0 9px 22px rgba(29,118,110,.1);
+  transform:translateY(-1px);
+}
+
+.jw-context-privacy {
+  display:flex;
+  gap:8px;
+  padding:10px;
+  border:1px solid #d8e8e5;
+  border-radius:12px;
+  background:#eff8f6;
+  color:#54736f;
+  font-size:8px;
+  line-height:1.5;
+}
+
+.jw-context-privacy i {
+  flex:0 0 auto;
+  color:#17877c;
+}
+
+.jw-mobile-task-context {
+  margin:0 0 14px;
+  overflow:hidden;
+  border:1px solid #dce9e6;
+  border-radius:14px;
+  background:#fbfdfd;
+}
+
+.jw-mobile-task-context summary {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:44px;
+  padding:10px 13px;
+  color:#24414a;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:850;
+  list-style:none;
+}
+
+.jw-mobile-task-context summary::-webkit-details-marker {
+  display:none;
+}
+
+.jw-mobile-task-context summary i:first-child {
+  color:#1b9085;
+  font-size:14px;
+}
+
+.jw-mobile-task-context summary i:last-child {
+  margin-left:auto;
+  transition:transform .2s;
+}
+
+.jw-mobile-task-context[open] summary i:last-child {
+  transform:rotate(180deg);
+}
+
+.jw-mobile-task-context-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  padding:0 12px 12px;
+}
+
+.jw-mobile-task-context-grid div {
+  min-width:0;
+  padding:9px;
+  border-radius:10px;
+  background:#eef7f5;
+}
+
+.jw-mobile-task-context-grid small,
+.jw-mobile-task-context-grid strong {
+  display:block;
+}
+
+.jw-mobile-task-context-grid small {
+  color:#788f94;
+  font-size:7.5px;
+  text-transform:uppercase;
+}
+
+.jw-mobile-task-context-grid strong {
+  margin-top:3px;
+  overflow:hidden;
+  color:#1b3941;
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.jw-message-panel-actions {
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.jw-message-head-action {
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border:1px solid #d7e6e3;
+  border-radius:10px;
+  background:#fff;
+  color:#276e68;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.jw-message-head-action:hover {
+  border-color:#65bdb3;
+  background:#eef8f6;
+}
+
+body.dark-mode .jw-message-context-rail {
+  background:#14272e;
+}
+
+body.dark-mode .jw-context-profile,
+body.dark-mode .jw-context-section {
+  border-color:#2d454b;
+}
+
+body.dark-mode .jw-context-profile h3,
+body.dark-mode .jw-context-section-head strong,
+body.dark-mode .jw-context-task-card h4,
+body.dark-mode .jw-context-fact strong,
+body.dark-mode .jw-context-participant strong,
+body.dark-mode .jw-context-file-stat strong {
+  color:#eef8f6;
+}
+
+body.dark-mode .jw-context-task-card,
+body.dark-mode .jw-context-participant,
+body.dark-mode .jw-context-file-stat,
+body.dark-mode .jw-context-action,
+body.dark-mode .jw-message-head-action {
+  border-color:#30494f;
+  background:#193038;
+}
+
+body.dark-mode .jw-context-role,
+body.dark-mode .jw-context-privacy,
+body.dark-mode .jw-mobile-task-context-grid div {
+  border-color:#31504f;
+  background:#183833;
+  color:#a9d5ce;
+}
+
+body.dark-mode .jw-mobile-task-context {
+  border-color:#30494f;
+  background:#193038;
+}
+
+body.dark-mode .jw-mobile-task-context summary,
+body.dark-mode .jw-mobile-task-context-grid strong {
+  color:#eef8f6;
+}
+
+@media (min-width:801px) and (max-width:1220px) {
+  #page-messages .message-shell,
+  #page-admin-student-messages .message-shell {
+    grid-template-columns:minmax(250px,300px) minmax(0,1fr);
+  }
+
+  .jw-message-context-rail {
+    display:none;
+  }
+}
+
+@media (max-width:800px) {
+  .jw-message-context-rail {
+    display:none;
+  }
+
+  .jw-message-panel-actions .jw-message-head-action[data-action="context"] {
+    display:none;
   }
 }
 
@@ -9712,7 +11756,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   <div class="auth-shell">
 
   <!-- Visual Panel -->
-  <div class="auth-visual">
+  <aside class="auth-visual" aria-label="Janelle Writes workspace overview">
     <div class="auth-visual-bg"></div>
     <div class="auth-visual-photo"></div>
     <div class="auth-visual-pattern"></div>
@@ -9751,23 +11795,23 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       <div class="auth-tagline">"Words crafted with precision, delivered with excellence."</div>
       <div class="auth-stats">
         <div>
-          <div class="auth-stat-val">500+</div>
-          <div class="auth-stat-lbl">Orders Done</div>
+          <div class="auth-stat-val"><i class="bi bi-shield-check" aria-hidden="true"></i></div>
+          <div class="auth-stat-lbl">Private files</div>
         </div>
         <div>
-          <div class="auth-stat-val">98%</div>
-          <div class="auth-stat-lbl">Satisfaction</div>
+          <div class="auth-stat-val"><i class="bi bi-activity" aria-hidden="true"></i></div>
+          <div class="auth-stat-lbl">Live progress</div>
         </div>
         <div>
-          <div class="auth-stat-val">24h</div>
-          <div class="auth-stat-lbl">Turnaround</div>
+          <div class="auth-stat-val"><i class="bi bi-headset" aria-hidden="true"></i></div>
+          <div class="auth-stat-lbl">Direct support</div>
         </div>
       </div>
     </div>
-  </div>
+  </aside>
 
   <!-- Form Panel -->
-  <div class="auth-panel">
+  <main class="auth-panel">
     <div class="auth-panel-brand"><span class="auth-mini-mark" aria-hidden="true">J</span><span>Janelle Writes workspace</span></div>
     <div class="auth-back-wrap">
       <a href="#" class="auth-back-link" onclick="showLandingPage(); return false;">
@@ -9776,7 +11820,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       </a>
     </div>
     <div class="auth-panel-header">
-      <div class="auth-panel-title" id="auth-panel-title">Welcome to Janelle Writes</div>
+      <h1 class="auth-panel-title" id="auth-panel-title">Welcome to Janelle Writes</h1>
       <div class="auth-panel-sub" id="auth-panel-sub">Sign in or create an account to continue</div>
     </div>
 
@@ -9939,7 +11983,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
         <button class="btn btn-outline btn-full" style="font-size:12px;" onclick="cancel2FA()">← Change Email</button>
       </div>
     </div>
-  </div>
+  </main>
   </div>
 </div>
 
@@ -9952,7 +11996,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
     <div class="brand-row-with-logo">
-      <div class="sidebar-brand-logo" aria-label="Janelle Writes logo"></div>
+      <div class="sidebar-brand-logo" role="img" aria-label="Janelle Writes logo"></div>
       <div>
         <div class="brand-title">Janelle <span>Writes!</span></div>
         <div class="brand-sub">Writing Platform</div>
@@ -9970,11 +12014,14 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile"><span>👤</span><span>Profile</span></button>
   </div>
 
-  <nav class="sidebar-nav" id="sidebar-nav">
+  <nav class="sidebar-nav" id="sidebar-nav" tabindex="0" aria-label="Workspace navigation">
     <!-- dynamically populated -->
   </nav>
 
   <div class="sidebar-footer sidebar-footer-compact">
+    <a class="premium-sidebar-support" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-headset" aria-hidden="true"></i><span>Support</span>
+    </a>
     <div class="btn-logout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
 </aside>
@@ -10177,17 +12224,33 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 
   <!-- ADMIN: STUDENT MESSAGES -->
   <div class="page content" id="page-admin-student-messages">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Student Order <span>Messages</span> <span class="admin-badge">ADMIN</span></div>
-        <p class="text-muted" style="margin-top:4px;">Separate admin inbox for student assignment conversations. Choose whether each admin reply goes to the student or to the assigned writer.</p>
+    <div class="jw-message-page-head">
+      <div class="jw-message-page-copy">
+        <div class="jw-message-eyebrow"><i class="bi bi-shield-check" aria-hidden="true"></i> Admin communication center</div>
+        <h1 class="section-title">Student Order <span>Messages</span> <span class="admin-badge">ADMIN</span></h1>
+        <p>Review private student conversations and choose whether each response goes to the student or the assigned writer.</p>
+      </div>
+      <div class="jw-message-trust">
+        <i class="bi bi-lock" aria-hidden="true"></i>
+        <span><strong>Private order communication</strong><small>Visible only to authorized participants</small></span>
       </div>
     </div>
     <div class="message-shell">
       <div class="message-sidebar">
+        <div class="jw-message-sidebar-head">
+          <div class="jw-message-sidebar-title"><i class="bi bi-chat-square-text" aria-hidden="true"></i> Student conversations</div>
+          <span class="jw-message-count" id="admin-message-conversation-count">0</span>
+        </div>
+        <div class="jw-message-search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" id="admin-message-search" placeholder="Search conversations" aria-label="Search student conversations" oninput="jwApplyMessageFilters('admin')">
+        </div>
+        <div class="jw-message-filters" aria-label="Student message filters">
+          <button type="button" class="jw-message-filter active" data-message-scope="admin" data-filter="all" onclick="jwSetMessageFilter(this)">All</button>
+          <button type="button" class="jw-message-filter" data-message-scope="admin" data-filter="unread" onclick="jwSetMessageFilter(this)">Unread</button>
+        </div>
         <div class="message-context-chip">🎓 Student conversations</div>
         <div id="admin-student-msg-list" class="message-conversation-list"></div>
-        <div class="text-muted" style="line-height:1.6;">Select a student order conversation to review private student/admin and admin/writer messages.</div>
       </div>
       <div class="message-panel">
         <div id="admin-student-msg-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Student Messages</div>
@@ -10199,9 +12262,17 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
             <option value="writer">Reply to writer</option>
           </select>
           <textarea class="form-textarea" id="admin-student-msg-input" placeholder="Type admin message..."></textarea>
-          <button class="btn btn-primary" onclick="adminSendStudentOrderMessage()">Send</button>
+          <button class="btn btn-primary" onclick="adminSendStudentOrderMessage()" aria-label="Send message"><i class="bi bi-send" aria-hidden="true"></i><span>Send</span></button>
         </div>
+        <div class="jw-message-safety"><i class="bi bi-shield-lock" aria-hidden="true"></i> Keep decisions, files, and important updates inside the order conversation.</div>
       </div>
+      <aside class="jw-message-context-rail" id="admin-message-context" aria-label="Student order context">
+        <div class="jw-context-empty">
+          <i class="bi bi-layout-sidebar-inset-reverse" aria-hidden="true"></i>
+          <strong>Order context</strong>
+          <span>Select a conversation to review its participants, status, and files.</span>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -10233,8 +12304,13 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   <div class="page content" id="page-student-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
+        <div class="premium-hero-eyebrow">Student workspace</div>
         <h1>Welcome, <span id="student-hero-name">Student</span>!</h1>
         <p>Post your assignment details, follow progress, and communicate privately with the Janelle Writes admin team.</p>
+        <div class="premium-hero-actions">
+          <button class="btn premium-hero-primary" onclick="navigate('emp-post')"><i class="bi bi-plus-lg" aria-hidden="true"></i> Post assignment</button>
+          <button class="btn premium-hero-secondary" onclick="openStudentAdminMessages()"><i class="bi bi-chat-dots" aria-hidden="true"></i> Message admin</button>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -10251,7 +12327,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
         </div>
       </div>
     </div>
-    <div class="hero-visual-strip">
+    <div class="hero-visual-strip" aria-hidden="true">
       <div class="visual-strip-item">
         <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=80" alt="Students studying" loading="lazy">
         <div class="visual-strip-overlay"><span class="visual-strip-label">Student Support</span></div>
@@ -10264,6 +12340,9 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
         <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80" alt="Online learning" loading="lazy">
         <div class="visual-strip-overlay"><span class="visual-strip-label">Admin-Guided Flow</span></div>
       </div>
+    </div>
+    <div class="premium-section-heading">
+      <div><span>Quick actions</span><h2>Keep your assignment moving</h2></div>
     </div>
     <div class="quick-actions">
       <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post Assignment</div><div class="qa-sub">Share instructions and deadline</div></div>
@@ -10287,8 +12366,13 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   <div class="page content" id="page-emp-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
+        <div class="premium-hero-eyebrow">Employer workspace</div>
         <h1>Welcome, <span id="emp-hero-name">Employer</span>!</h1>
         <p>Post writing tasks, track progress, and manage payments — all in one place.</p>
+        <div class="premium-hero-actions">
+          <button class="btn premium-hero-primary" onclick="navigate('emp-post')"><i class="bi bi-plus-lg" aria-hidden="true"></i> Post new task</button>
+          <button class="btn premium-hero-secondary" onclick="navigate('emp-tasks')"><i class="bi bi-list-check" aria-hidden="true"></i> View orders</button>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -10306,7 +12390,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       </div>
     </div>
 
-    <div class="hero-visual-strip">
+    <div class="hero-visual-strip" aria-hidden="true">
       <div class="visual-strip-item">
         <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&q=80" alt="Academic writing" loading="lazy">
         <div class="visual-strip-overlay"><span class="visual-strip-label">Academic Writing</span></div>
@@ -10341,6 +12425,9 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       <div class="stat-card ink"><div class="stat-icon">💰</div><div class="stat-value" id="emp-d-unpaid" style="font-size:20px;">KES 0</div><div class="stat-label">Unpaid</div></div>
     </div>
 
+    <div class="premium-section-heading">
+      <div><span>Quick actions</span><h2>Manage your workspace</h2></div>
+    </div>
     <div class="quick-actions">
       <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post New Task</div><div class="qa-sub">Create a writing order</div></div>
       <div class="qa-card" onclick="navigate('emp-tasks')"><div class="qa-icon">📋</div><div class="qa-title">My Orders</div><div class="qa-sub">Track all your orders</div></div>
@@ -10620,8 +12707,13 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
   <div class="page content" id="page-writer-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
+        <div class="premium-hero-eyebrow">Writer workspace</div>
         <h1>Hello, <span id="writer-hero-name">Writer</span>!</h1>
         <p>Browse available orders, submit work, and track your earnings.</p>
+        <div class="premium-hero-actions">
+          <button class="btn premium-hero-primary" onclick="navigate('writer-available')"><i class="bi bi-briefcase" aria-hidden="true"></i> Find work</button>
+          <button class="btn premium-hero-secondary" onclick="navigate('writer-tasks')"><i class="bi bi-list-check" aria-hidden="true"></i> My tasks</button>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat jw-active-task-stat"><div class="hero-stat-value" id="writer-stat-active">0</div><div class="hero-stat-label">Active / In Progress</div></div>
@@ -10631,7 +12723,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       </div>
     </div>
 
-    <div class="hero-visual-strip">
+    <div class="hero-visual-strip" aria-hidden="true">
       <div class="visual-strip-item">
         <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&q=80" alt="Writer working" loading="lazy">
         <div class="visual-strip-overlay"><span class="visual-strip-label">Your Workspace</span></div>
@@ -10667,6 +12759,34 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
       <div class="stat-card rust"><div class="stat-icon">⏰</div><div class="stat-value" id="writer-d-late-rate">0%</div><div class="stat-label">Lateness Rate</div></div>
     </div>
 
+    <div class="premium-work-grid">
+      <section class="premium-focus-panel" aria-labelledby="writer-current-work-title">
+        <div class="premium-panel-heading">
+          <div>
+            <span>Priority</span>
+            <h2 id="writer-current-work-title">Current work</h2>
+          </div>
+          <button class="premium-text-action" type="button" onclick="navigate('writer-tasks')">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+        </div>
+        <div id="writer-premium-current-work" class="premium-current-work">
+          <div class="premium-empty-work"><i class="bi bi-check2-circle" aria-hidden="true"></i><strong>You are all caught up</strong><span>Accepted work and approaching deadlines will appear here.</span></div>
+        </div>
+      </section>
+      <aside class="premium-insight-panel">
+        <div class="premium-panel-heading">
+          <div><span>Workspace health</span><h2>Build momentum</h2></div>
+        </div>
+        <div class="premium-insight-list">
+          <button type="button" onclick="navigate('writer-revisions')"><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span><strong>Revisions</strong><small>Respond quickly to protect your rating.</small></span><b id="writer-premium-revisions">0</b></button>
+          <button type="button" onclick="openMessagesInbox()"><i class="bi bi-chat-dots" aria-hidden="true"></i><span><strong>Messages</strong><small>Keep every conversation tied to its task.</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+          <button type="button" onclick="navigate('writer-earnings')"><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>Earnings</strong><small>Review completed and pending payouts.</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="premium-section-heading">
+      <div><span>Quick actions</span><h2>Everything within reach</h2></div>
+    </div>
     <div class="quick-actions">
       <div class="qa-card" onclick="navigate('writer-available')"><div class="qa-icon">📥</div><div class="qa-title">Browse Orders</div><div class="qa-sub">Find new writing work</div></div>
       <div class="qa-card" onclick="navigate('writer-submit')"><div class="qa-icon">📎</div><div class="qa-title">Submit Work</div><div class="qa-sub">Upload files or links</div></div>
@@ -10835,17 +12955,39 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 
   <!-- SHARED: MESSAGES -->
   <div class="page content" id="page-messages">
-    <div class="section-header"><div class="section-title">Order <span>Messages</span></div></div>
+    <div class="jw-message-page-head">
+      <div class="jw-message-page-copy">
+        <div class="jw-message-eyebrow"><i class="bi bi-chat-heart" aria-hidden="true"></i> Connected workspace</div>
+        <h1 class="section-title">Order <span>Messages</span></h1>
+        <p>Every conversation stays connected to its task, deadline, files, and authorized participants.</p>
+      </div>
+      <div class="jw-message-trust">
+        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+        <span><strong>Secure and organized</strong><small>Your conversations stay inside the workspace</small></span>
+      </div>
+    </div>
     <div class="message-shell">
       <div class="message-sidebar">
+        <div class="jw-message-sidebar-head">
+          <div class="jw-message-sidebar-title"><i class="bi bi-chat-square-text" aria-hidden="true"></i> Conversations</div>
+          <span class="jw-message-count" id="message-conversation-count">0</span>
+        </div>
+        <div class="jw-message-search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" id="message-search" placeholder="Search by order or person" aria-label="Search conversations" oninput="jwApplyMessageFilters('standard')">
+        </div>
+        <div class="jw-message-filters" aria-label="Message filters">
+          <button type="button" class="jw-message-filter active" data-message-scope="standard" data-filter="all" onclick="jwSetMessageFilter(this)">All</button>
+          <button type="button" class="jw-message-filter" data-message-scope="standard" data-filter="unread" onclick="jwSetMessageFilter(this)">Unread</button>
+        </div>
         <div class="message-context-chip">💬 Conversations</div>
         <select class="form-select" id="msg-order-select" onchange="loadMessageThread()" style="display:none;"><option value="">— Select an assigned order —</option></select>
         <div id="msg-conversation-list" class="message-conversation-list"></div>
-        <div id="msg-order-summary" class="text-muted" style="line-height:1.6;">Open a previous conversation or message directly from an order.</div>
       </div>
       <div class="message-panel">
         <button class="mobile-thread-back" onclick="closeMobileMessageThreadView()">← Conversations</button>
         <div id="msg-thread-title" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:10px;color:var(--ink);">Messages</div>
+        <div id="msg-order-summary" class="text-muted" style="line-height:1.6;">Open a previous conversation or message directly from an order.</div>
         <div id="msg-thread" class="message-thread"><div class="empty-state"><div class="empty-icon">💬</div><p>Select an assigned order to start messaging.</p></div></div>
         <div class="message-composer" id="msg-composer" style="display:none;">
           <select class="form-select" id="msg-student-channel" style="display:none;max-width:220px;">
@@ -10853,9 +12995,17 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
             <option value="writer">Reply to writer</option>
           </select>
           <textarea class="form-textarea" id="msg-input" rows="2" placeholder="Write a message..."></textarea>
-          <button class="btn btn-primary" onclick="sendTaskMessage()">Send →</button>
+          <button class="btn btn-primary" onclick="sendTaskMessage()" aria-label="Send message"><i class="bi bi-send" aria-hidden="true"></i><span>Send</span></button>
         </div>
+        <div class="jw-message-safety"><i class="bi bi-shield-lock" aria-hidden="true"></i> For your protection, keep contact details and task communication inside Janelle Writes.</div>
       </div>
+      <aside class="jw-message-context-rail" id="message-context" aria-label="Task and participant context">
+        <div class="jw-context-empty">
+          <i class="bi bi-layout-sidebar-inset-reverse" aria-hidden="true"></i>
+          <strong>Task context</strong>
+          <span>Select a conversation to see its participants, deadline, files, and progress.</span>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -10979,7 +13129,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     <div class="app-support-footer-grid">
       <div>
         <div class="app-support-badge">Support Desk</div>
-        <h3>Need help?</h3>
+        <h2 class="app-support-title">Need help?</h2>
         <p>Reach Janelle Writes support for order, payment, revision, dispute, or account assistance.</p>
       </div>
 
@@ -11241,7 +13391,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 </div>
 
 <!-- Floating WhatsApp Support -->
-<div class="floating-support-widget jw-whatsapp-widget" aria-label="Janelle Writes WhatsApp support">
+<aside class="floating-support-widget jw-whatsapp-widget" aria-label="Janelle Writes WhatsApp support">
   <a class="support-popover" href="https://wa.me/254723156622?text=Hi%20Janelle%20Writes%20support!" target="_blank" rel="noopener" aria-hidden="true">
     <strong>WhatsApp Support</strong>
     <small>Open a chat with Janelle Writes support.</small>
@@ -11250,7 +13400,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     <span class="support-trigger-icon" aria-hidden="true"><img src="assets/whatsapp-support-icon.png" alt=""></span>
     <span class="support-trigger-copy"><strong>Get support</strong></span>
   </a>
-</div>
+</aside>
 
 <script>
 // ══════════════════════════════════════════════════════
@@ -15678,6 +17828,47 @@ function renderWriterDashboard() {
   document.getElementById('writer-d-revision').textContent = revision;
   const lateRateEl = document.getElementById('writer-d-late-rate');
   if (lateRateEl) lateRateEl.textContent = lateStats.rate + '%';
+
+  const revisionInsight = document.getElementById('writer-premium-revisions');
+  if (revisionInsight) revisionInsight.textContent = revision;
+
+  const currentWork = document.getElementById('writer-premium-current-work');
+  if (currentWork) {
+    const priorityTasks = myTasks
+      .filter(t => ['progress', 'late', 'revision'].includes(t.status))
+      .sort((a, b) => new Date(a.deadline || 0) - new Date(b.deadline || 0))
+      .slice(0, 4);
+
+    if (!priorityTasks.length) {
+      currentWork.innerHTML = `
+        <div class="premium-empty-work">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i>
+          <strong>You are all caught up</strong>
+          <span>Accepted work and approaching deadlines will appear here.</span>
+        </div>`;
+    } else {
+      currentWork.innerHTML = priorityTasks.map(t => {
+        const deadlineTime = new Date(t.deadline || 0).getTime();
+        const hoursLeft = Number.isFinite(deadlineTime) ? Math.ceil((deadlineTime - Date.now()) / 3600000) : null;
+        const urgency = hoursLeft === null
+          ? 'Deadline pending'
+          : (hoursLeft < 0 ? 'Overdue' : (hoursLeft < 24 ? `${hoursLeft}h remaining` : `${Math.ceil(hoursLeft / 24)}d remaining`));
+        return `
+          <div class="premium-work-item" role="button" tabindex="0"
+            onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'writer-dashboard' })"
+            onkeydown="if(event.key==='Enter')openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'writer-dashboard' })">
+            <div>
+              <strong>${esc(t.subject || t.id)}</strong>
+              <small>${esc(t.id)} &middot; ${esc(String(t.status || 'in progress').replace(/_/g, ' '))}</small>
+            </div>
+            <div class="premium-work-deadline">
+              <b>${esc(urgency)}</b>
+              <span>${fmtDate(t.deadline)}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -22135,6 +24326,22 @@ async function openStudentAdminMessages() {
 
   let task = jwLatestStudentOrderForMessaging();
 
+  if (task) {
+    _preselectMessageTaskId = task.id;
+    navigate('messages');
+    return;
+  }
+
+  // Give immediate visual feedback while a first-time student's private
+  // support thread is created in the background.
+  navigate('messages');
+  setTimeout(() => {
+    const thread = document.getElementById('msg-thread');
+    if (thread) {
+      thread.innerHTML = '<div class="jw-message-loading"><div><i class="bi bi-chat-heart" aria-hidden="true"></i><strong>Opening your private support conversation</strong><br><small>Please wait while the secure thread is prepared.</small></div></div>';
+    }
+  }, 30);
+
   if (!task) {
     const id = jwStudentSupportThreadId();
     task = getTaskById(id);
@@ -22201,6 +24408,10 @@ async function openStudentAdminMessages() {
   _preselectMessageTaskId = task.id;
   navigate('messages');
 }
+
+// This function is declared in a module but is called by inline dashboard
+// controls, so expose only the intended entry point to the page.
+window.openStudentAdminMessages = openStudentAdminMessages;
 
 function jwMessageRoleClass(role) {
   const r = String(role || '').toLowerCase();
@@ -28998,21 +31209,22 @@ function renderMessageRoomPage() {
   wrap.innerHTML = `
     <div class="message-room-shell">
       <div class="message-room-head">
-        <div class="message-room-kicker">💬 Chat Room</div>
+        <div class="message-room-kicker"><i class="bi bi-chat-dots" aria-hidden="true"></i> Private conversation</div>
         <h1 class="message-room-title">${jwMessageRoomTitle(t)}</h1>
-        <div class="message-room-sub">Conversation with ${esc(other)}. Keep all order communication inside Janelle Writes.</div>
+        <div class="message-room-sub">Conversation with ${esc(other)}. Messages, decisions, and updates stay connected to this task.</div>
         <div class="message-room-actions">
-          <button class="btn btn-outline" onclick="jwMessageRoomBack(event)">← Back to Messages</button>
-          <button class="btn btn-primary" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'message-room' })">Open Task</button>
+          <button class="btn btn-outline" onclick="jwMessageRoomBack(event)"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Messages</button>
+          <button class="btn btn-primary" onclick="openTaskDetailsPage('${escJS(t.id)}', { returnPage: 'message-room' })"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open Task</button>
         </div>
       </div>
       <div class="message-room-body">
         <div class="message-room-summary">
-          <strong>${esc(t.subject || 'Untitled order')}</strong><br>
-          Status: ${status}<br>
-          Employer/Student: ${esc(t.posted_by_name || t.posted_by || '—')}<br>
-          Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}
+          <div class="jw-room-fact"><small>Task</small><strong>${esc(t.subject || 'Untitled order')}</strong></div>
+          <div class="jw-room-fact"><small>Status</small><strong>${status}</strong></div>
+          <div class="jw-room-fact"><small>Employer / Student</small><strong>${esc(t.posted_by_name || t.posted_by || '—')}</strong></div>
+          <div class="jw-room-fact"><small>Writer</small><strong>${esc(t.taken_by_name || t.taken_by || 'Unassigned')}</strong></div>
         </div>
+        ${typeof jwMessageMobileContextHtml === 'function' ? jwMessageMobileContextHtml(t) : ''}
         <div class="message-room-thread" id="message-room-thread">
           ${visible.length ? visible.map(m => {
             const mine = String(m.sender_email || '').toLowerCase() === String(currentUser.email || '').toLowerCase();
@@ -29024,9 +31236,10 @@ function renderMessageRoomPage() {
           }).join('') : `<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet. Start the conversation below.</p></div>`}
         </div>
         <div class="message-room-composer">
-          <textarea id="message-room-input" class="form-textarea" placeholder="Type your message..."></textarea>
-          <button class="btn btn-primary" onclick="sendMessageRoomMessage()">Send</button>
+          <textarea id="message-room-input" class="form-textarea" placeholder="Write a clear task update..." aria-label="Message"></textarea>
+          <button class="btn btn-primary" onclick="sendMessageRoomMessage()" aria-label="Send message"><i class="bi bi-send" aria-hidden="true"></i><span>Send</span></button>
         </div>
+        <div class="jw-message-safety"><i class="bi bi-shield-lock" aria-hidden="true"></i> This conversation is limited to authorized task participants.</div>
       </div>
     </div>`;
 
@@ -29407,8 +31620,8 @@ function jwPesapalCardHtml() {
     <div class="pesapal-card" id="pesapal-wallet-card">
       <div class="pesapal-card-head">
         <div>
-          <div class="pesapal-title">Instant Wallet Top Up</div>
-          <div class="pesapal-subtitle">Enter amount and phone number, then click <strong>Send STK Push</strong>. Pesapal will process the payment securely.</div>
+          <div class="pesapal-title">Secure Wallet Top Up</div>
+          <div class="pesapal-subtitle">Enter the amount and phone number, then continue to PesaPal's secure checkout to choose an available payment method.</div>
         </div>
         <div class="pesapal-badge">💳 Pesapal</div>
       </div>
@@ -29422,11 +31635,11 @@ function jwPesapalCardHtml() {
           <input class="form-input" id="pesapal-phone" inputmode="tel" placeholder="07XXXXXXXX or +2547XXXXXXXX" value="${esc(phone)}">
         </div>
         <div class="form-group">
-          <button class="btn btn-primary btn-full" id="pesapal-stk-btn" onclick="sendPesapalStkPush()">Send STK Push</button>
+          <button class="btn btn-primary btn-full" id="pesapal-stk-btn" onclick="sendPesapalStkPush()"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Continue to secure checkout</button>
         </div>
       </div>
       <div class="pesapal-help">
-        Keep the payment window open until the transaction finishes. If a direct STK prompt is not available from your payment channel, Pesapal will open a secure checkout page to complete the same wallet top-up.
+        PesaPal opens in a secure payment window. Complete the payment there, then return to Janelle Writes while the transaction is confirmed through the callback and payment notification.
       </div>
       <div class="pesapal-result" id="pesapal-result"></div>
     </div>`;
@@ -29470,7 +31683,7 @@ async function sendPesapalStkPush() {
   const btn = document.getElementById('pesapal-stk-btn');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Sending...';
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Opening checkout...';
   }
 
   // Open a tab immediately, so mobile browsers do not block the checkout fallback.
@@ -29551,7 +31764,7 @@ async function sendPesapalStkPush() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Send STK Push';
+      btn.innerHTML = '<i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Continue to secure checkout';
     }
   }
 }
@@ -29600,7 +31813,7 @@ if (typeof sendPesapalStkPush === 'function') {
     if (!phone || phone.length < 10) { notify('⚠️ Enter a valid phone number'); return; }
 
     const btn = document.getElementById('pesapal-stk-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Opening checkout...'; }
     let payWindow = null;
     try { payWindow = window.open('', '_blank'); } catch {}
 
@@ -29647,7 +31860,7 @@ if (typeof sendPesapalStkPush === 'function') {
       notify('❌ ' + msg);
       console.error('Pesapal error:', err.data || err);
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Send STK Push'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Continue to secure checkout'; }
     }
   };
 }
@@ -30125,9 +32338,471 @@ function buildStudentEstimate(event) {
   return false;
 }
 
+function jwLabelPremiumDashboardTables(root = document) {
+  const tables = [
+    { selector:'#emp-dash-table', labels:['Order','Subject','Style','Deadline','Status','Payment','Amount'] },
+    { selector:'#student-dash-table', labels:['Order','Subject','Style','Deadline','Status','Payment','Amount'] }
+  ];
+  tables.forEach(({ selector, labels }) => {
+    const body = root.matches?.(selector) ? root : (root.querySelector?.(selector) || document.querySelector(selector));
+    if (!body) return;
+    body.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length === 1) {
+        cells[0].dataset.label = '';
+        return;
+      }
+      cells.forEach((cell, index) => {
+        cell.dataset.label = labels[index] || '';
+      });
+    });
+  });
+}
+
+const JW_PREMIUM_NAV_ICONS = Object.freeze({
+  'admin-control':'shield-lock',
+  'admin-student-orders':'mortarboard',
+  'admin-student-messages':'chat-dots',
+  'admin-wallet':'bank',
+  'admin-commission':'cash-stack',
+  'admin-all-orders':'clipboard-data',
+  'student-dashboard':'house-door',
+  'emp-dashboard':'house-door',
+  'writer-dashboard':'house-door',
+  'emp-post':'pencil-square',
+  'emp-tasks':'clipboard-check',
+  'bid-requests':'person-check',
+  'writer-bids':'person-check',
+  'writer-available':'briefcase',
+  'writer-tasks':'journal-check',
+  'writer-revisions':'arrow-repeat',
+  'writer-submit':'cloud-arrow-up',
+  'writer-tracker':'activity',
+  'writer-earnings':'graph-up-arrow',
+  'messages':'chat-dots',
+  'cancelled':'slash-circle',
+  'disputes':'shield-exclamation',
+  'guide':'book',
+  'faq':'question-circle',
+  'rules':'shield-check',
+  'wallet':'wallet2',
+  'emp-invoice':'receipt',
+  'emp-payment':'credit-card',
+  'writer-payment':'credit-card',
+  'fines':'cash-coin',
+  'profile':'person'
+});
+
+function jwPolishWorkspaceControls() {
+  const menu = document.querySelector('#app-shell .mobile-menu-btn');
+  if (menu && !menu.dataset.premiumIcon) {
+    menu.innerHTML = '<i class="bi bi-list" aria-hidden="true"></i>';
+    menu.setAttribute('aria-label', 'Open navigation');
+    menu.dataset.premiumIcon = 'list';
+  }
+
+  document.querySelectorAll('#sidebar-nav .nav-item[data-page]').forEach(item => {
+    const icon = item.querySelector('.icon');
+    const iconName = JW_PREMIUM_NAV_ICONS[item.dataset.page] || 'circle';
+    if (!icon || icon.dataset.premiumIcon === iconName) return;
+    icon.innerHTML = `<i class="bi bi-${iconName}" aria-hidden="true"></i>`;
+    icon.dataset.premiumIcon = iconName;
+  });
+}
+
+const JW_MESSAGE_FILTER_STATE = { standard:'all', admin:'all' };
+
+function jwMessageScopeConfig(scope = 'standard') {
+  if (scope === 'admin') {
+    return {
+      list:document.getElementById('admin-student-msg-list'),
+      search:document.getElementById('admin-message-search'),
+      count:document.getElementById('admin-message-conversation-count'),
+      panel:document.querySelector('#page-admin-student-messages .message-panel'),
+      title:document.getElementById('admin-student-msg-title'),
+      summary:document.getElementById('admin-student-msg-summary')
+    };
+  }
+  return {
+    list:document.getElementById('msg-conversation-list'),
+    search:document.getElementById('message-search'),
+    count:document.getElementById('message-conversation-count'),
+    panel:document.querySelector('#page-messages .message-panel'),
+    title:document.getElementById('msg-thread-title'),
+    summary:document.getElementById('msg-order-summary')
+  };
+}
+
+function jwEnhanceMessagePanel(scope = 'standard') {
+  const cfg = jwMessageScopeConfig(scope);
+  if (!cfg.panel || !cfg.title || !cfg.summary || cfg.panel.querySelector('.jw-message-panel-head')) return;
+
+  const head = document.createElement('div');
+  head.className = 'jw-message-panel-head';
+  const person = document.createElement('div');
+  person.className = 'jw-message-person';
+  person.innerHTML = '<span class="jw-message-person-avatar" aria-hidden="true"><i class="bi bi-person"></i></span>';
+  const copy = document.createElement('div');
+  copy.className = 'jw-message-person-copy';
+  copy.append(cfg.title, cfg.summary);
+  person.append(copy);
+  head.append(person);
+  head.insertAdjacentHTML('beforeend', `
+    <div class="jw-message-panel-actions">
+      <span class="jw-message-secure-pill"><i class="bi bi-lock" aria-hidden="true"></i> Private</span>
+      <button class="jw-message-head-action" type="button" data-action="task" onclick="jwOpenCurrentMessageTask('${scope}')" aria-label="Open linked task" title="Open linked task">
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+      </button>
+      <button class="jw-message-head-action" type="button" data-action="context" onclick="jwFocusMessageContext('${scope}')" aria-label="View task context" title="View task context">
+        <i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i>
+      </button>
+    </div>`);
+
+  const thread = cfg.panel.querySelector('.message-thread');
+  cfg.panel.insertBefore(head, thread || cfg.panel.firstChild);
+}
+
+function jwMessageInitials(value) {
+  const parts = String(value || 'JW').trim().split(/\s+/).filter(Boolean);
+  return parts.slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'JW';
+}
+
+function jwMessageReadable(value, fallback = 'Not set') {
+  const text = String(value || '').trim();
+  if (!text) return fallback;
+  return text.replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function jwMessageContextTask(scope = 'standard') {
+  const id = scope === 'admin'
+    ? _adminStudentMessageTaskId
+    : document.getElementById('msg-order-select')?.value;
+  return id ? getTaskById(id) : null;
+}
+
+function jwMessageContextPerson(task, scope = 'standard') {
+  if (!task) return { name:'Conversation', role:'Authorized participant' };
+  if (scope === 'admin') {
+    return {
+      name:task.posted_by_name || task.posted_by || 'International Student',
+      role:'Student account'
+    };
+  }
+  if (isStudentOrder(task) && (currentUser?.role === 'student' || currentUser?.role === 'writer')) {
+    return { name:'Janelle Writes Admin', role:'Workspace support' };
+  }
+  if (currentUser?.role === 'employer' || currentUser?.role === 'student') {
+    return {
+      name:task.taken_by_name || task.taken_by || 'Writer not assigned',
+      role:task.taken_by_name || task.taken_by ? 'Assigned writer' : 'Awaiting assignment'
+    };
+  }
+  return {
+    name:task.posted_by_name || task.posted_by || 'Task owner',
+    role:isStudentOrder(task) ? 'International student' : 'Employer'
+  };
+}
+
+function jwMessageTaskProgress(task) {
+  const status = String(task?.status || '').toLowerCase();
+  if (['completed','paid','approved'].includes(status)) return 100;
+  if (['submitted','revision','revision_requested','under_review'].includes(status)) return 78;
+  if (['assigned','in_progress','active','accepted'].includes(status)) return 55;
+  if (['cancelled','canceled'].includes(status)) return 0;
+  return 18;
+}
+
+function jwMessageParticipantHtml(name, role) {
+  const safeName = String(name || '').trim() || 'Not assigned';
+  return `<div class="jw-context-participant">
+    <span class="jw-context-participant-avatar" aria-hidden="true">${esc(jwMessageInitials(safeName))}</span>
+    <span><strong>${esc(safeName)}</strong><small>${esc(role || 'Participant')}</small></span>
+  </div>`;
+}
+
+function jwMessageContextHtml(task, scope = 'standard') {
+  const person = jwMessageContextPerson(task, scope);
+  const status = jwMessageReadable(task.status, 'Pending');
+  const progress = jwMessageTaskProgress(task);
+  const instructionCount = typeof parseInstructionFiles === 'function'
+    ? parseInstructionFiles(task.instruction_files).length
+    : (Array.isArray(task.instruction_files) ? task.instruction_files.length : 0);
+  const submissionCount = typeof parseSubmittedFiles === 'function'
+    ? parseSubmittedFiles(task.submitted_files).length
+    : (Array.isArray(task.submitted_files) ? task.submitted_files.length : 0);
+  const ownerName = task.posted_by_name || task.posted_by || (isStudentOrder(task) ? 'International Student' : 'Employer');
+  const ownerRole = isStudentOrder(task) ? 'International student' : 'Employer';
+  const writerName = task.taken_by_name || task.taken_by || 'Not assigned';
+  const participants = [
+    jwMessageParticipantHtml(ownerName, ownerRole),
+    jwMessageParticipantHtml(writerName, writerName === 'Not assigned' ? 'Awaiting assignment' : 'Assigned writer')
+  ];
+  if (isStudentOrder(task)) {
+    participants.push(jwMessageParticipantHtml('Janelle Writes Admin', 'Workspace support'));
+  }
+  const deadline = task.deadline && typeof fmtDate === 'function' ? fmtDate(task.deadline) : 'Not set';
+  const payment = jwMessageReadable(task.payment || task.payment_status, 'Pending');
+
+  return `
+    <div class="jw-context-profile">
+      <div class="jw-context-avatar" aria-hidden="true">${esc(jwMessageInitials(person.name))}</div>
+      <h3>${esc(person.name)}</h3>
+      <p>Authorized for this task conversation</p>
+      <span class="jw-context-role"><i class="bi bi-patch-check" aria-hidden="true"></i>${esc(person.role)}</span>
+    </div>
+    <section class="jw-context-section">
+      <div class="jw-context-section-head"><strong>Task overview</strong><span>${esc(status)}</span></div>
+      <div class="jw-context-task-card">
+        <span class="jw-context-task-id">${esc(task.id || 'Task')}</span>
+        <h4>${esc(task.subject || 'Untitled task')}</h4>
+        <div class="jw-context-progress" aria-label="${progress}% task progress"><span style="width:${progress}%"></span></div>
+        <div class="jw-context-progress-copy"><span>Workflow progress</span><strong>${progress}%</strong></div>
+      </div>
+      <button class="jw-context-action" type="button" onclick="jwOpenCurrentMessageTask('${scope}')">
+        Open full task <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+      </button>
+    </section>
+    <section class="jw-context-section">
+      <div class="jw-context-section-head"><strong>Task details</strong><span>Live context</span></div>
+      <div class="jw-context-facts">
+        <div class="jw-context-fact"><span><i class="bi bi-activity" aria-hidden="true"></i>Status</span><strong>${esc(status)}</strong></div>
+        <div class="jw-context-fact"><span><i class="bi bi-clock" aria-hidden="true"></i>Deadline</span><strong>${esc(deadline)}</strong></div>
+        <div class="jw-context-fact"><span><i class="bi bi-journal-text" aria-hidden="true"></i>Style</span><strong>${esc(task.style || 'Not set')}</strong></div>
+        <div class="jw-context-fact"><span><i class="bi bi-credit-card" aria-hidden="true"></i>Payment</span><strong>${esc(payment)}</strong></div>
+      </div>
+    </section>
+    <section class="jw-context-section">
+      <div class="jw-context-section-head"><strong>Participants</strong><span>${participants.length} authorized</span></div>
+      <div class="jw-context-participants">${participants.join('')}</div>
+    </section>
+    <section class="jw-context-section">
+      <div class="jw-context-section-head"><strong>Shared files</strong><span>Task-bound</span></div>
+      <div class="jw-context-files">
+        <div class="jw-context-file-stat"><i class="bi bi-paperclip" aria-hidden="true"></i><strong>${instructionCount}</strong><small>Brief files</small></div>
+        <div class="jw-context-file-stat"><i class="bi bi-cloud-check" aria-hidden="true"></i><strong>${submissionCount}</strong><small>Submissions</small></div>
+      </div>
+    </section>
+    <div class="jw-context-privacy">
+      <i class="bi bi-shield-lock" aria-hidden="true"></i>
+      <span>Messages and files stay inside this task and are visible only to authorized participants.</span>
+    </div>`;
+}
+
+function jwMessageMobileContextHtml(task) {
+  const person = jwMessageContextPerson(task, 'standard');
+  const instructionCount = typeof parseInstructionFiles === 'function'
+    ? parseInstructionFiles(task.instruction_files).length
+    : (Array.isArray(task.instruction_files) ? task.instruction_files.length : 0);
+  const submissionCount = typeof parseSubmittedFiles === 'function'
+    ? parseSubmittedFiles(task.submitted_files).length
+    : (Array.isArray(task.submitted_files) ? task.submitted_files.length : 0);
+  const deadline = task.deadline && typeof fmtDate === 'function' ? fmtDate(task.deadline) : 'Not set';
+  return `<details class="jw-mobile-task-context">
+    <summary>
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      Task context and shared files
+      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+    </summary>
+    <div class="jw-mobile-task-context-grid">
+      <div><small>Conversation with</small><strong>${esc(person.name)}</strong></div>
+      <div><small>Deadline</small><strong>${esc(deadline)}</strong></div>
+      <div><small>Brief files</small><strong>${instructionCount}</strong></div>
+      <div><small>Submissions</small><strong>${submissionCount}</strong></div>
+    </div>
+  </details>`;
+}
+
+function jwUpdateMessageContext(scope = 'standard') {
+  const rail = document.getElementById(scope === 'admin' ? 'admin-message-context' : 'message-context');
+  if (!rail) return;
+  const task = jwMessageContextTask(scope);
+  if (!task || (scope !== 'admin' && !canCurrentUserSeeTask(task))) {
+    rail.innerHTML = `<div class="jw-context-empty">
+      <div><i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i>
+      <strong>Select a conversation</strong>
+      <span>Task details, authorized participants, deadlines, and shared files will appear here.</span></div>
+    </div>`;
+    return;
+  }
+  rail.innerHTML = jwMessageContextHtml(task, scope);
+}
+
+function jwOpenCurrentMessageTask(scope = 'standard') {
+  const task = jwMessageContextTask(scope);
+  if (!task) return notify('Select a conversation first.');
+  if (scope !== 'admin' && !canCurrentUserSeeTask(task)) return notify('You do not have access to this task.');
+  openTaskDetailsPage(task.id, { returnPage:scope === 'admin' ? 'admin-student-messages' : 'messages' });
+}
+
+function jwFocusMessageContext(scope = 'standard') {
+  const rail = document.getElementById(scope === 'admin' ? 'admin-message-context' : 'message-context');
+  if (!rail || getComputedStyle(rail).display === 'none') return;
+  rail.scrollTo({ top:0, behavior:'smooth' });
+  rail.classList.remove('jw-context-highlight');
+  void rail.offsetWidth;
+  rail.classList.add('jw-context-highlight');
+}
+
+function jwEnhanceMessageCards(scope = 'standard') {
+  const cfg = jwMessageScopeConfig(scope);
+  if (!cfg.list) return;
+
+  const cards = Array.from(cfg.list.querySelectorAll('.message-conversation-card'));
+  cards.forEach(card => {
+    if (!card.querySelector('.jw-conversation-avatar')) {
+      card.insertAdjacentHTML('afterbegin', '<span class="jw-conversation-avatar" aria-hidden="true"><i class="bi bi-chat-dots"></i></span>');
+    }
+    const badge = card.querySelector('.message-unread-badge');
+    const unread = Number.parseInt(String(badge?.textContent || '0').replace(/\D/g, ''), 10) || 0;
+    card.dataset.unread = unread > 0 ? 'true' : 'false';
+    if (badge) badge.style.visibility = unread > 0 ? 'visible' : 'hidden';
+  });
+
+  if (cfg.count) cfg.count.textContent = String(cards.length);
+  jwEnhanceMessagePanel(scope);
+  jwApplyMessageFilters(scope);
+}
+
+function jwApplyMessageFilters(scope = 'standard') {
+  const cfg = jwMessageScopeConfig(scope);
+  if (!cfg.list) return;
+
+  const query = String(cfg.search?.value || '').trim().toLowerCase();
+  const filter = JW_MESSAGE_FILTER_STATE[scope] || 'all';
+  const cards = Array.from(cfg.list.querySelectorAll('.message-conversation-card'));
+  let visible = 0;
+
+  cards.forEach(card => {
+    const matchesSearch = !query || String(card.textContent || '').toLowerCase().includes(query);
+    const matchesFilter = filter !== 'unread' || card.dataset.unread === 'true';
+    const show = matchesSearch && matchesFilter;
+    card.hidden = !show;
+    if (show) visible += 1;
+  });
+
+  let empty = cfg.list.querySelector('.jw-message-filter-empty');
+  if (!visible && cards.length) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'message-conversation-empty jw-message-filter-empty';
+      cfg.list.append(empty);
+    }
+    empty.innerHTML = '<i class="bi bi-search" aria-hidden="true"></i><br>No conversations match this view.';
+  } else {
+    empty?.remove();
+  }
+}
+
+function jwSetMessageFilter(button) {
+  const scope = button?.dataset?.messageScope || 'standard';
+  const filter = button?.dataset?.filter || 'all';
+  JW_MESSAGE_FILTER_STATE[scope] = filter;
+  document.querySelectorAll(`.jw-message-filter[data-message-scope="${scope}"]`).forEach(item => {
+    item.classList.toggle('active', item === button);
+  });
+  jwApplyMessageFilters(scope);
+}
+
+if (typeof renderMessageConversationList === 'function' && !renderMessageConversationList.__jwPremiumMessagesPatched) {
+  const __jwOriginalPremiumConversationList = renderMessageConversationList;
+  renderMessageConversationList = function() {
+    const result = __jwOriginalPremiumConversationList.apply(this, arguments);
+    setTimeout(() => {
+      jwEnhanceMessageCards('standard');
+      jwUpdateMessageContext('standard');
+    }, 0);
+    return result;
+  };
+  renderMessageConversationList.__jwPremiumMessagesPatched = true;
+}
+
+if (typeof renderAdminStudentMessagesPage === 'function' && !renderAdminStudentMessagesPage.__jwPremiumMessagesPatched) {
+  const __jwOriginalPremiumAdminMessages = renderAdminStudentMessagesPage;
+  renderAdminStudentMessagesPage = function() {
+    const result = __jwOriginalPremiumAdminMessages.apply(this, arguments);
+    setTimeout(() => {
+      jwEnhanceMessageCards('admin');
+      jwUpdateMessageContext('admin');
+    }, 0);
+    return result;
+  };
+  renderAdminStudentMessagesPage.__jwPremiumMessagesPatched = true;
+}
+
+if (typeof loadMessageThread === 'function' && !loadMessageThread.__jwContextRailPatched) {
+  const __jwOriginalContextLoadMessageThread = loadMessageThread;
+  loadMessageThread = function() {
+    const result = __jwOriginalContextLoadMessageThread.apply(this, arguments);
+    setTimeout(() => jwUpdateMessageContext('standard'), 0);
+    return result;
+  };
+  loadMessageThread.__jwContextRailPatched = true;
+}
+
+if (typeof openStudentAdminMessages === 'function' && !openStudentAdminMessages.__jwImmediateInboxPatched) {
+  const __jwOriginalOpenStudentAdminMessages = openStudentAdminMessages;
+  let jwStudentAdminOpenPending = false;
+
+  openStudentAdminMessages = async function() {
+    if (currentUser?.role !== 'student') return __jwOriginalOpenStudentAdminMessages.apply(this, arguments);
+
+    const existing = typeof jwLatestStudentOrderForMessaging === 'function' ? jwLatestStudentOrderForMessaging() : null;
+    if (existing) {
+      _preselectMessageTaskId = existing.id;
+      navigate('messages');
+      setTimeout(() => {
+        const select = document.getElementById('msg-order-select');
+        if (select) select.value = existing.id;
+        if (typeof loadMessageThread === 'function') loadMessageThread();
+      }, 60);
+      return;
+    }
+
+    if (jwStudentAdminOpenPending) return;
+    jwStudentAdminOpenPending = true;
+    navigate('messages');
+    setTimeout(() => {
+      const thread = document.getElementById('msg-thread');
+      if (thread) {
+        thread.innerHTML = '<div class="jw-message-loading"><div><i class="bi bi-chat-heart" aria-hidden="true"></i><strong>Opening your private support conversation</strong><br><small>Please wait while the secure thread is prepared.</small></div></div>';
+      }
+    }, 30);
+
+    try {
+      await __jwOriginalOpenStudentAdminMessages.apply(this, arguments);
+    } finally {
+      jwStudentAdminOpenPending = false;
+      setTimeout(() => jwEnhanceMessageCards('standard'), 80);
+    }
+  };
+  openStudentAdminMessages.__jwImmediateInboxPatched = true;
+}
+
+function jwBindPremiumMessageComposer() {
+  ['msg-input','admin-student-msg-input','message-room-input'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input || input.dataset.premiumComposerBound) return;
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || !event.ctrlKey) return;
+      event.preventDefault();
+      if (id === 'msg-input' && typeof sendTaskMessage === 'function') sendTaskMessage();
+      if (id === 'admin-student-msg-input' && typeof adminSendStudentOrderMessage === 'function') adminSendStudentOrderMessage();
+      if (id === 'message-room-input' && typeof sendMessageRoomMessage === 'function') sendMessageRoomMessage();
+    });
+    input.dataset.premiumComposerBound = 'true';
+  });
+}
+
 function jwInitializeUxRefresh() {
   jwPolishSupportControl();
   jwIconifyTree(document.body);
+  jwLabelPremiumDashboardTables(document);
+  jwPolishWorkspaceControls();
+  jwEnhanceMessageCards('standard');
+  jwEnhanceMessageCards('admin');
+  jwUpdateMessageContext('standard');
+  jwUpdateMessageContext('admin');
+  jwBindPremiumMessageComposer();
   const email = document.getElementById('login-email');
   const password = document.getElementById('login-password');
   email?.addEventListener('keydown', (event) => {
@@ -30139,7 +32814,12 @@ function jwInitializeUxRefresh() {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'characterData') jwIconifyTextNode(mutation.target);
-      mutation.addedNodes?.forEach(jwIconifyTree);
+      mutation.addedNodes?.forEach((node) => {
+        jwIconifyTree(node);
+        if (node.nodeType === Node.ELEMENT_NODE) jwLabelPremiumDashboardTables(node);
+      });
+      if (mutation.addedNodes?.length) jwPolishWorkspaceControls();
+      if (mutation.addedNodes?.length) jwBindPremiumMessageComposer();
     });
   });
   observer.observe(document.body, { childList:true, subtree:true, characterData:true });
