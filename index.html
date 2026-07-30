@@ -11467,6 +11467,412 @@ body.dark-mode .jw-mobile-task-context-grid strong {
   }
 }
 
+/* Admin operations control system */
+.jw-admin-page-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:24px;
+  padding:26px 28px;
+  border:1px solid rgba(42,157,143,.2);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 92% 18%, rgba(217,181,107,.18), transparent 26%),
+    linear-gradient(135deg, #0d2530 0%, #123b43 58%, #17645f 100%);
+  box-shadow:0 20px 44px rgba(10,38,47,.14);
+  color:#fff;
+}
+.jw-admin-page-copy { max-width:760px; }
+.jw-admin-eyebrow {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  color:#8de2d4;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.6px;
+  text-transform:uppercase;
+}
+.jw-admin-page-copy h1 {
+  margin:0;
+  color:#fff;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(32px,4vw,48px);
+  line-height:.98;
+}
+.jw-admin-page-copy p {
+  max-width:690px;
+  margin:10px 0 0;
+  color:#d1e2e4;
+  font-size:14px;
+  line-height:1.65;
+}
+.jw-admin-session-badge {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:225px;
+  padding:13px 15px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:16px;
+  background:rgba(255,255,255,.1);
+  backdrop-filter:blur(12px);
+}
+.jw-admin-session-badge > i {
+  display:grid;
+  width:38px;
+  height:38px;
+  place-items:center;
+  border-radius:12px;
+  background:#75d8c8;
+  color:#0e3539;
+  font-size:18px;
+}
+.jw-admin-session-badge span { display:grid; gap:2px; }
+.jw-admin-session-badge strong { color:#fff; font-size:12px; }
+.jw-admin-session-badge small { color:#bdd2d5; font-size:10px; }
+.jw-admin-command-bar {
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.85fr);
+  gap:16px;
+  margin-bottom:18px;
+}
+.jw-admin-command-card,
+.jw-admin-integrity-card {
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--white);
+  box-shadow:0 12px 28px rgba(15,25,35,.07);
+}
+.jw-admin-command-card { padding:20px; }
+.jw-admin-command-title {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.jw-admin-command-title strong {
+  color:var(--ink);
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;
+}
+.jw-admin-command-title small { color:var(--muted); font-size:11px; }
+.jw-admin-actions {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.jw-admin-action {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:66px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--cream);
+  color:var(--ink);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.jw-admin-action:hover {
+  transform:translateY(-2px);
+  border-color:rgba(42,157,143,.55);
+  box-shadow:0 10px 22px rgba(15,25,35,.08);
+}
+.jw-admin-action i {
+  display:grid;
+  flex:0 0 auto;
+  width:36px;
+  height:36px;
+  place-items:center;
+  border-radius:11px;
+  background:#dff3ef;
+  color:#147d73;
+  font-size:16px;
+}
+.jw-admin-action span { display:grid; gap:2px; }
+.jw-admin-action strong { font-size:11px; }
+.jw-admin-action small { color:var(--muted); font-size:9px; }
+.jw-admin-integrity-card {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:20px;
+  background:linear-gradient(145deg,#f4fbf9,#edf6f4);
+}
+.jw-admin-integrity-card > i {
+  margin-bottom:10px;
+  color:#15867b;
+  font-size:26px;
+}
+.jw-admin-integrity-card strong { color:var(--ink); font-size:13px; }
+.jw-admin-integrity-card p {
+  margin:5px 0 12px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.55;
+}
+.jw-admin-integrity-list { display:grid; gap:7px; }
+.jw-admin-integrity-list span {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#38666a;
+  font-size:10px;
+  font-weight:700;
+}
+.jw-admin-integrity-list i { color:#159786; }
+.jw-admin-metrics {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.jw-admin-metric {
+  position:relative;
+  min-height:126px;
+  overflow:hidden;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--white);
+  box-shadow:0 10px 25px rgba(15,25,35,.06);
+  cursor:pointer;
+}
+.jw-admin-metric::after {
+  content:'';
+  position:absolute;
+  right:-28px;
+  bottom:-34px;
+  width:92px;
+  height:92px;
+  border-radius:50%;
+  background:var(--metric-tint,#e4f4f1);
+}
+.jw-admin-metric i {
+  display:grid;
+  width:34px;
+  height:34px;
+  margin-bottom:11px;
+  place-items:center;
+  border-radius:10px;
+  background:var(--metric-tint,#e4f4f1);
+  color:var(--metric-color,#147d73);
+}
+.jw-admin-metric strong {
+  display:block;
+  position:relative;
+  z-index:1;
+  color:var(--ink);
+  font-family:'Cormorant Garamond',serif;
+  font-size:29px;
+  line-height:1;
+}
+.jw-admin-metric span {
+  display:block;
+  position:relative;
+  z-index:1;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.65px;
+  text-transform:uppercase;
+}
+.jw-admin-operations-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
+  gap:16px;
+}
+.jw-admin-table-card { padding:0; overflow:hidden; }
+.jw-admin-card-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:17px 20px;
+  border-bottom:1px solid var(--border);
+}
+.jw-admin-card-head span {
+  color:var(--ink);
+  font-family:'Cormorant Garamond',serif;
+  font-size:23px;
+  font-weight:700;
+}
+.jw-admin-card-head small { color:var(--muted); font-size:10px; }
+.jw-admin-audit-list { display:grid; }
+.jw-admin-audit-item {
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:11px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+}
+.jw-admin-audit-item:last-child { border-bottom:0; }
+.jw-admin-audit-icon {
+  display:grid;
+  width:34px;
+  height:34px;
+  place-items:center;
+  border-radius:10px;
+  background:#e1f3ef;
+  color:#147d73;
+}
+.jw-admin-audit-copy strong { display:block; color:var(--ink); font-size:11px; }
+.jw-admin-audit-copy p {
+  margin:3px 0 5px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+.jw-admin-audit-copy time { color:#789095; font-size:9px; }
+.jw-admin-review-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.jw-admin-review-summary {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--white);
+}
+.jw-admin-review-summary i {
+  display:grid;
+  width:40px;
+  height:40px;
+  place-items:center;
+  border-radius:12px;
+  background:#e2f4f0;
+  color:#147d73;
+  font-size:17px;
+}
+.jw-admin-review-summary span { display:grid; gap:2px; }
+.jw-admin-review-summary strong { color:var(--ink); font-size:20px; }
+.jw-admin-review-summary small { color:var(--muted); font-size:10px; }
+.jw-wallet-type-chip {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:#e4f3f0;
+  color:#176f68;
+  font-size:10px;
+  font-weight:800;
+}
+.jw-admin-review-btns { display:flex; gap:7px; flex-wrap:wrap; }
+.jw-admin-review-btns .btn { min-width:78px; }
+.jw-admin-review-modal .modal { max-width:610px; }
+.jw-admin-review-context {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0;
+}
+.jw-admin-review-detail {
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--cream);
+}
+.jw-admin-review-detail small {
+  display:block;
+  margin-bottom:4px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.jw-admin-review-detail strong {
+  display:block;
+  overflow-wrap:anywhere;
+  color:var(--ink);
+  font-size:12px;
+}
+.jw-admin-decision-banner {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px;
+  border-radius:12px;
+  background:#eaf6f3;
+  color:#246d67;
+  font-size:11px;
+  line-height:1.5;
+}
+.jw-admin-decision-banner.danger {
+  background:#fff0ee;
+  color:#a74439;
+}
+.jw-admin-confirm-check {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-top:12px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+.jw-admin-confirm-check input { margin-top:2px; accent-color:#188d82; }
+.jw-admin-empty {
+  display:grid;
+  place-items:center;
+  min-height:180px;
+  padding:24px;
+  color:var(--muted);
+  text-align:center;
+}
+.jw-admin-empty i { margin-bottom:8px; color:#6bbcaf; font-size:26px; }
+body.dark-mode .jw-admin-command-card,
+body.dark-mode .jw-admin-metric,
+body.dark-mode .jw-admin-review-summary {
+  background:#12232d;
+  border-color:#2d434d;
+}
+body.dark-mode .jw-admin-integrity-card,
+body.dark-mode .jw-admin-action,
+body.dark-mode .jw-admin-review-detail {
+  background:#172d34;
+  border-color:#304850;
+}
+@media (max-width:1000px) {
+  .jw-admin-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .jw-admin-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .jw-admin-operations-grid { grid-template-columns:1fr; }
+}
+@media (max-width:720px) {
+  .jw-admin-page-head { align-items:flex-start; padding:20px; border-radius:18px; }
+  .jw-admin-session-badge { min-width:0; width:100%; }
+  .jw-admin-page-head,
+  .jw-admin-command-bar { grid-template-columns:1fr; flex-direction:column; }
+  .jw-admin-actions,
+  .jw-admin-metrics,
+  .jw-admin-review-grid { grid-template-columns:1fr 1fr; }
+  .jw-admin-action { min-height:58px; }
+  .jw-admin-card-head { align-items:flex-start; flex-direction:column; }
+}
+@media (max-width:460px) {
+  .jw-admin-actions,
+  .jw-admin-review-grid { grid-template-columns:1fr; }
+  .jw-admin-metrics { gap:9px; }
+  .jw-admin-metric { min-height:114px; padding:14px; }
+  .jw-admin-review-context { grid-template-columns:1fr; }
+}
+
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
 </head>
@@ -12347,10 +12753,15 @@ body.dark-mode .jw-mobile-task-context-grid strong {
 
   <!-- ADMIN: CONTROL CENTER -->
   <div class="page content" id="page-admin-control">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Admin <span>Control Center</span> <span class="admin-badge">ADMIN</span></div>
-        <p class="text-muted" style="margin-top:4px;">Platform-owner override view for monitoring users, orders, payments, disputes, and task statuses.</p>
+    <div class="jw-admin-page-head">
+      <div class="jw-admin-page-copy">
+        <div class="jw-admin-eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i> Authorized operations</div>
+        <h1>Admin Control Center</h1>
+        <p>Review money movement, resolve platform exceptions, and monitor every sensitive action from one accountable workspace.</p>
+      </div>
+      <div class="jw-admin-session-badge">
+        <i class="bi bi-patch-check-fill" aria-hidden="true"></i>
+        <span><strong>Verified admin session</strong><small>Privileged actions are logged</small></span>
       </div>
     </div>
     <div id="admin-control-wrap">
@@ -12472,14 +12883,20 @@ body.dark-mode .jw-mobile-task-context-grid strong {
 
   <!-- ADMIN: WALLET REQUESTS -->
   <div class="page content" id="page-admin-wallet">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Wallet <span>Requests</span> <span class="admin-badge">ADMIN</span></div>
-        <p class="text-muted" style="margin-top:4px;">Review top-ups, withdrawals, and transfer requests before any wallet balance is trusted.</p>
+    <div class="jw-admin-page-head">
+      <div class="jw-admin-page-copy">
+        <div class="jw-admin-eyebrow"><i class="bi bi-cash-stack" aria-hidden="true"></i> Financial review desk</div>
+        <h1>Wallet Requests</h1>
+        <p>Verify every deposit, withdrawal, and transfer with a recorded decision note before balances change.</p>
+      </div>
+      <div class="jw-admin-session-badge">
+        <i class="bi bi-lock-fill" aria-hidden="true"></i>
+        <span><strong>Controlled approval</strong><small>Atomic review and audit trail</small></span>
       </div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;">Pending Wallet Requests</div>
+    <div id="jw-admin-wallet-summary"></div>
+    <div class="card jw-admin-table-card">
+      <div class="jw-admin-card-head"><span>Pending Wallet Requests</span><small>Oldest requests appear first</small></div>
       <div id="admin-wallet-page-requests"><div class="empty-state"><p>Loading wallet requests...</p></div></div>
     </div>
   </div>
@@ -13573,6 +13990,55 @@ body.dark-mode .jw-mobile-task-context-grid strong {
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="dismissRealtimeNotificationPrompt()">Not Now</button>
       <button class="btn btn-primary" onclick="allowRealtimeNotifications()">Allow Notifications</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Wallet Decision Modal -->
+<div class="modal-overlay jw-admin-review-modal" id="modal-admin-wallet-review">
+  <div class="modal">
+    <div class="modal-title" id="admin-wallet-review-title">Review Wallet Request</div>
+    <div class="modal-sub">Confirm the evidence and record why this decision is appropriate.</div>
+    <div id="admin-wallet-review-banner" class="jw-admin-decision-banner"></div>
+    <div id="admin-wallet-review-context" class="jw-admin-review-context"></div>
+    <div class="form-group">
+      <label class="form-label" for="admin-wallet-review-note">Decision note</label>
+      <textarea class="form-textarea" id="admin-wallet-review-note" rows="4" maxlength="1000" placeholder="Record what you verified and why this request should be approved or rejected."></textarea>
+      <div class="text-muted">Required: at least 10 characters. This note becomes part of the permanent admin audit trail.</div>
+    </div>
+    <label class="jw-admin-confirm-check">
+      <input type="checkbox" id="admin-wallet-review-confirm">
+      <span>I have verified the request details and understand that this decision changes or releases a wallet balance.</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-outline" type="button" onclick="closeModal('modal-admin-wallet-review')">Cancel</button>
+      <button class="btn btn-primary" type="button" id="admin-wallet-review-submit" onclick="submitAdminWalletReview()">Confirm decision</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Task Override Modal -->
+<div class="modal-overlay jw-admin-review-modal" id="modal-admin-task-override">
+  <div class="modal">
+    <div class="modal-title">Controlled Task Override</div>
+    <div class="modal-sub">Use an override only when the normal order workflow cannot resolve the exception.</div>
+    <div class="jw-admin-decision-banner">
+      <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+      <span>The previous value, new value, administrator, reason, and timestamp will be recorded.</span>
+    </div>
+    <div id="admin-task-override-context" class="jw-admin-review-context"></div>
+    <div class="form-group">
+      <label class="form-label" for="admin-task-override-reason">Override reason</label>
+      <textarea class="form-textarea" id="admin-task-override-reason" rows="4" maxlength="1000" placeholder="Explain the evidence, exception, and intended outcome."></textarea>
+      <div class="text-muted">Required: at least 10 characters. Avoid sensitive payment credentials.</div>
+    </div>
+    <label class="jw-admin-confirm-check">
+      <input type="checkbox" id="admin-task-override-confirm">
+      <span>I confirm this override is necessary and that I have reviewed the current order state.</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-outline" type="button" onclick="closeModal('modal-admin-task-override')">Cancel</button>
+      <button class="btn btn-primary" type="button" id="admin-task-override-submit" onclick="submitAdminTaskOverride()">Apply override</button>
     </div>
   </div>
 </div>
@@ -22024,12 +22490,38 @@ function jwSubscribeStudentAdminRealtime() {
 }
 
 function jwSubscribeWalletRealtime() {
-  if (_jwWalletRealtimeSub || !isJwAdmin()) return;
-  _jwWalletRealtimeSub = _sb.channel('jw_wallet_transactions_activity')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'jw_wallet_transactions' }, payload => {
-      jwRefreshAdminWalletBadge({ notifyNew: payload.eventType === 'INSERT' });
-      if (document.getElementById('page-admin-wallet')?.classList.contains('active')) {
-        try { renderAdminWalletPage(); } catch {}
+  if (_jwWalletRealtimeSub || !currentUser?.email) return;
+  const admin = isJwAdmin();
+  const email = String(currentUser.email || '').trim().toLowerCase();
+  const config = {
+    event: '*',
+    schema: 'public',
+    table: 'jw_wallet_transactions'
+  };
+  if (!admin) config.filter = `user_email=eq.${email}`;
+
+  _jwWalletRealtimeSub = _sb
+    .channel(`jw_wallet_activity_${admin ? 'admin' : email.replace(/[^a-z0-9]/g, '_')}`)
+    .on('postgres_changes', config, payload => {
+      if (!currentUser) return;
+      if (admin) {
+        jwRefreshAdminWalletBadge({ notifyNew: payload.eventType === 'INSERT' });
+        if (document.getElementById('page-admin-wallet')?.classList.contains('active')) {
+          try { renderAdminWalletPage(); } catch {}
+        }
+        return;
+      }
+
+      if (document.getElementById('page-wallet')?.classList.contains('active')) {
+        try { renderWalletPage(); } catch {}
+      }
+      const row = payload.new || {};
+      if (payload.eventType === 'UPDATE' && ['approved', 'rejected'].includes(row.status)) {
+        notify(row.status === 'approved'
+          ? 'Your wallet request was approved. Your balance has updated automatically.'
+          : 'Your wallet request was reviewed and rejected.');
+      } else if (payload.eventType === 'INSERT' && ['transfer_in', 'admin_credit'].includes(row.type) && row.status === 'approved') {
+        notify('Your wallet balance has updated automatically.');
       }
     })
     .subscribe();
@@ -22050,8 +22542,8 @@ launchApp = function(options = {}) {
   if (isJwAdmin()) {
     jwSetAdminSidebarBadges();
     jwRefreshAdminWalletBadge();
-    jwSubscribeWalletRealtime();
   }
+  if (currentUser?.email) jwSubscribeWalletRealtime();
 
   if (currentUser?.role === 'student' || isJwAdmin()) {
     jwSubscribeStudentAdminRealtime();
@@ -22213,8 +22705,8 @@ function adminRenderOrderRows(list) {
             <td style="padding:12px 14px;">
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button class="btn btn-outline btn-sm" onclick="${student ? `adminOpenStudentOrderMessages('${esc(t.id)}')` : `openMessagesForTask('${esc(t.id)}')`}">Messages</button>
-                <button class="btn btn-success btn-sm" onclick="adminOverrideTask('${esc(t.id)}','payment','paid')">Mark Paid</button>
-                <button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${esc(t.id)}','status','completed')">Complete</button>
+                ${!isCancelledTask(t) && t.payment !== 'paid' ? `<button class="btn btn-success btn-sm" onclick="adminOverrideTask('${esc(t.id)}','payment','paid')">Review payment</button>` : ''}
+                ${!isCancelledTask(t) && t.status !== 'completed' ? `<button class="btn btn-outline btn-sm" onclick="adminOverrideTask('${esc(t.id)}','status','completed')">Review completion</button>` : ''}
               </div>
             </td>
           </tr>`;
@@ -33008,6 +33500,417 @@ function jwBindPremiumMessageComposer() {
     });
     input.dataset.premiumComposerBound = 'true';
   });
+}
+
+/* Admin control system */
+let jwPendingAdminWalletDecision = null;
+let jwPendingAdminTaskOverride = null;
+
+function jwAdminFormatMoney(value) {
+  return `KES ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits:2 })}`;
+}
+
+function jwAdminFormatDate(value) {
+  if (!value) return 'Not available';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not available';
+  return date.toLocaleString([], { dateStyle:'medium', timeStyle:'short' });
+}
+
+async function dbGetAdminAuditLog(limit = 12) {
+  const { data, error } = await _sb
+    .from('jw_admin_audit_log')
+    .select('id,actor_email,action,entity_type,entity_id,reason,before_state,after_state,metadata,created_at')
+    .order('created_at', { ascending:false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+function jwAdminAuditLabel(action) {
+  return {
+    wallet_approved:'Wallet request approved',
+    wallet_rejected:'Wallet request rejected',
+    task_payment_overridden:'Order payment confirmed',
+    task_status_overridden:'Order status overridden'
+  }[action] || 'Administrative action';
+}
+
+function jwAdminAuditIcon(action) {
+  if (action === 'wallet_rejected') return 'bi-x-circle';
+  if (String(action || '').startsWith('wallet_')) return 'bi-wallet2';
+  if (action === 'task_payment_overridden') return 'bi-cash-coin';
+  return 'bi-shield-check';
+}
+
+function jwRenderAdminAuditLog(rows = [], error = null) {
+  const wrap = document.getElementById('jw-admin-audit-log');
+  if (!wrap) return;
+  if (error) {
+    const unavailable = /jw_admin_audit_log|does not exist|schema cache/i.test(String(error.message || error));
+    wrap.innerHTML = `<div class="jw-admin-empty"><div><i class="bi bi-shield-exclamation" aria-hidden="true"></i><p>${unavailable ? 'The secure audit migration is ready for review but has not been applied yet.' : 'Audit activity could not be loaded.'}</p></div></div>`;
+    return;
+  }
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-journal-check" aria-hidden="true"></i><p>No controlled admin decisions have been recorded yet.</p></div></div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="jw-admin-audit-list">${rows.map(row => `
+    <div class="jw-admin-audit-item">
+      <div class="jw-admin-audit-icon"><i class="bi ${jwAdminAuditIcon(row.action)}" aria-hidden="true"></i></div>
+      <div class="jw-admin-audit-copy">
+        <strong>${esc(jwAdminAuditLabel(row.action))} · ${esc(row.entity_id || '')}</strong>
+        <p>${esc(row.reason || 'No reason recorded')}</p>
+        <time>${esc(jwAdminFormatDate(row.created_at))}</time>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function jwAdminQueueItemHtml(item) {
+  if (item.kind === 'wallet') {
+    const tx = item.record;
+    return `<div class="jw-admin-audit-item">
+      <div class="jw-admin-audit-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></div>
+      <div class="jw-admin-audit-copy">
+        <strong>${esc(walletTypeLabel(tx.type))} · ${esc(jwAdminFormatMoney(walletTxAmount(tx)))}</strong>
+        <p>${esc(tx.user_email)} · ${esc(walletReference(tx))}</p>
+        <button class="btn btn-primary btn-sm" type="button" onclick="openAdminWalletReview('${escJS(tx.id)}','approved')">Review request</button>
+      </div>
+    </div>`;
+  }
+  const task = item.record;
+  return `<div class="jw-admin-audit-item">
+    <div class="jw-admin-audit-icon"><i class="bi bi-receipt" aria-hidden="true"></i></div>
+    <div class="jw-admin-audit-copy">
+      <strong>Payment confirmation · ${esc(task.id)}</strong>
+      <p>${esc(task.subject || 'Untitled order')} · ${esc(jwAdminFormatMoney(task.total))}</p>
+      <button class="btn btn-outline btn-sm" type="button" onclick="adminOverrideTask('${escJS(task.id)}','payment','paid')">Review payment</button>
+    </div>
+  </div>`;
+}
+
+function jwRenderAdminPriorityQueue(walletRequests = []) {
+  const wrap = document.getElementById('jw-admin-priority-queue');
+  if (!wrap) return;
+  const paymentTasks = typeof adminPaymentsToConfirmSafe === 'function' ? adminPaymentsToConfirmSafe() : [];
+  const items = [
+    ...walletRequests.map(record => ({ kind:'wallet', record })),
+    ...paymentTasks.map(record => ({ kind:'payment', record }))
+  ].slice(0, 8);
+  if (!items.length) {
+    wrap.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-check2-circle" aria-hidden="true"></i><p>The priority review queue is clear.</p></div></div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="jw-admin-audit-list">${items.map(jwAdminQueueItemHtml).join('')}</div>`;
+}
+
+function jwRenderAdminWalletSummary(requests = []) {
+  const summary = document.getElementById('jw-admin-wallet-summary');
+  const normalized = requests.map(normalizeWalletTx);
+  const topups = normalized.filter(tx => tx.type === 'topup');
+  const withdrawals = normalized.filter(tx => tx.type === 'withdrawal');
+  const transfers = normalized.filter(tx => tx.type === 'transfer_out');
+  const metric = document.getElementById('jw-admin-wallet-pending');
+  if (metric) metric.textContent = String(normalized.length);
+  if (!summary) return;
+  summary.innerHTML = `<div class="jw-admin-review-grid">
+    <div class="jw-admin-review-summary"><i class="bi bi-plus-circle" aria-hidden="true"></i><span><strong>${topups.length}</strong><small>Deposits awaiting review · ${esc(jwAdminFormatMoney(topups.reduce((sum, tx) => sum + walletTxAmount(tx), 0)))}</small></span></div>
+    <div class="jw-admin-review-summary"><i class="bi bi-arrow-up-right-circle" aria-hidden="true"></i><span><strong>${withdrawals.length}</strong><small>Withdrawals awaiting review · ${esc(jwAdminFormatMoney(withdrawals.reduce((sum, tx) => sum + walletTxAmount(tx), 0)))}</small></span></div>
+    <div class="jw-admin-review-summary"><i class="bi bi-arrow-left-right" aria-hidden="true"></i><span><strong>${transfers.length}</strong><small>Transfers awaiting review · ${esc(jwAdminFormatMoney(transfers.reduce((sum, tx) => sum + walletTxAmount(tx), 0)))}</small></span></div>
+  </div>`;
+}
+
+async function jwLoadAdminControlData() {
+  const [walletResult, auditResult] = await Promise.allSettled([
+    dbGetPendingWalletTransactions(),
+    dbGetAdminAuditLog()
+  ]);
+  const walletRows = walletResult.status === 'fulfilled' ? walletResult.value : [];
+  jwRenderAdminWalletSummary(walletRows);
+  jwRenderAdminPriorityQueue(walletRows);
+  if (auditResult.status === 'fulfilled') jwRenderAdminAuditLog(auditResult.value);
+  else jwRenderAdminAuditLog([], auditResult.reason);
+}
+
+renderAdminControlPage = function() {
+  const el = document.getElementById('admin-control-wrap');
+  if (!el) return;
+  if (!isJwAdmin()) {
+    el.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-lock" aria-hidden="true"></i><p>This workspace is restricted to a verified platform administrator.</p></div></div>';
+    return;
+  }
+
+  const all = typeof adminAllOrdersSafe === 'function' ? adminAllOrdersSafe() : (tasks || []);
+  const users = typeof adminKnownUsersSafe === 'function' ? adminKnownUsersSafe() : [];
+  const paymentReviews = typeof adminPaymentsToConfirmSafe === 'function' ? adminPaymentsToConfirmSafe() : [];
+  const disputes = all.filter(task => hasOpenDispute(task));
+  const completed = all.filter(task => task.status === 'completed');
+  const gross = all.reduce((sum, task) => sum + Number(task.total || 0), 0);
+
+  el.innerHTML = `
+    <div class="jw-admin-command-bar">
+      <section class="jw-admin-command-card">
+        <div class="jw-admin-command-title"><strong>Operations desk</strong><small>Choose a controlled workflow</small></div>
+        <div class="jw-admin-actions">
+          <button class="jw-admin-action" type="button" onclick="navigate('admin-wallet')"><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>Wallet reviews</strong><small>Deposits and withdrawals</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="openAdminFilteredOrders('payments')"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i><span><strong>Payment checks</strong><small>Confirm paid orders</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="navigate('disputes')"><i class="bi bi-life-preserver" aria-hidden="true"></i><span><strong>Dispute desk</strong><small>Resolve order exceptions</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="navigate('admin-reassign')"><i class="bi bi-person-check" aria-hidden="true"></i><span><strong>Reassignment</strong><small>Review writer changes</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="openAdminFilteredOrders('all')"><i class="bi bi-kanban" aria-hidden="true"></i><span><strong>All orders</strong><small>Full platform view</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="renderAdminUsersPageInline()"><i class="bi bi-people" aria-hidden="true"></i><span><strong>User directory</strong><small>Known accounts</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="navigate('admin-commission')"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span><strong>Commission ledger</strong><small>Platform earnings</small></span></button>
+          <button class="jw-admin-action" type="button" onclick="openMessagesInbox()"><i class="bi bi-chat-square-text" aria-hidden="true"></i><span><strong>Communications</strong><small>Open message center</small></span></button>
+        </div>
+      </section>
+      <aside class="jw-admin-integrity-card">
+        <i class="bi bi-database-lock" aria-hidden="true"></i>
+        <strong>Decision integrity</strong>
+        <p>Sensitive financial actions use a locked review workflow so balances, payouts, and order state change together.</p>
+        <div class="jw-admin-integrity-list">
+          <span><i class="bi bi-check2" aria-hidden="true"></i> Verified admin identity</span>
+          <span><i class="bi bi-check2" aria-hidden="true"></i> Required decision reason</span>
+          <span><i class="bi bi-check2" aria-hidden="true"></i> Permanent audit record</span>
+        </div>
+      </aside>
+    </div>
+    <div class="jw-admin-metrics">
+      <button class="jw-admin-metric" type="button" onclick="navigate('admin-wallet')" style="--metric-color:#0b887d;--metric-tint:#dff4ef"><i class="bi bi-wallet2" aria-hidden="true"></i><strong id="jw-admin-wallet-pending">…</strong><span>Wallet reviews</span></button>
+      <button class="jw-admin-metric" type="button" onclick="openAdminFilteredOrders('payments')" style="--metric-color:#b0781e;--metric-tint:#fff3d9"><i class="bi bi-cash-coin" aria-hidden="true"></i><strong>${paymentReviews.length}</strong><span>Payment checks</span></button>
+      <button class="jw-admin-metric" type="button" onclick="openAdminFilteredOrders('disputes')" style="--metric-color:#b84e43;--metric-tint:#ffebe7"><i class="bi bi-exclamation-diamond" aria-hidden="true"></i><strong>${disputes.length}</strong><span>Open disputes</span></button>
+      <button class="jw-admin-metric" type="button" onclick="openAdminFilteredOrders('completed')" style="--metric-color:#6750a4;--metric-tint:#eee8ff"><i class="bi bi-check2-square" aria-hidden="true"></i><strong>${completed.length}</strong><span>Completed orders</span></button>
+      <button class="jw-admin-metric" type="button" onclick="openAdminFilteredOrders('all')"><i class="bi bi-grid" aria-hidden="true"></i><strong>${all.length}</strong><span>Total orders</span></button>
+      <button class="jw-admin-metric" type="button" onclick="renderAdminUsersPageInline()"><i class="bi bi-people" aria-hidden="true"></i><strong>${users.length}</strong><span>Known users</span></button>
+      <button class="jw-admin-metric" type="button" onclick="navigate('admin-commission')" style="--metric-color:#9b6a15;--metric-tint:#fff1cf"><i class="bi bi-bar-chart-line" aria-hidden="true"></i><strong>${esc(jwAdminFormatMoney(gross))}</strong><span>Gross order value</span></button>
+      <button class="jw-admin-metric" type="button" onclick="openMessagesInbox()" style="--metric-color:#486784;--metric-tint:#e5f0fa"><i class="bi bi-chat-dots" aria-hidden="true"></i><strong>Open</strong><span>Message center</span></button>
+    </div>
+    <div class="jw-admin-operations-grid">
+      <section class="card jw-admin-table-card">
+        <div class="jw-admin-card-head"><span>Priority review queue</span><small>Financial and payment exceptions</small></div>
+        <div id="jw-admin-priority-queue"><div class="jw-admin-empty"><div><i class="bi bi-arrow-repeat" aria-hidden="true"></i><p>Loading priority work…</p></div></div></div>
+      </section>
+      <aside class="card jw-admin-table-card">
+        <div class="jw-admin-card-head"><span>Admin activity</span><small>Latest controlled decisions</small></div>
+        <div id="jw-admin-audit-log"><div class="jw-admin-empty"><div><i class="bi bi-arrow-repeat" aria-hidden="true"></i><p>Loading audit activity…</p></div></div></div>
+      </aside>
+    </div>
+    <section class="card jw-admin-table-card" style="margin-top:16px;">
+      <div class="jw-admin-card-head"><span>Recent platform orders</span><button class="btn btn-outline btn-sm" type="button" onclick="openAdminFilteredOrders('all')">View all</button></div>
+      ${adminRenderOrderRows(all.slice(0, 8))}
+    </section>`;
+
+  jwLoadAdminControlData();
+};
+
+renderAdminWalletPage = function() {
+  const wrap = document.getElementById('admin-wallet-page-requests');
+  if (!wrap) return;
+  if (!isJwAdmin()) {
+    wrap.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-lock" aria-hidden="true"></i><p>Admin access required.</p></div></div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-arrow-repeat" aria-hidden="true"></i><p>Loading wallet reviews…</p></div></div>';
+  renderAdminWalletRequests('admin-wallet-page-requests');
+};
+
+renderAdminWalletRequests = async function(targetId = 'admin-wallet-requests') {
+  const wrap = document.getElementById(targetId);
+  if (!wrap || !isJwAdmin()) return;
+  try {
+    const [requests, allUsers] = await Promise.all([
+      dbGetPendingWalletTransactions(),
+      dbGetUsers().catch(() => [])
+    ]);
+    const normalized = requests.map(normalizeWalletTx);
+    jwRenderAdminWalletSummary(normalized);
+    jwRenderAdminPriorityQueue(normalized);
+    const userMap = new Map((allUsers || []).map(user => [String(user.email || '').toLowerCase(), user]));
+    if (!normalized.length) {
+      wrap.innerHTML = '<div class="jw-admin-empty"><div><i class="bi bi-check2-circle" aria-hidden="true"></i><p>No wallet requests are waiting for review.</p></div></div>';
+      return;
+    }
+    wrap.innerHTML = `<div class="admin-table-wrap">
+      <table style="width:100%;border-collapse:collapse;min-width:900px;">
+        <thead><tr style="background:var(--ink);">
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Account</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Request</th>
+          <th style="padding:12px 14px;text-align:right;color:#d9b56b;font-size:11px;text-transform:uppercase;">Amount</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Evidence / destination</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Submitted</th>
+          <th style="padding:12px 14px;text-align:left;color:#d9b56b;font-size:11px;text-transform:uppercase;">Decision</th>
+        </tr></thead>
+        <tbody>${normalized.map(tx => {
+          const user = userMap.get(tx.user_email) || { name:tx.user_email, email:tx.user_email };
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:13px 14px;font-size:12px;"><strong>${esc(user.name || tx.user_email)}</strong><div style="color:var(--muted);">${esc(tx.user_email)}</div></td>
+            <td style="padding:13px 14px;"><span class="jw-wallet-type-chip"><i class="bi bi-wallet2" aria-hidden="true"></i>${esc(walletTypeLabel(tx.type))}</span></td>
+            <td style="padding:13px 14px;text-align:right;font-weight:800;">${esc(jwAdminFormatMoney(walletTxAmount(tx)))}</td>
+            <td style="padding:13px 14px;font-size:12px;max-width:230px;overflow-wrap:anywhere;">${esc(walletReference(tx))}</td>
+            <td style="padding:13px 14px;font-size:11px;color:var(--muted);">${esc(jwAdminFormatDate(tx.created_at))}</td>
+            <td style="padding:13px 14px;"><div class="jw-admin-review-btns">
+              <button class="btn btn-success btn-sm" type="button" onclick="openAdminWalletReview('${escJS(tx.id)}','approved')">Review approval</button>
+              <button class="btn btn-outline btn-sm" type="button" onclick="openAdminWalletReview('${escJS(tx.id)}','rejected')">Review rejection</button>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+  } catch (error) {
+    wrap.innerHTML = `<div class="jw-admin-empty"><div><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>Wallet requests could not load: ${esc(error.message || 'Unknown error')}</p></div></div>`;
+  }
+};
+
+async function openAdminWalletReview(txId, decision) {
+  if (!isJwAdmin()) {
+    notify('Admin access required.');
+    return;
+  }
+  const modal = document.getElementById('modal-admin-wallet-review');
+  const context = document.getElementById('admin-wallet-review-context');
+  const banner = document.getElementById('admin-wallet-review-banner');
+  const title = document.getElementById('admin-wallet-review-title');
+  const submit = document.getElementById('admin-wallet-review-submit');
+  if (!modal || !context || !banner || !submit) return;
+  modal.classList.add('open');
+  context.innerHTML = '<div class="jw-admin-review-detail"><small>Status</small><strong>Loading request…</strong></div>';
+  submit.disabled = true;
+  document.getElementById('admin-wallet-review-note').value = '';
+  document.getElementById('admin-wallet-review-confirm').checked = false;
+  try {
+    const raw = await dbGetWalletTransactionById(txId);
+    if (!raw) throw new Error('Wallet request not found');
+    const tx = normalizeWalletTx(raw);
+    if (tx.status !== 'pending_review') throw new Error('This request has already been reviewed');
+    const rows = await dbGetWalletTransactionsForUser(tx.user_email);
+    const available = walletBalance(rows, false);
+    jwPendingAdminWalletDecision = { tx, decision };
+    const approving = decision === 'approved';
+    title.textContent = `${approving ? 'Approve' : 'Reject'} ${walletTypeLabel(tx.type)}`;
+    banner.className = `jw-admin-decision-banner${approving ? '' : ' danger'}`;
+    banner.innerHTML = `<i class="bi ${approving ? 'bi-check2-circle' : 'bi-x-circle'}" aria-hidden="true"></i><span>${approving ? 'Approval will release this request and any linked wallet effects as one database transaction.' : 'Rejection leaves approved balances unchanged and permanently closes this request.'}</span>`;
+    context.innerHTML = `
+      <div class="jw-admin-review-detail"><small>Account</small><strong>${esc(tx.user_email)}</strong></div>
+      <div class="jw-admin-review-detail"><small>Request type</small><strong>${esc(walletTypeLabel(tx.type))}</strong></div>
+      <div class="jw-admin-review-detail"><small>Amount</small><strong>${esc(jwAdminFormatMoney(walletTxAmount(tx)))}</strong></div>
+      <div class="jw-admin-review-detail"><small>Approved balance</small><strong>${esc(jwAdminFormatMoney(available))}</strong></div>
+      <div class="jw-admin-review-detail"><small>Reference / destination</small><strong>${esc(walletReference(tx))}</strong></div>
+      <div class="jw-admin-review-detail"><small>Submitted</small><strong>${esc(jwAdminFormatDate(tx.created_at))}</strong></div>`;
+    submit.textContent = approving ? 'Approve request' : 'Reject request';
+    submit.className = `btn ${approving ? 'btn-success' : 'btn-danger'}`;
+    submit.disabled = false;
+  } catch (error) {
+    jwPendingAdminWalletDecision = null;
+    context.innerHTML = `<div class="jw-admin-review-detail"><small>Unable to review</small><strong>${esc(error.message || 'Unknown error')}</strong></div>`;
+  }
+}
+
+async function submitAdminWalletReview() {
+  const pending = jwPendingAdminWalletDecision;
+  const note = document.getElementById('admin-wallet-review-note')?.value.trim() || '';
+  const confirmed = document.getElementById('admin-wallet-review-confirm')?.checked;
+  const submit = document.getElementById('admin-wallet-review-submit');
+  if (!pending || !isJwAdmin()) return notify('Admin review session is not available.');
+  if (note.length < 10) return notify('Add a decision note of at least 10 characters.');
+  if (!confirmed) return notify('Confirm that you reviewed the request details.');
+  submit.disabled = true;
+  submit.textContent = 'Saving decision…';
+  try {
+    const { error } = await _sb.rpc('jw_admin_resolve_wallet_transaction', {
+      p_tx_id:pending.tx.id,
+      p_decision:pending.decision,
+      p_review_note:note
+    });
+    if (error) throw error;
+    closeModal('modal-admin-wallet-review');
+    jwPendingAdminWalletDecision = null;
+    await refreshTasks().catch(() => {});
+    await Promise.all([
+      renderAdminWalletRequests('admin-wallet-page-requests'),
+      renderAdminWalletRequests('admin-wallet-requests')
+    ]);
+    if (document.getElementById('page-admin-control')?.classList.contains('active')) renderAdminControlPage();
+    notify(pending.decision === 'approved' ? 'Wallet request approved and recorded.' : 'Wallet request rejected and recorded.');
+  } catch (error) {
+    const migrationMissing = /jw_admin_resolve_wallet_transaction|schema cache|could not find the function/i.test(String(error.message || ''));
+    notify(migrationMissing ? 'The secure admin migration must be reviewed and applied before financial decisions can be saved.' : `Wallet decision failed: ${error.message}`);
+    submit.disabled = false;
+    submit.textContent = pending.decision === 'approved' ? 'Approve request' : 'Reject request';
+  }
+}
+
+adminResolveWalletTx = function(email, txId, status) {
+  return openAdminWalletReview(txId, status);
+};
+
+adminOverrideTask = function(id, field, value) {
+  if (!isJwAdmin()) return notify('Admin access required.');
+  const allowed = ['payment', 'status'];
+  if (!allowed.includes(field)) return notify('This override is not allowed.');
+  const task = getTaskById(id);
+  if (!task) return notify('Order not found.');
+  if (isCancelledTask(task) && (field === 'payment' || value === 'completed')) {
+    return notify('Cancelled orders cannot be marked paid or completed.');
+  }
+  const previous = String(task[field] || '');
+  if (previous === value) return notify('This order already has the selected value.');
+  jwPendingAdminTaskOverride = { id, field, value, previous };
+  const context = document.getElementById('admin-task-override-context');
+  if (context) {
+    context.innerHTML = `
+      <div class="jw-admin-review-detail"><small>Order</small><strong>${esc(id)} · ${esc(task.subject || 'Untitled')}</strong></div>
+      <div class="jw-admin-review-detail"><small>Override field</small><strong>${esc(field === 'payment' ? 'Payment status' : 'Order status')}</strong></div>
+      <div class="jw-admin-review-detail"><small>Current value</small><strong>${esc(previous || 'Not set')}</strong></div>
+      <div class="jw-admin-review-detail"><small>New value</small><strong>${esc(value)}</strong></div>`;
+  }
+  document.getElementById('admin-task-override-reason').value = '';
+  document.getElementById('admin-task-override-confirm').checked = false;
+  document.getElementById('admin-task-override-submit').disabled = false;
+  document.getElementById('modal-admin-task-override')?.classList.add('open');
+};
+
+async function submitAdminTaskOverride() {
+  const pending = jwPendingAdminTaskOverride;
+  const reason = document.getElementById('admin-task-override-reason')?.value.trim() || '';
+  const confirmed = document.getElementById('admin-task-override-confirm')?.checked;
+  const submit = document.getElementById('admin-task-override-submit');
+  if (!pending || !isJwAdmin()) return notify('Admin override session is not available.');
+  if (reason.length < 10) return notify('Add an override reason of at least 10 characters.');
+  if (!confirmed) return notify('Confirm that you reviewed the current order state.');
+  submit.disabled = true;
+  submit.textContent = 'Applying override…';
+  try {
+    const { error } = await _sb.rpc('jw_admin_override_task', {
+      p_task_id:pending.id,
+      p_field:pending.field,
+      p_value:pending.value,
+      p_reason:reason
+    });
+    if (error) throw error;
+    closeModal('modal-admin-task-override');
+    jwPendingAdminTaskOverride = null;
+    await refreshTasks();
+    renderAdminControlPage();
+    if (document.getElementById('page-admin-filtered-orders')?.classList.contains('active')) renderAdminFilteredOrdersPage();
+    renderEmpPaySummary();
+    updateBadges();
+    notify(`Controlled override saved for ${pending.id}.`);
+  } catch (error) {
+    const migrationMissing = /jw_admin_override_task|schema cache|could not find the function/i.test(String(error.message || ''));
+    notify(migrationMissing ? 'The secure admin migration must be reviewed and applied before overrides can be saved.' : `Admin override failed: ${error.message}`);
+    submit.disabled = false;
+    submit.textContent = 'Apply override';
+  }
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwWalletRealtimeCleanupPatched) {
+  const jwOriginalWalletAwareLogout = doLogout;
+  doLogout = async function() {
+    if (_jwWalletRealtimeSub) {
+      try { await _sb.removeChannel(_jwWalletRealtimeSub); } catch {}
+      _jwWalletRealtimeSub = null;
+    }
+    return jwOriginalWalletAwareLogout.apply(this, arguments);
+  };
+  doLogout.__jwWalletRealtimeCleanupPatched = true;
 }
 
 function jwInitializeUxRefresh() {

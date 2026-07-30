@@ -4,6 +4,25 @@ Audit date: 2026-07-19
 Supabase project: `ughwzaowgpergpizenko`
 Database: PostgreSQL 17, project status `ACTIVE_HEALTHY`
 
+## Admin control upgrade awaiting production review
+
+Migration `20260730084329_admin_control_system.sql` has been created locally but
+has **not** been applied to production. It adds the control layer required by the
+new admin operations console:
+
+- an admin-only, append-only decision audit log;
+- mandatory review notes for deposits, withdrawals, transfers, and overrides;
+- row locking and a per-wallet advisory lock to prevent double approval;
+- one atomic wallet decision for the request, payout, commission, linked order,
+  and audit record;
+- controlled task payment/status override functions; and
+- removal of direct browser UPDATE/DELETE access to wallet transactions.
+
+Compatibility risk: once applied, old admin pages or cached clients that try to
+update wallet rows directly will fail closed. Deploy the matching frontend and
+test the preview before applying this migration. PesaPal server callbacks continue
+to use the service role and are not restricted by the browser grant change.
+
 ## Production application status
 
 Approved and applied on 2026-07-19 as migration version
