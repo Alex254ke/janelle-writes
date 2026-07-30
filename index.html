@@ -11849,6 +11849,158 @@ body.dark-mode .jw-admin-review-detail {
   background:#172d34;
   border-color:#304850;
 }
+
+/* Realtime review workflow and production-safe circular media */
+#app-shell .sidebar-brand-logo {
+  width:46px !important;
+  height:46px !important;
+  aspect-ratio:1;
+  flex:0 0 46px;
+  overflow:hidden;
+  border:0 !important;
+  border-radius:50% !important;
+  background-color:#071a24 !important;
+  background-size:115% 115% !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.22) !important;
+}
+#app-shell .user-avatar,
+#app-shell .user-avatar img,
+#app-shell [class*="profile-avatar"],
+#app-shell [class*="profile-avatar"] img,
+#app-shell .jw-message-avatar,
+#app-shell .jw-message-avatar img {
+  aspect-ratio:1;
+  overflow:hidden;
+  border-radius:50% !important;
+}
+#app-shell .user-avatar img,
+#app-shell [class*="profile-avatar"] img,
+#app-shell .jw-message-avatar img {
+  width:100% !important;
+  height:100% !important;
+  display:block;
+  object-fit:cover !important;
+  object-position:center !important;
+}
+.badge-submitted,
+.jw-review-status-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid #b8dcd6;
+  border-radius:999px;
+  padding:6px 10px;
+  color:#0c7068;
+  background:#e4f6f2;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.jw-review-workflow {
+  margin-top:16px;
+  padding:18px;
+  border:1px solid #cfe3df;
+  border-radius:18px;
+  background:linear-gradient(145deg,#fbfefd,#edf8f5);
+  box-shadow:0 12px 30px rgba(15,69,71,.06);
+}
+.jw-review-workflow-head {
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:flex-start;
+}
+.jw-review-workflow h4 {
+  margin:0 0 5px;
+  color:#102832;
+  font:700 22px/1.1 'Cormorant Garamond',serif;
+}
+.jw-review-heading {
+  margin:0 0 6px;
+  color:#102832;
+  font:700 22px/1.1 'Cormorant Garamond',serif;
+}
+.jw-review-workflow p {
+  margin:0;
+  color:#647980;
+  font-size:12px;
+  line-height:1.55;
+}
+.jw-review-actions {
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:15px;
+}
+.jw-review-payment-note {
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+  margin-top:13px;
+  padding:11px 12px;
+  border-radius:12px;
+  color:#8c5b16;
+  background:#fff4dc;
+  font-size:12px;
+}
+.jw-live-indicator {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:30px;
+  padding:6px 10px;
+  border:1px solid #cfe2de;
+  border-radius:999px;
+  color:#526b72;
+  background:#fff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.jw-live-indicator::before {
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#c38b2e;
+  box-shadow:0 0 0 4px rgba(195,139,46,.12);
+}
+.jw-live-indicator.is-live::before {
+  background:#1aa28f;
+  box-shadow:0 0 0 4px rgba(26,162,143,.13);
+}
+.jw-live-indicator.is-offline::before {
+  background:#c84c42;
+  box-shadow:0 0 0 4px rgba(200,76,66,.12);
+}
+.jw-live-indicator.is-reconnecting::before {
+  background:#c38b2e;
+  animation:jwLivePulse 1.25s ease-in-out infinite;
+}
+.jw-live-dot { display:none; }
+@keyframes jwLivePulse { 50% { opacity:.35; transform:scale(.8); } }
+#writer-tasks-table tr[data-task-status="submitted"] button[onclick*="openWriterSubmit"] {
+  display:none !important;
+}
+.jw-external-tool-note {
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+body.dark-mode .jw-review-workflow {
+  border-color:#2d494b;
+  background:linear-gradient(145deg,#142a31,#10252c);
+}
+body.dark-mode .jw-review-workflow h4 { color:#f4fbfa; }
+body.dark-mode .jw-review-heading { color:#f4fbfa; }
+body.dark-mode .jw-live-indicator {
+  border-color:#30484d;
+  color:#b9ccca;
+  background:#13262d;
+}
 @media (max-width:1000px) {
   .jw-admin-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .jw-admin-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -13079,6 +13231,7 @@ body.dark-mode .jw-admin-review-detail {
         <div class="form-group"><label class="form-label">Deadline</label><input type="datetime-local" class="form-input" id="emp-deadline"></div>
         <div class="form-group form-full"><label class="form-label">Task Description / Instructions</label><textarea class="form-textarea" id="emp-desc" rows="4" placeholder="Provide detailed instructions, formatting requirements, sources, etc."></textarea></div>
         <div class="form-group form-full"><label class="form-label">Special Requirements</label><input type="text" class="form-input" id="emp-requirements" placeholder="e.g. Include 5 peer-reviewed sources, Turnitin report required"></div>
+        <div class="form-group form-full"><label class="form-label">Instruction Link <span style="color:var(--muted);font-weight:600;">(optional)</span></label><input type="url" class="form-input" id="emp-instruction-link" placeholder="https://docs.google.com/... or another secure reference link"><div class="jw-external-tool-note">Use an HTTPS link that the assigned writer is allowed to open. Do not paste private account passwords.</div></div>
         <div class="form-group form-full">
           <label class="form-label">Preferred Writer <span style="color:var(--muted);font-weight:600;">(optional)</span></label>
           <div class="preferred-writer-select-wrap">
@@ -14082,7 +14235,8 @@ const JW_TASK_SUMMARY_COLUMNS = [
   'disputes','commission_rate','commission_amount','writer_payout','commission_paid',
   'admin_override_at','admin_override_by','payhero_reference','paid_at','student_order',
   'order_type','writer_page_rate','writer_payout_estimate','student_currency_code',
-  'student_currency_symbol'
+  'student_currency_symbol','client_request_id','duplicate_of','instruction_link',
+  'submitted_at','reviewed_at','reviewed_by','review_note'
 ].join(',');
 
 // Google OAuth redirect setting.
@@ -14777,7 +14931,8 @@ function platformUserFromRecord(record, authUser, selectedRole) {
     id: row.id || authUser.auth_id || email,
     email,
     name: row.name || authUser.name || email,
-    role: shouldPreserveStudent ? 'student' : rowRole,
+    role: row.is_admin === true ? 'admin' : (shouldPreserveStudent ? 'student' : rowRole),
+    is_admin: row.is_admin === true,
     profile
   };
 }
@@ -32580,6 +32735,357 @@ if (typeof sendPesapalStkPush === 'function') {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCTION COHERENCE: IDEMPOTENT ORDERS, REVIEW WORKFLOW, LIVE WORKSPACE
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _jwTaskPostInFlight = false;
+let _jwTaskRequestId = '';
+let _jwLiveRefreshTimer = null;
+let _jwLiveReconcileTimer = null;
+let _jwReviewTaskId = '';
+let _jwReviewAction = '';
+
+function jwNewRequestId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function jwPostingRequestKey() {
+  return `jw_task_request:${String(currentUser?.email || 'anonymous').toLowerCase()}`;
+}
+
+function jwGetPostingRequestId() {
+  if (_jwTaskRequestId) return _jwTaskRequestId;
+  try { _jwTaskRequestId = sessionStorage.getItem(jwPostingRequestKey()) || ''; } catch {}
+  if (!_jwTaskRequestId) {
+    _jwTaskRequestId = jwNewRequestId();
+    try { sessionStorage.setItem(jwPostingRequestKey(), _jwTaskRequestId); } catch {}
+  }
+  return _jwTaskRequestId;
+}
+
+function jwClearPostingRequestId() {
+  try { sessionStorage.removeItem(jwPostingRequestKey()); } catch {}
+  _jwTaskRequestId = '';
+}
+
+// Never create a second order number after an ambiguous insert. A retry uses
+// the same request UUID and returns the row created by the first request.
+dbInsertTaskSafe = async function(task) {
+  const payload = {
+    ...task,
+    client_request_id: task.client_request_id || jwGetPostingRequestId(),
+    instruction_link: String(task.instruction_link || document.getElementById('emp-instruction-link')?.value || '').trim()
+  };
+  try {
+    const saved = await dbInsertTask(payload);
+    jwClearPostingRequestId();
+    return saved;
+  } catch (error) {
+    const { data: existing, error: lookupError } = await _sb
+      .from('jw_tasks')
+      .select('*')
+      .eq('client_request_id', payload.client_request_id)
+      .maybeSingle();
+    if (!lookupError && existing) {
+      jwClearPostingRequestId();
+      return existing;
+    }
+    throw error;
+  }
+};
+
+const _jwCoherentPostTask = empPostTask;
+empPostTask = async function() {
+  if (_jwTaskPostInFlight) {
+    notify('Your order is already being posted. Please wait.');
+    return;
+  }
+  const link = String(document.getElementById('emp-instruction-link')?.value || '').trim();
+  if (link && !/^https?:\/\//i.test(link)) {
+    notify('Instruction links must start with https:// or http://');
+    return;
+  }
+  _jwTaskPostInFlight = true;
+  const buttons = [...document.querySelectorAll('#page-emp-post button')].filter(button =>
+    /post|submit|assignment|task/i.test(button.textContent || '')
+  );
+  buttons.forEach(button => { button.disabled = true; });
+  try {
+    return await _jwCoherentPostTask.apply(this, arguments);
+  } finally {
+    _jwTaskPostInFlight = false;
+    buttons.forEach(button => { button.disabled = false; });
+  }
+};
+
+const _jwCoherentClearTaskForm = empClearForm;
+empClearForm = function() {
+  const result = _jwCoherentClearTaskForm.apply(this, arguments);
+  const link = document.getElementById('emp-instruction-link');
+  if (link) link.value = '';
+  return result;
+};
+
+const _jwCoherentDedupeTasks = dedupeTasks;
+dedupeTasks = function(list = tasks) {
+  const unique = _jwCoherentDedupeTasks(list);
+  return isJwAdmin() ? unique : unique.filter(task => !task?.duplicate_of);
+};
+
+function jwSubmissionPayloadFromForm() {
+  const type = document.getElementById('writer-submit-type')?.value || 'file';
+  const payload = {
+    p_submitted_files: [],
+    p_submitted_link: '',
+    p_submitted_text: '',
+    p_submitted_notes: String(document.getElementById('sw-notes')?.value || '').trim()
+  };
+  if (type === 'link') {
+    payload.p_submitted_link = String(document.getElementById('sw-link')?.value || '').trim();
+    if (!/^https?:\/\//i.test(payload.p_submitted_link)) {
+      throw new Error('Paste a complete document link beginning with https:// or http://');
+    }
+  } else if (type === 'text') {
+    payload.p_submitted_text = String(document.getElementById('sw-text')?.value || '').trim();
+    if (!payload.p_submitted_text) throw new Error('Paste the completed work before submitting.');
+  }
+  return { type, payload };
+}
+
+// Submission is now a review hand-off. Only the task owner can complete it,
+// and normal owners must confirm payment first.
+writerSubmitWork = async function() {
+  const id = String(document.getElementById('writer-submit-select')?.value || '');
+  if (!id) return notify('Please select an order.');
+  const task = getTaskById(id);
+  if (!task) return notify('The selected order could not be found.');
+
+  let form;
+  try { form = jwSubmissionPayloadFromForm(); }
+  catch (error) { notify(error.message); return; }
+
+  setLoading(true);
+  try {
+    if (form.type === 'file') {
+      if (!_uploadedFiles.length) throw new Error('Please upload at least one file.');
+      form.payload.p_submitted_files = await storedSubmittedFiles(id);
+    }
+    const { data, error } = await _sb.rpc('jw_submit_task', {
+      p_task_id: id,
+      ...form.payload
+    });
+    if (error) throw error;
+    upsertLocalTask(data);
+    tasks = dedupeTasks(tasks);
+    _uploadedFiles = [];
+    renderFileList();
+    ['sw-file-input','sw-notes','sw-link','sw-text'].forEach(inputId => {
+      const input = document.getElementById(inputId);
+      if (input) input.value = '';
+    });
+    populateWriterSubmitSelect();
+    showSelectedSubmitTask();
+    renderWriterDashboard();
+    renderWriterTasks();
+    updateBadges();
+    notify(`Work for ${id} was submitted for employer review.`, 'submit');
+    navigate('writer-tasks');
+  } catch (error) {
+    notify('Submission failed: ' + (error?.message || error));
+  } finally {
+    setLoading(false);
+  }
+};
+
+jwWriterTaskStatusGroup = function(task) {
+  const status = String(task?.status || '').toLowerCase();
+  if (status === 'completed') return 'completed';
+  if (status === 'submitted') return 'review';
+  if (status === 'revision') return 'revision';
+  if (status === 'disputed' || hasOpenDispute(task)) return 'disputed';
+  if (status === 'late' || taskIsLate(task)) return 'late';
+  return 'progress';
+};
+
+const _jwCoherentStatusBadge = statusBadge;
+statusBadge = function(status) {
+  if (String(status || '').toLowerCase() === 'submitted') {
+    return '<span class="badge badge-submitted">Under review</span>';
+  }
+  return _jwCoherentStatusBadge.apply(this, arguments);
+};
+
+const _jwCoherentStatusBadgeForTask = statusBadgeForTask;
+statusBadgeForTask = function(task) {
+  if (String(task?.status || '').toLowerCase() === 'submitted') {
+    return '<span class="badge badge-submitted">Under review</span>';
+  }
+  return _jwCoherentStatusBadgeForTask.apply(this, arguments);
+};
+
+const _jwCoherentWriterTaskRow = jwWriterTaskRow;
+jwWriterTaskRow = function(task) {
+  const html = _jwCoherentWriterTaskRow(task);
+  return html.replace('<tr data-task-id=', `<tr data-task-status="${esc(String(task?.status || ''))}" data-task-id=`);
+};
+
+function jwReviewPanelHtml(task) {
+  if (!task || String(task.status || '').toLowerCase() !== 'submitted') return '';
+  const isOwner = sameEmail(task.posted_by, currentUser?.email);
+  const isAdmin = isJwAdmin();
+  const isWriter = sameEmail(task.taken_by, currentUser?.email);
+  if (isWriter && !isOwner && !isAdmin) {
+    return `<section class="jw-review-workflow">
+      <div class="jw-review-heading">Submission under review</div>
+      <p>The task owner has been notified. You will receive a live notification when the work is approved, returned for revision, or disputed.</p>
+    </section>`;
+  }
+  if (!isOwner && !isAdmin) return '';
+  const paid = String(task.payment || '').toLowerCase() === 'paid';
+  return `<section class="jw-review-workflow">
+    <div class="jw-review-heading">Review this submission</div>
+    <p>Open the submitted materials, then approve the work, request a specific revision, or open a dispute. Completing an order releases it from the active workflow.</p>
+    ${!paid && !isAdmin ? `<div class="jw-review-payment-note">Payment must be confirmed before this task can be marked complete.</div>` : ''}
+    <div class="jw-review-actions">
+      ${paid || isAdmin
+        ? `<button class="btn btn-primary" onclick="jwOpenReviewAction('${escJS(task.id)}','complete')">Approve &amp; Complete</button>`
+        : `<button class="btn btn-primary" onclick="navigate('emp-payment')">Confirm Payment First</button>`}
+      <button class="btn btn-outline" onclick="jwOpenReviewAction('${escJS(task.id)}','revision')">Request Revision</button>
+      <button class="btn btn-warn" onclick="openDisputeModal('${escJS(task.id)}')">Open Dispute</button>
+    </div>
+  </section>`;
+}
+
+const _jwCoherentSubmissionViewer = jwSubmissionViewerHtml;
+jwSubmissionViewerHtml = function(task) {
+  return _jwCoherentSubmissionViewer(task) + jwReviewPanelHtml(task);
+};
+
+function jwEnsureReviewModal() {
+  let modal = document.getElementById('modal-submission-review');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'modal-submission-review';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `<div class="modal" style="max-width:560px">
+    <button class="modal-close" type="button" onclick="jwCloseReviewModal()" aria-label="Close">×</button>
+    <div class="modal-title" id="jw-review-modal-title">Review submission</div>
+    <div class="modal-sub" id="jw-review-modal-sub"></div>
+    <div class="form-group" id="jw-review-note-group">
+      <label class="form-label" for="jw-review-note">Revision instructions</label>
+      <textarea class="form-input" id="jw-review-note" rows="5" maxlength="10000" placeholder="Explain exactly what the writer should revise (minimum 10 characters)."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-outline" type="button" onclick="jwCloseReviewModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" id="jw-review-submit" onclick="jwSubmitReviewDecision()">Confirm</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function jwOpenReviewAction(taskId, action) {
+  const task = getTaskById(taskId);
+  if (!task || String(task.status || '') !== 'submitted') return notify('This submission is no longer waiting for review.');
+  _jwReviewTaskId = taskId;
+  _jwReviewAction = action;
+  const modal = jwEnsureReviewModal();
+  const revision = action === 'revision';
+  document.getElementById('jw-review-modal-title').textContent = revision ? 'Request a revision' : 'Approve submitted work';
+  document.getElementById('jw-review-modal-sub').textContent = revision
+    ? `Send clear revision instructions for ${taskId}.`
+    : `Confirm that you reviewed the materials for ${taskId} and want to mark the paid task complete.`;
+  document.getElementById('jw-review-note-group').style.display = revision ? '' : 'none';
+  document.getElementById('jw-review-note').value = '';
+  document.getElementById('jw-review-submit').textContent = revision ? 'Send Revision Request' : 'Approve & Complete';
+  modal.classList.add('open');
+}
+
+function jwCloseReviewModal() {
+  document.getElementById('modal-submission-review')?.classList.remove('open');
+  _jwReviewTaskId = '';
+  _jwReviewAction = '';
+}
+
+async function jwSubmitReviewDecision() {
+  const note = String(document.getElementById('jw-review-note')?.value || '').trim();
+  if (_jwReviewAction === 'revision' && note.length < 10) {
+    return notify('Please add at least 10 characters of clear revision instructions.');
+  }
+  const button = document.getElementById('jw-review-submit');
+  if (button) button.disabled = true;
+  try {
+    const { data, error } = await _sb.rpc('jw_review_task_submission', {
+      p_task_id: _jwReviewTaskId,
+      p_action: _jwReviewAction,
+      p_note: note
+    });
+    if (error) throw error;
+    const action = _jwReviewAction;
+    upsertLocalTask(data);
+    jwCloseReviewModal();
+    renderTaskDetailsPage();
+    renderEmpTasks();
+    updateBadges();
+    notify(action === 'revision' ? 'Revision request sent to the writer.' : 'Submission approved and task marked complete.');
+  } catch (error) {
+    notify('Review action failed: ' + (error?.message || error));
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function jwOpenInstructionMaterial(taskId, index) {
+  const task = getTaskById(taskId);
+  if (!task || !canCurrentUserSeeTask(task)) return notify('You do not have access to this instruction file.');
+  const file = parseInstructionFiles(task.instruction_files)[index];
+  if (!file) return notify('Instruction file not found.');
+  const preview = window.open('', '_blank');
+  if (!preview) return notify('Please allow pop-ups, then try again.');
+  preview.document.write('<!doctype html><title>Preparing file</title><body style="font-family:system-ui;padding:40px">Preparing secure preview…</body>');
+  try {
+    const url = await resolveSubmittedFileUrl(file, 3600);
+    const name = String(file.name || `instruction-${index + 1}`);
+    const ext = name.split('.').pop().toLowerCase();
+    if (['doc','docx','ppt','pptx','xls','xlsx'].includes(ext) && /^https?:/i.test(url)) {
+      preview.location.replace('https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url));
+    } else {
+      preview.location.replace(url);
+    }
+    try { preview.opener = null; } catch {}
+  } catch (error) {
+    preview.document.body.innerHTML = `<main style="font-family:system-ui;padding:40px"><h1>File could not be opened</h1><p>${esc(error?.message || 'The file is unavailable.')}</p></main>`;
+  }
+}
+
+renderInstructionFiles = function(task) {
+  const files = parseInstructionFiles(task.instruction_files);
+  const link = String(task.instruction_link || '').trim();
+  if (!files.length && !link) return '';
+  return `<div style="margin-bottom:12px">
+    <div class="form-label" style="margin-bottom:8px">Instruction materials (${files.length + (link ? 1 : 0)})</div>
+    <div class="instruction-file-list">
+      ${files.map((file, index) => {
+        const downloadable = hasDownloadableFileData(file);
+        const name = file.name || 'Instruction file';
+        return `<div class="instruction-file-card">
+          <span style="font-size:22px;flex-shrink:0">${fileIcon(name)}</span>
+          <div class="instruction-file-main"><div class="submission-file-name">${esc(name)}</div><div class="submission-file-meta">${esc((name.split('.').pop() || 'FILE').toUpperCase())}${file.size ? ' · ' + formatSize(Number(file.size)) : ''}</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${downloadable ? `<button class="btn btn-outline btn-sm" onclick="jwOpenInstructionMaterial('${escJS(task.id)}',${index})">Open</button><button class="btn btn-primary btn-sm" onclick="downloadInstructionFile('${escJS(task.id)}',${index})">Download</button>` : '<span class="text-muted">Metadata only</span>'}
+          </div>
+        </div>`;
+      }).join('')}
+      ${link ? `<div class="instruction-file-card"><span style="font-size:22px">↗</span><div class="instruction-file-main"><div class="submission-file-name">Instruction link</div><div class="submission-file-meta">${esc(link)}</div></div><a class="btn btn-primary btn-sm" href="${esc(jwSafeHref(link))}" target="_blank" rel="noopener noreferrer">Open Link</a></div>` : ''}
+    </div>
+  </div>`;
+};
+
 // Production performance hardening: keep the initial workspace payload small,
 // coalesce duplicate boot requests, and fetch large file payloads only on demand.
 let _jwTaskSummaryFlight = null;
@@ -33913,6 +34419,266 @@ if (typeof doLogout === 'function' && !doLogout.__jwWalletRealtimeCleanupPatched
   doLogout.__jwWalletRealtimeCleanupPatched = true;
 }
 
+// Bids use the locked database RPC only. Direct JSON read/modify/write caused
+// lost bids when two writers submitted at almost the same time.
+submitWriterBid = async function(taskId) {
+  const task = getTaskById(taskId);
+  if (!task || currentUser?.role !== 'writer') return notify('Only writers can request tasks.');
+  if (task.taken_by || String(task.status || '') !== 'pending') return notify('This order is no longer open for requests.');
+  const message = String(document.getElementById('writer-bid-message')?.value || '').trim();
+  if (message.length < 20) return notify('Please write a request message of at least 20 characters.');
+
+  const button = document.querySelector('#modal-take-order button[onclick*="submitWriterBid"]');
+  if (button) button.disabled = true;
+  setLoading(true);
+  try {
+    const { data, error } = await _sb.rpc('jw_add_task_bid', {
+      p_task_id: taskId,
+      p_message: message
+    });
+    if (error) throw error;
+    task.ratings = data;
+    await _sb.rpc('jw_create_notification', {
+      p_user_email: String(task.posted_by || '').toLowerCase(),
+      p_type: 'bid',
+      p_title: 'New task request',
+      p_body: `${taskId} — ${currentUser.name || 'A writer'} sent a request for this task.`,
+      p_task_id: taskId,
+      p_event_key: `bid:${taskId}:${String(currentUser.email || '').toLowerCase()}`,
+      p_metadata: { page:'task-details', writer_email:currentUser.email }
+    });
+    closeModal('modal-take-order');
+    renderAvailableOrders();
+    renderWriterBidsPage();
+    updateBadges();
+    notify('Task request sent. It will update live when the owner responds.', 'message');
+  } catch (error) {
+    notify('Bid failed: ' + (error?.message || error));
+  } finally {
+    setLoading(false);
+    if (button) button.disabled = false;
+  }
+};
+
+function jwRenderLiveWorkspace(taskId = '') {
+  try { updateBadges(); } catch {}
+  const page = document.querySelector('.page.active')?.id?.replace(/^page-/, '') || _currentPage || '';
+  const renderers = {
+    'writer-available': () => renderAvailableOrders(),
+    'writer-dashboard': () => renderWriterDashboard(),
+    'writer-tasks': () => renderWriterTasks(),
+    'writer-bids': () => renderWriterBidsPage(),
+    'writer-earnings': () => renderWriterEarningsPage(),
+    'writer-revisions': () => renderRevisions(),
+    'writer-submit': () => { populateWriterSubmitSelect(); showSelectedSubmitTask(); },
+    'writer-tracker': () => populateWriterTrackerSelect(),
+    'emp-dashboard': () => renderEmpDashboard(),
+    'student-dashboard': () => renderStudentDashboard(),
+    'emp-tasks': () => renderEmpTasks(),
+    'emp-invoice': () => renderEmpInvoice(),
+    'emp-payment': () => { empPopulatePaySelect(); renderEmpPaySummary(); renderEmpWriterPayDetails(); },
+    'cancelled': () => renderCancelledOrdersPage(),
+    'disputes': () => { if (typeof renderDisputesPage === 'function') renderDisputesPage(); },
+    'messages': () => renderMessagesPage(),
+    'admin-control': () => renderAdminControlPage(),
+    'admin-student-orders': () => renderAdminStudentOrdersPage(),
+    'admin-filtered-orders': () => renderAdminFilteredOrdersPage(),
+    'admin-all-orders': () => renderAdminAllOrdersPage(),
+    'admin-commission': () => renderCommissionDashboard()
+  };
+  try { renderers[page]?.(); } catch (error) { console.warn('Live page render warning:', error); }
+  if (page === 'task-details' && (!taskId || String(_activeTaskDetailId || '') === String(taskId))) {
+    try { renderTaskDetailsPage(); } catch {}
+  }
+  if (taskId && _activeTaskModalId === taskId && document.getElementById('modal-view-task')?.classList.contains('open')) {
+    try { empViewTask(taskId); } catch {}
+  }
+}
+
+function jwSetLiveState(state) {
+  let indicator = document.getElementById('jw-live-indicator');
+  if (!indicator && document.getElementById('topbar-actions')) {
+    indicator = document.createElement('span');
+    indicator.id = 'jw-live-indicator';
+    indicator.className = 'jw-live-indicator';
+    document.getElementById('topbar-actions').prepend(indicator);
+  }
+  if (!indicator) return;
+  const connected = state === 'SUBSCRIBED';
+  indicator.className = `jw-live-indicator ${connected ? 'is-live' : 'is-reconnecting'}`;
+  indicator.innerHTML = `<span class="jw-live-dot"></span><span>${connected ? 'Live' : 'Reconnecting'}</span>`;
+  indicator.title = connected ? 'Orders, bids, messages, and notifications update live.' : 'Live connection is reconnecting; background refresh remains active.';
+}
+
+async function jwRefreshLiveSnapshot() {
+  if (!currentUser || document.visibilityState === 'hidden') return;
+  try {
+    const loaded = await dbGetTasks();
+    tasks = dedupeTasks(loaded || []);
+    jwRenderLiveWorkspace();
+  } catch (error) {
+    console.warn('Live reconciliation warning:', error);
+  }
+}
+
+subscribeRealtime = function() {
+  if (_realtimeSub) {
+    try { _sb.removeChannel(_realtimeSub); } catch {}
+    _realtimeSub = null;
+  }
+  clearInterval(_jwLiveRefreshTimer);
+  clearInterval(_jwLiveReconcileTimer);
+  if (!currentUser) return;
+
+  const channelName = `jw-live-${String(currentUser.email || '').toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 40)}-${Date.now()}`;
+  _realtimeSub = _sb.channel(channelName)
+    .on('postgres_changes', { event:'*', schema:'public', table:'jw_tasks' }, payload => {
+      const row = payload.new || {};
+      const old = payload.old || {};
+      const previous = tasks.find(task => String(task.id) === String(row.id || old.id));
+
+      if (payload.eventType === 'DELETE') {
+        tasks = tasks.filter(task => String(task.id) !== String(old.id));
+      } else if (row?.id) {
+        if (!row.duplicate_of || isJwAdmin()) upsertLocalTask(row);
+        else tasks = tasks.filter(task => String(task.id) !== String(row.id));
+      }
+      tasks = dedupeTasks(tasks);
+
+      if (payload.eventType === 'INSERT' && currentUser.role === 'writer' && row.status === 'pending' && !sameEmail(row.posted_by, currentUser.email)) {
+        notify(`New work posted: ${row.id}`, 'order');
+      }
+      if (payload.eventType === 'UPDATE' && previous) {
+        const beforeMessages = getTaskMessages(previous);
+        const afterMessages = getTaskMessages(row);
+        const last = latestMessage(afterMessages);
+        if (shouldAlertForIncomingMessage(row, last, beforeMessages, afterMessages)) notifyIncomingMessage(row, last);
+        if (previous.status !== 'submitted' && row.status === 'submitted' && sameEmail(row.posted_by, currentUser.email)) {
+          notify(`Work for ${row.id} is ready for review.`, 'submit');
+        }
+      }
+      jwRenderLiveWorkspace(row.id || old.id || '');
+    })
+    .subscribe(status => {
+      jwSetLiveState(status);
+      clearInterval(_jwLiveRefreshTimer);
+      if (status !== 'SUBSCRIBED') {
+        _jwLiveRefreshTimer = setInterval(jwRefreshLiveSnapshot, 15000);
+      }
+    });
+
+  // Reconcile occasionally even when the WebSocket is healthy. This protects
+  // mobile users after sleep/network changes without causing reload loops.
+  _jwLiveReconcileTimer = setInterval(jwRefreshLiveSnapshot, 60000);
+};
+
+const _jwCoherentBuildTopbar = buildTopbar;
+buildTopbar = function() {
+  const result = _jwCoherentBuildTopbar.apply(this, arguments);
+  setTimeout(() => jwSetLiveState(_realtimeSub ? 'SUBSCRIBED' : 'CONNECTING'), 0);
+  return result;
+};
+
+const _jwCoherentBuildSidebar = buildSidebar;
+buildSidebar = function() {
+  const result = _jwCoherentBuildSidebar.apply(this, arguments);
+  const nav = document.getElementById('sidebar-nav');
+  if (nav && !document.getElementById('jw-originality-tool-nav')) {
+    nav.insertAdjacentHTML('beforeend', `
+      <div class="nav-section">Tools</div>
+      <div class="nav-item" id="jw-originality-tool-nav" onclick="openExternalOriginalityTool()">
+        <span class="icon">↗</span> AI &amp; Originality Check
+      </div>`);
+  }
+  return result;
+};
+
+function openExternalOriginalityTool() {
+  const accepted = window.confirm(
+    'Quetext is an independent external service, not part of Janelle Writes. ' +
+    'Do not upload confidential client instructions, personal data, or private student work. ' +
+    'AI-detection results can be inaccurate and should be treated as advisory only. Continue?'
+  );
+  if (accepted) window.open('https://www.quetext.com/', '_blank', 'noopener,noreferrer');
+}
+
+function jwIsAdminPath() {
+  return /^\/admin\/?$/i.test(window.location.pathname);
+}
+
+function jwPrepareAdminLogin(message = '') {
+  document.getElementById('app-shell').style.display = 'none';
+  const landing = document.getElementById('landing-page');
+  if (landing) landing.style.display = 'none';
+  openAuthScreen('login');
+  const auth = document.getElementById('auth-screen');
+  if (auth) auth.style.display = 'flex';
+  const title = document.getElementById('auth-panel-title');
+  const subtitle = document.getElementById('auth-panel-sub');
+  if (title) title.textContent = 'Administrator Sign In';
+  if (subtitle) subtitle.textContent = message || 'Use the authorized Janelle Writes administrator account to continue.';
+  document.querySelectorAll('.auth-tab').forEach((tab, index) => {
+    if (index === 1 || /create|sign up/i.test(tab.textContent || '')) tab.style.display = 'none';
+  });
+  const signup = document.getElementById('signup-form');
+  if (signup) signup.style.display = 'none';
+}
+
+const _jwCoherentFinishAuth = finishSecureAuthSession;
+finishSecureAuthSession = async function(session, options = {}) {
+  const result = await _jwCoherentFinishAuth.apply(this, arguments);
+  if (!jwIsAdminPath()) return result;
+  if (result && isJwAdmin()) {
+    buildSidebar();
+    buildTopbar();
+    navigate('admin-control', { skipHistory:true });
+    return true;
+  }
+  try { await _sb.auth.signOut(); } catch {}
+  currentUser = null;
+  tasks = [];
+  localStorage.removeItem('jw_session');
+  jwPrepareAdminLogin('That account is not authorized for the administrator portal.');
+  notify('Administrator access is restricted to the authorized account.');
+  return false;
+};
+
+async function jwEnforceAdminRoute() {
+  if (!jwIsAdminPath()) return;
+  if (currentUser && isJwAdmin()) {
+    document.getElementById('landing-page').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+    buildSidebar();
+    buildTopbar();
+    navigate('admin-control', { skipHistory:true });
+    return;
+  }
+  if (currentUser) {
+    try { await _sb.auth.signOut(); } catch {}
+    currentUser = null;
+    tasks = [];
+    localStorage.removeItem('jw_session');
+  }
+  jwPrepareAdminLogin();
+}
+
+if (typeof doLogout === 'function' && !doLogout.__jwLiveCoherenceCleanup) {
+  const _jwCoherentLogout = doLogout;
+  doLogout = async function() {
+    clearInterval(_jwLiveRefreshTimer);
+    clearInterval(_jwLiveReconcileTimer);
+    if (_realtimeSub) {
+      try { await _sb.removeChannel(_realtimeSub); } catch {}
+      _realtimeSub = null;
+    }
+    const result = await _jwCoherentLogout.apply(this, arguments);
+    if (jwIsAdminPath()) jwPrepareAdminLogin();
+    return result;
+  };
+  doLogout.__jwLiveCoherenceCleanup = true;
+}
+
 function jwInitializeUxRefresh() {
   jwPolishSupportControl();
   jwIconifyTree(document.body);
@@ -33943,6 +34709,12 @@ function jwInitializeUxRefresh() {
     });
   });
   observer.observe(document.body, { childList:true, subtree:true, characterData:true });
+  if (currentUser) {
+    buildSidebar();
+    buildTopbar();
+    subscribeRealtime();
+  }
+  jwEnforceAdminRoute();
 }
 
 if (document.readyState === 'loading') {
