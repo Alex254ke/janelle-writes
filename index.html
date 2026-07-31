@@ -4373,27 +4373,42 @@ body.dark-mode .google-auth-separator::after {
   margin-top: auto;
 }
 
-/* Make the quick profile button beside the user photo clearer. */
+/* Keep the sidebar identity card readable at its compact production width. */
+.sidebar-user {
+  gap: 10px;
+}
+.sidebar-user .user-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
+.sidebar-user .user-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .sidebar-profile-link {
-  width: auto !important;
-  min-width: 92px !important;
-  height: 42px !important;
-  padding: 0 13px !important;
-  border-radius: 14px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
   background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
   border: 1px solid rgba(255,255,255,0.14) !important;
   color: #ffffff !important;
-  font-size: 12px !important;
-  gap: 7px !important;
+  font-size: 15px !important;
+  gap: 0 !important;
   box-shadow: 0 10px 26px rgba(42,157,143,0.30), 0 0 0 4px rgba(82,196,184,0.08) !important;
 }
-.sidebar-profile-link span:first-child {
-  font-size: 17px;
+.sidebar-profile-link .bi {
+  font-size: 15px;
   line-height: 1;
+}
+.sidebar-profile-label {
+  display: none;
 }
 .sidebar-profile-link:hover {
   background: linear-gradient(135deg, #52c4b8, var(--teal-dark)) !important;
-  transform: translateY(-1px) scale(1.03) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* Prevent the dashboard support footer and floating chat widget from appearing inside printed invoices. */
@@ -12772,7 +12787,7 @@ body.dark-mode .jw-live-indicator {
       <div class="user-name" id="nav-username">User</div>
       <div class="user-role" id="nav-role">Role</div>
     </div>
-    <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile"><span>👤</span><span>Profile</span></button>
+    <button type="button" class="sidebar-profile-link" onclick="event.stopPropagation(); navigate('profile')" aria-label="Open profile" title="Open profile"><i class="bi bi-person" aria-hidden="true"></i><span class="sidebar-profile-label">Profile</span></button>
   </div>
 
   <nav class="sidebar-nav" id="sidebar-nav" tabindex="0" aria-label="Workspace navigation">

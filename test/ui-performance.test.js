@@ -14,6 +14,14 @@ test('compact profile names show first name and second-name initial', () => {
   assert.equal(compactName('  jasmine   smith  johnson '), 'Jasmine S.');
 });
 
+test('sidebar profile identity reserves space for the user name', () => {
+  assert.match(html, /\.sidebar-user \.user-info \{[\s\S]*?flex: 1 1 auto;[\s\S]*?min-width: 0;/);
+  assert.match(html, /\.sidebar-user \.user-avatar \{[\s\S]*?width: 36px;[\s\S]*?height: 36px;/);
+  assert.match(html, /\.sidebar-profile-link \{[\s\S]*?width: 38px !important;[\s\S]*?min-width: 38px !important;[\s\S]*?padding: 0 !important;/);
+  assert.match(html, /class="sidebar-profile-link"[^>]*aria-label="Open profile"[^>]*>\s*<i class="bi bi-person"/);
+  assert.doesNotMatch(html, /class="sidebar-profile-link"[^>]*>[\s\S]{0,80}👤/);
+});
+
 test('mobile navigation and hero both expose the student CTA', () => {
   const matches = html.match(/class="btn[^"]*student-cta-btn[^"]*"[^>]*>International Student<\/button>/g) || [];
   assert.equal(matches.length, 2);
