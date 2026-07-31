@@ -47,7 +47,8 @@ test('mobile experience includes thumb navigation and production touch targets',
   assert.match(html, /<nav class="mobile-app-nav" id="mobile-app-nav"/);
   assert.match(html, /function renderMobileAppNav\(\)/);
   assert.match(html, /--mobile-nav-height:72px/);
-  assert.match(html, /\.mobile-app-nav \{[\s\S]*?position:fixed;[\s\S]*?grid-template-columns:repeat\(4,1fr\)/);
+  assert.match(html, /\.mobile-app-nav \{[\s\S]*?position:fixed;[\s\S]*?grid-template-columns:repeat\(5,1fr\)/);
+  assert.match(html, /class="mobile-notification-action"[\s\S]*?id="jw-notification-count-mobile"/);
   assert.match(html, /#landing-page \.landing-hero-feature-strip \{[\s\S]*?grid-template-columns:1fr 1fr/);
   assert.match(html, /#auth-screen \.form-input, #auth-screen \.form-select \{ min-height:50px/);
 });

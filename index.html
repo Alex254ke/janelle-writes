@@ -9118,7 +9118,7 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
 
   .mobile-app-nav {
     position:fixed; left:10px; right:10px; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:210;
-    height:var(--mobile-nav-height); display:grid; grid-template-columns:repeat(4,1fr); align-items:stretch;
+    height:var(--mobile-nav-height); display:grid; grid-template-columns:repeat(5,1fr); align-items:stretch;
     padding:6px; border:1px solid rgba(185,211,205,.86); border-radius:22px;
     background:rgba(255,255,255,.96); box-shadow:0 16px 46px rgba(15,40,48,.20);
     backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
@@ -9128,6 +9128,16 @@ body.dark-mode #auth-screen .auth-return-btn:hover {
     gap:3px; color:#586d73; background:transparent; font:700 10px/1 'DM Sans',sans-serif; cursor:pointer;
   }
   .mobile-app-nav button i { font-size:20px; line-height:1; }
+  .mobile-app-nav .mobile-notification-action { position:relative; }
+  .mobile-app-nav .jw-notify-count {
+    top:5px;
+    right:calc(50% - 24px);
+    min-width:18px;
+    height:18px;
+    padding:0 4px;
+    font-size:9px;
+    border-width:2px;
+  }
   .mobile-app-nav button.active { color:#126f64; background:#e1f3ef; }
   .mobile-app-nav button:active { transform:scale(.96); }
   body.dark-mode .mobile-app-nav { background:rgba(16,36,44,.97); border-color:rgba(120,184,174,.25); }
@@ -20409,6 +20419,10 @@ function renderMobileAppNav() {
     <button type="button" data-mobile-page="messages" onclick="${messagesAction}" aria-label="Messages">
       <i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span>
     </button>
+    <button type="button" class="mobile-notification-action" onclick="jwToggleNotifications()" aria-label="Notifications">
+      <i class="bi bi-bell" aria-hidden="true"></i><span>Alerts</span>
+      <span class="jw-notify-count" id="jw-notification-count-mobile" aria-label="Unread notifications">0</span>
+    </button>
     <button type="button" onclick="openMobileMenu()" aria-label="Open all navigation">
       <i class="bi bi-grid" aria-hidden="true"></i><span>More</span>
     </button>`;
@@ -29264,7 +29278,13 @@ function jwReadNotifications() {
 
 function jwWriteNotifications(list) {
   try {
-    localStorage.setItem(jwNotificationsKey(), JSON.stringify((list || []).slice(0, 80)));
+    if (!currentUser?.email) return;
+    const owner = jwUserKey();
+    const safeRows = (list || []).filter(n => {
+      const recipient = String(n?.user_email || n?.userEmail || '').trim().toLowerCase();
+      return recipient && recipient === owner;
+    });
+    localStorage.setItem(jwNotificationsKey(), JSON.stringify(safeRows.slice(0, 80)));
   } catch {}
 }
 
@@ -29521,7 +29541,8 @@ function jwEnsureNotificationButton() {
     btn.type = 'button';
     btn.className = 'btn btn-outline btn-sm jw-notify-btn';
     btn.onclick = () => jwToggleNotifications();
-    btn.innerHTML = `<span class="jw-notify-icon">🔔</span><span class="jw-notify-label">Notifications</span><span class="jw-notify-count" id="jw-notification-count">0</span>`;
+    btn.setAttribute('aria-label', 'Notifications');
+    btn.innerHTML = `<span class="jw-notify-icon" aria-hidden="true"><i class="bi bi-bell"></i></span><span class="jw-notify-label">Notifications</span><span class="jw-notify-count" id="jw-notification-count">0</span>`;
   }
 
   const dark = document.getElementById('dark-mode-toggle');
@@ -29788,6 +29809,7 @@ let _jwNotificationRows = [];
 let _jwNotificationTableSub = null;
 let _jwNotificationLoadRunning = false;
 let _jwNotificationTableReady = true;
+let _jwNotificationCacheOwner = '';
 
 function jwNormalizeNotificationRow(row) {
   if (!row) return null;
@@ -29802,7 +29824,8 @@ function jwNormalizeNotificationRow(row) {
     unread: row.read_at ? false : (row.unread !== false),
     at: row.created_at || row.at || new Date().toISOString(),
     metadata: row.metadata || {},
-    actor_email: row.actor_email || ''
+    actor_email: row.actor_email || '',
+    user_email: String(row.user_email || row.userEmail || '').trim().toLowerCase()
   };
 }
 
@@ -29833,6 +29856,12 @@ async function jwLoadNotificationsFromSupabase() {
 
 async function jwLoadNotifications() {
   if (!currentUser) return [];
+
+  const owner = jwUserKey();
+  if (_jwNotificationCacheOwner !== owner) {
+    _jwNotificationRows = [];
+    _jwNotificationCacheOwner = owner;
+  }
 
   if (_jwNotificationLoadRunning) return _jwNotificationRows;
   _jwNotificationLoadRunning = true;
@@ -29927,10 +29956,17 @@ async function jwDeleteNotificationInSupabase(id) {
 // Override local read/render count to use the latest merged table state.
 const __jwLocalReadNotificationsFallback = typeof jwReadNotifications === 'function' ? jwReadNotifications : null;
 jwReadNotifications = function() {
-  if (Array.isArray(_jwNotificationRows) && _jwNotificationRows.length) return _jwNotificationRows;
+  if (!currentUser?.email) return [];
+  if (Array.isArray(_jwNotificationRows) && _jwNotificationRows.length) {
+    return _jwNotificationRows
+      .map(jwSanitizeNotificationForCurrentUser)
+      .filter(Boolean);
+  }
   try {
     const list = JSON.parse(localStorage.getItem(jwNotificationsKey()) || '[]');
-    return Array.isArray(list) ? list : [];
+    return Array.isArray(list)
+      ? list.map(jwSanitizeNotificationForCurrentUser).filter(Boolean)
+      : [];
   } catch {
     return [];
   }
@@ -30305,6 +30341,7 @@ if (typeof doLogout === 'function' && !doLogout.__jwNotificationTablePatched) {
   doLogout = async function() {
     jwStopNotificationsTableRealtime();
     _jwNotificationRows = [];
+    _jwNotificationCacheOwner = '';
     return await __jwOriginalDoLogoutNotificationsTable.apply(this, arguments);
   };
 
@@ -31469,7 +31506,7 @@ function jwRecipientIsCurrentUser(email) {
 function jwSanitizeNotificationForCurrentUser(n) {
   if (!n) return null;
   const rowEmail = n.user_email || n.userEmail || '';
-  if (rowEmail && !jwRecipientIsCurrentUser(rowEmail)) return null;
+  if (!currentUser?.email || !rowEmail || !jwRecipientIsCurrentUser(rowEmail)) return null;
 
   const out = { ...n };
 
