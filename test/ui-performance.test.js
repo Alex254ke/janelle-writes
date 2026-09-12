@@ -184,6 +184,58 @@ test('task back navigation restores the exact source page', () => {
   assert.match(html, /returnFromTaskDetails = function\(event\) \{[\s\S]*?navigate\(saved\.page, \{ replaceHistory:true \}\)/);
 });
 
+test('background and realtime task refreshes preserve the task being viewed', () => {
+  assert.match(html, /function jwMergeTaskCachePreservingActive\(rows\)/);
+  assert.match(html, /function jwRememberActiveTaskSnapshot\(task\)/);
+  assert.match(html, /function jwRevalidateActiveTaskDetail\(taskId\)[\s\S]*?\.eq\('id', id\)\.maybeSingle\(\)/);
+  assert.match(html, /function jwApplyBackgroundWorkspaceResults[\s\S]*?tasks = jwMergeTaskCachePreservingActive\(taskResult\.value \|\| \[\]\)/);
+  assert.match(html, /async function jwRefreshLiveSnapshot\(\)[\s\S]*?tasks = jwMergeTaskCachePreservingActive\(loaded \|\| \[\]\)/);
+  assert.match(html, /openTaskDetailsPage = function\(taskId, options = \{\}\)[\s\S]*?jwRememberActiveTaskSnapshot\(selectedTask\)/);
+  assert.match(html, /Open task revalidation was delayed; keeping the visible task/);
+});
+
+test('an open full task survives a partial task-list response', () => {
+  const match = html.match(/function jwMergeTaskCachePreservingActive\(rows\) \{([\s\S]*?)\n\}/);
+  assert.ok(match, 'active-task cache merge helper should exist');
+
+  const fullTask = { id:'JW-TEST-1', subject:'Original', description:'Full instructions', _jwSummaryOnly:false };
+  const remembered = [];
+  const revalidated = [];
+  const merge = new Function(
+    'dedupeTasks',
+    'jwActiveTaskDetailId',
+    'jwTaskDetailIsOpen',
+    'jwRememberActiveTaskSnapshot',
+    '_jwActiveTaskSnapshot',
+    'jwTaskLoadUserKey',
+    'jwCanKeepActiveTaskSnapshot',
+    'setTimeout',
+    'jwRevalidateActiveTaskDetail',
+    `return function(rows) {${match[1]}\n}`
+  )(
+    rows => [...new Map(rows.map(row => [row.id, row])).values()],
+    () => 'JW-TEST-1',
+    () => true,
+    task => remembered.push(task),
+    { key:'writer@example.com|writer', id:'JW-TEST-1', task:fullTask },
+    () => 'writer@example.com|writer',
+    () => true,
+    callback => { callback(); return 1; },
+    id => revalidated.push(id)
+  );
+
+  const omitted = merge([{ id:'JW-TEST-2', _jwSummaryOnly:true }]);
+  assert.equal(omitted[0].id, 'JW-TEST-1');
+  assert.equal(omitted[0].description, 'Full instructions');
+  assert.deepEqual(revalidated, ['JW-TEST-1']);
+
+  const summarized = merge([{ id:'JW-TEST-1', subject:'Updated', _jwSummaryOnly:true }]);
+  assert.equal(summarized[0].subject, 'Updated');
+  assert.equal(summarized[0].description, 'Full instructions');
+  assert.equal(summarized[0]._jwSummaryOnly, false);
+  assert.equal(remembered.at(-1).description, 'Full instructions');
+});
+
 test('submitted file previews reserve a tab before asynchronous URL resolution', () => {
   const start = html.indexOf('async function jwOpenSubmittedMaterial');
   const end = html.indexOf('function jwSubmissionViewerHtml', start);

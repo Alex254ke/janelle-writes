@@ -28841,7 +28841,9 @@ async function jwStrictLoadTasks() {
       loaded = Array.isArray(tasks) ? tasks : [];
     }
   }
-  tasks = typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []);
+  tasks = typeof jwMergeTaskCachePreservingActive === 'function'
+    ? jwMergeTaskCachePreservingActive(loaded || [])
+    : (typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []));
   return tasks;
 }
 
@@ -28956,7 +28958,9 @@ if (typeof refreshTasks === 'function' && !refreshTasks.__jwStrictImmediateBadge
     jwStrictShowWorkspaceLoader('Loading tasks...');
     try {
       const loaded = typeof dbGetTasks === 'function' ? await dbGetTasks() : [];
-      tasks = typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []);
+      tasks = typeof jwMergeTaskCachePreservingActive === 'function'
+        ? jwMergeTaskCachePreservingActive(loaded || [])
+        : (typeof dedupeTasks === 'function' ? dedupeTasks(loaded || []) : (loaded || []));
       try { updateBadges(); } catch {}
       try {
         const active = _currentPage || (typeof getHomePage === 'function' ? getHomePage() : '');
@@ -33143,9 +33147,118 @@ renderInstructionFiles = function(task) {
 let _jwTaskSummaryFlight = null;
 let _jwTaskSummaryCache = { key:'', at:0, rows:[] };
 const _jwFullTaskLoads = new Map();
+let _jwActiveTaskSnapshot = null;
+let _jwActiveTaskRevalidation = null;
+let _jwActiveTaskRevalidatedAt = 0;
 
 function jwTaskLoadUserKey() {
   return [String(currentUser?.email || '').toLowerCase(), String(currentUser?.role || '')].join('|');
+}
+
+function jwTaskDetailIsOpen() {
+  const page = document.querySelector('.page.active')?.id?.replace(/^page-/, '') || _currentPage || '';
+  return page === 'task-details' || /^#task=/i.test(String(window.location.hash || ''));
+}
+
+function jwActiveTaskDetailId() {
+  return String(window._activeTaskDetailId || (typeof activeTaskId !== 'undefined' ? activeTaskId : '') || '').trim();
+}
+
+function jwCanKeepActiveTaskSnapshot(task) {
+  if (!task || !currentUser) return false;
+  try {
+    if (typeof isJwAdmin === 'function' && isJwAdmin()) return true;
+    if (typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(task)) return true;
+  } catch {}
+  const userEmail = String(currentUser.email || '').trim().toLowerCase();
+  if (userEmail && [task.posted_by, task.taken_by].some(email => String(email || '').trim().toLowerCase() === userEmail)) {
+    return true;
+  }
+  return String(currentUser.role || '').toLowerCase() === 'writer'
+    && String(task.status || '').toLowerCase() === 'pending'
+    && !task.taken_by;
+}
+
+function jwRememberActiveTaskSnapshot(task) {
+  const id = jwActiveTaskDetailId();
+  if (!id || !task || String(task.id) !== id || !jwCanKeepActiveTaskSnapshot(task)) return;
+  _jwActiveTaskSnapshot = {
+    key:jwTaskLoadUserKey(),
+    id,
+    task:{ ...task }
+  };
+}
+
+async function jwRevalidateActiveTaskDetail(taskId) {
+  const id = String(taskId || '').trim();
+  if (!id || !currentUser || typeof _sb === 'undefined') return null;
+  if (_jwActiveTaskRevalidation?.id === id) return _jwActiveTaskRevalidation.promise;
+  if (Date.now() - _jwActiveTaskRevalidatedAt < 1500) return null;
+
+  const key = jwTaskLoadUserKey();
+  const promise = _sb.from('jw_tasks').select('*').eq('id', id).maybeSingle()
+    .then(({ data, error }) => {
+      _jwActiveTaskRevalidatedAt = Date.now();
+      if (key !== jwTaskLoadUserKey() || id !== jwActiveTaskDetailId()) return null;
+      if (error) {
+        console.warn('Open task revalidation was delayed; keeping the visible task:', error);
+        return null;
+      }
+      if (!data) {
+        _jwActiveTaskSnapshot = null;
+        tasks = (Array.isArray(tasks) ? tasks : []).filter(task => String(task.id) !== id);
+        if (jwTaskDetailIsOpen() && typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+        return null;
+      }
+
+      const full = { ...data, _jwSummaryOnly:false };
+      if (typeof upsertLocalTask === 'function') upsertLocalTask(full);
+      jwRememberActiveTaskSnapshot(full);
+      if (jwTaskDetailIsOpen() && typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+      return full;
+    })
+    .catch(error => {
+      console.warn('Open task revalidation was delayed; keeping the visible task:', error);
+      return null;
+    })
+    .finally(() => {
+      if (_jwActiveTaskRevalidation?.promise === promise) _jwActiveTaskRevalidation = null;
+    });
+
+  _jwActiveTaskRevalidation = { id, promise };
+  return promise;
+}
+
+function jwMergeTaskCachePreservingActive(rows) {
+  const merged = typeof dedupeTasks === 'function' ? dedupeTasks(rows || []) : (rows || []);
+  const id = jwActiveTaskDetailId();
+  if (!id || !jwTaskDetailIsOpen()) return merged;
+
+  const selected = merged.find(task => String(task.id) === id);
+  if (selected) {
+    const snapshot = _jwActiveTaskSnapshot;
+    if (snapshot && snapshot.id === id && snapshot.key === jwTaskLoadUserKey()
+        && snapshot.task?._jwSummaryOnly === false && selected._jwSummaryOnly !== false) {
+      const fullSelected = { ...snapshot.task, ...selected, _jwSummaryOnly:false };
+      const selectedIndex = merged.indexOf(selected);
+      merged[selectedIndex] = fullSelected;
+      jwRememberActiveTaskSnapshot(fullSelected);
+      return merged;
+    }
+    jwRememberActiveTaskSnapshot(selected);
+    return merged;
+  }
+
+  const snapshot = _jwActiveTaskSnapshot;
+  if (snapshot && snapshot.id === id && snapshot.key === jwTaskLoadUserKey() && jwCanKeepActiveTaskSnapshot(snapshot.task)) {
+    setTimeout(() => jwRevalidateActiveTaskDetail(id), 0);
+    return typeof dedupeTasks === 'function'
+      ? dedupeTasks([snapshot.task, ...merged])
+      : [snapshot.task, ...merged];
+  }
+
+  setTimeout(() => jwRevalidateActiveTaskDetail(id), 0);
+  return merged;
 }
 
 function jwMergeTaskSummariesWithLoadedRows(rows) {
@@ -33243,6 +33356,7 @@ async function jwEnsureFullTaskLoaded(taskId) {
       if (!data) return current;
       const full = { ...data, _jwSummaryOnly:false };
       if (typeof upsertLocalTask === 'function') upsertLocalTask(full);
+      jwRememberActiveTaskSnapshot(full);
       return full;
     })
     .finally(() => _jwFullTaskLoads.delete(id));
@@ -33288,6 +33402,12 @@ if (typeof openTaskDetailsPage === 'function') {
     const id = String(taskId || '').trim();
     if (!id) return false;
 
+    const selectedTask = typeof getTaskById === 'function' ? getTaskById(id) : null;
+    if (selectedTask) {
+      window._activeTaskDetailId = id;
+      jwRememberActiveTaskSnapshot(selectedTask);
+    }
+
     const activePage = document.querySelector('.page.active')?.id?.replace(/^page-/, '') || '';
     if (activePage && activePage !== 'task-details') {
       window.__jwStableTaskReturn = {
@@ -33313,6 +33433,7 @@ if (typeof openTaskDetailsPage === 'function') {
       jwEnsureFullTaskLoaded(id)
         .then(full => {
           if (!full || String(window._activeTaskDetailId || '') !== id) return;
+          jwRememberActiveTaskSnapshot(full);
           if (_currentPage !== 'task-details') return;
           if (typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
           if (typeof jwEnsureSubmittedMaterialsInTaskPage === 'function') {
@@ -33437,9 +33558,7 @@ function jwApplyBackgroundWorkspaceResults(profileResult, taskResult) {
   }
 
   if (taskResult?.status === 'fulfilled') {
-    tasks = typeof dedupeTasks === 'function'
-      ? dedupeTasks(taskResult.value || [])
-      : (taskResult.value || []);
+    tasks = jwMergeTaskCachePreservingActive(taskResult.value || []);
   }
 
   try { updateBadges(); } catch {}
@@ -34566,7 +34685,7 @@ async function jwRefreshLiveSnapshot() {
   if (!currentUser || document.visibilityState === 'hidden') return;
   try {
     const loaded = await dbGetTasks();
-    tasks = dedupeTasks(loaded || []);
+    tasks = jwMergeTaskCachePreservingActive(loaded || []);
     jwRenderLiveWorkspace();
   } catch (error) {
     console.warn('Live reconciliation warning:', error);
@@ -34590,10 +34709,12 @@ subscribeRealtime = function() {
       const previous = tasks.find(task => String(task.id) === String(row.id || old.id));
 
       if (payload.eventType === 'DELETE') {
+        if (String(old.id || '') === jwActiveTaskDetailId()) _jwActiveTaskSnapshot = null;
         tasks = tasks.filter(task => String(task.id) !== String(old.id));
       } else if (row?.id) {
         if (!row.duplicate_of || isJwAdmin()) upsertLocalTask(row);
         else tasks = tasks.filter(task => String(task.id) !== String(row.id));
+        if (String(row.id) === jwActiveTaskDetailId()) jwRememberActiveTaskSnapshot(row);
       }
       tasks = dedupeTasks(tasks);
 
@@ -34718,6 +34839,9 @@ async function jwEnforceAdminRoute() {
 if (typeof doLogout === 'function' && !doLogout.__jwLiveCoherenceCleanup) {
   const _jwCoherentLogout = doLogout;
   doLogout = async function() {
+    _jwActiveTaskSnapshot = null;
+    _jwActiveTaskRevalidation = null;
+    _jwActiveTaskRevalidatedAt = 0;
     clearInterval(_jwLiveRefreshTimer);
     clearInterval(_jwLiveReconcileTimer);
     if (_realtimeSub) {
