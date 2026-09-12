@@ -1,0 +1,49 @@
+{
+  "id": "/",
+  "name": "Janelle Writes Platform",
+  "short_name": "Janelle Writes",
+  "description": "A focused workspace for writing orders, messaging, secure files, reviews, and payments.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f4faf8",
+  "theme_color": "#0f1923",
+  "categories": ["business", "education", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/assets/pwa/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Sign in",
+      "short_name": "Sign in",
+      "url": "/#login",
+      "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Student support",
+      "short_name": "Students",
+      "url": "/students/",
+      "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

@@ -29,9 +29,9 @@ test('mobile navigation and hero both expose the student CTA', () => {
 });
 
 test('international students have a dedicated integrity-first support journey', () => {
-  assert.match(html, /<section class="landing-section" id="landing-students">/);
-  assert.match(html, /<nav class="landing-nav-links">[\s\S]*?<a class="student-nav-link" href="#landing-students">Students/);
-  assert.match(html, /class="landing-mobile-links"[\s\S]*?<a class="student-nav-link" href="#landing-students" onclick="closeLandingMenu\(\)">Students/);
+  assert.match(html, /<section class="landing-section" id="landing-students" hidden>/);
+  assert.match(html, /<nav class="landing-nav-links">[\s\S]*?<a class="student-nav-link" href="\/students\/">Students/);
+  assert.match(html, /class="landing-mobile-links"[\s\S]*?<a class="student-nav-link" href="\/students\/" onclick="closeLandingMenu\(\)">Students/);
   assert.match(html, /\.landing-nav-links a\.student-nav-link,[\s\S]*?background:linear-gradient\(110deg,#168d80 0%,#249f91 48%,#a86f1e 100%\)/);
   assert.match(html, /Academic guidance that feels clear from the start\./);
   assert.match(html, /Editing and proofreading/);
