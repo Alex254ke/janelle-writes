@@ -194,6 +194,30 @@ test('background and realtime task refreshes preserve the task being viewed', ()
   assert.match(html, /Open task revalidation was delayed; keeping the visible task/);
 });
 
+test('an empty task revalidation cannot erase an authorized open task', () => {
+  const start = html.indexOf('async function jwRevalidateActiveTaskDetail(taskId)');
+  const end = html.indexOf('function jwMergeTaskCachePreservingActive(rows)', start);
+  assert.ok(start >= 0 && end > start, 'task revalidation helper should exist');
+  const revalidation = html.slice(start, end);
+
+  assert.match(revalidation, /if \(!data\) \{[\s\S]*?keeping the authorized task snapshot/);
+  assert.match(revalidation, /jwCanKeepActiveTaskSnapshot\(snapshot\.task\)/);
+  assert.doesNotMatch(revalidation, /if \(!data\) \{[\s\S]*?_jwActiveTaskSnapshot = null/);
+  assert.doesNotMatch(revalidation, /if \(!data\) \{[\s\S]*?tasks = .*\.filter/);
+});
+
+test('profile save and public photos have cross-device fallbacks', () => {
+  assert.match(html, /const saved = await secureUpsertPlatformUser\(/);
+  assert.doesNotMatch(
+    html.slice(html.indexOf('async function saveProfile()'), html.indexOf('// â•', html.indexOf('async function saveProfile()'))),
+    /dbUpdateUser\(/
+  );
+  assert.match(html, /async function jwGetPublicWriterProfileFromApi\(email\)/);
+  assert.match(html, /fetch\(`\$\{SECURE_PROFILE_API\}\?email=\$\{encodeURIComponent\(email\)\}`/);
+  assert.match(html, /data-writer-profile-email=/);
+  assert.match(html, /function jwHydratePartnerProfileButtons\(email, fallbackName = ''\)/);
+});
+
 test('an open full task survives a partial task-list response', () => {
   const match = html.match(/function jwMergeTaskCachePreservingActive\(rows\) \{([\s\S]*?)\n\}/);
   assert.ok(match, 'active-task cache merge helper should exist');

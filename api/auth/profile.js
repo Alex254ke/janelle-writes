@@ -26,11 +26,25 @@ const PRIVILEGED_PROFILE_KEYS = new Set([
   'user_metadata',
   'updated_at'
 ]);
+const PUBLIC_PROFILE_KEYS = new Set([
+  'availability',
+  'bio',
+  'education',
+  'experience',
+  'languages',
+  'location',
+  'name',
+  'photo',
+  'rate',
+  'skills',
+  'timezone',
+  'title'
+]);
 
 function sendJson(res, status, body) {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.status(status).json(body);
 }
@@ -62,6 +76,12 @@ function withoutPrivilegedProfileKeys(value) {
   );
 }
 
+export function publicProfileFields(value) {
+  return Object.fromEntries(
+    Object.entries(safeObject(value)).filter(([key]) => PUBLIC_PROFILE_KEYS.has(key))
+  );
+}
+
 export function configuredAdminEmails(envValue = process.env.JW_ADMIN_EMAILS) {
   return String(envValue || '')
     .split(',')
@@ -88,7 +108,7 @@ async function supabaseFetch(url, serviceKey, options = {}) {
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return sendJson(res, 204, {});
-  if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+  if (!['GET', 'POST'].includes(req.method)) return sendJson(res, 405, { error: 'Method not allowed' });
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ughwzaowgpergpizenko.supabase.co';
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -109,6 +129,35 @@ export default async function handler(req, res) {
   const authBody = await readJsonResponse(authRes);
   if (!authRes.ok || !authBody?.email || !authBody?.id) {
     return sendJson(res, 401, { error: 'Invalid or expired user session.' });
+  }
+
+  // Authenticated users may read the deliberately small public portion of a
+  // writer profile. The service role performs the lookup because jw_users RLS
+  // correctly prevents users from reading another account's full record.
+  if (req.method === 'GET') {
+    const targetEmail = normalizeEmail(req.query?.email);
+    if (!targetEmail) return sendJson(res, 400, { error: 'A writer email is required.' });
+
+    const publicUrl = `${supabaseUrl}/rest/v1/jw_users?email=eq.${encodeURIComponent(targetEmail)}&select=email,name,role,profile`;
+    const publicRes = await supabaseFetch(publicUrl, serviceKey, { method: 'GET' });
+    const publicRows = await readJsonResponse(publicRes);
+    if (!publicRes.ok) {
+      return sendJson(res, publicRes.status, { error: 'Could not read public writer profile.' });
+    }
+
+    const target = Array.isArray(publicRows) ? publicRows[0] : null;
+    if (!target || String(target.role || '').toLowerCase() !== 'writer') {
+      return sendJson(res, 404, { error: 'Public writer profile was not found.' });
+    }
+
+    return sendJson(res, 200, {
+      user: {
+        email: normalizeEmail(target.email),
+        name: sanitizeText(target.name || target.profile?.name || 'Writer'),
+        role: 'writer',
+        profile: publicProfileFields(target.profile)
+      }
+    });
   }
 
   let parsedBody = req.body;

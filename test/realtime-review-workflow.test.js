@@ -12,6 +12,20 @@ const materialPolicyMigration = readFileSync(
   new URL('../supabase/migrations/20260913090000_instruction_preview_and_profile_compatibility.sql', import.meta.url),
   'utf8'
 );
+const publicProfileMigration = readFileSync(
+  new URL('../supabase/migrations/20260913101500_public_writer_profile_v2.sql', import.meta.url),
+  'utf8'
+);
+
+test('public writer profiles expose an explicit safe field set', () => {
+  assert.match(publicProfileMigration, /create or replace function public\.jw_get_public_writer_profile_v2/i);
+  assert.match(publicProfileMigration, /security definer/i);
+  assert.match(publicProfileMigration, /\(select auth\.uid\(\)\) is not null/i);
+  assert.match(publicProfileMigration, /'photo', account\.profile -> 'photo'/i);
+  assert.doesNotMatch(publicProfileMigration, /'phone'|'payment'|'auth_id'|'is_admin'/i);
+  assert.match(publicProfileMigration, /revoke all on function public\.jw_get_public_writer_profile_v2\(text\) from public, anon/i);
+  assert.match(publicProfileMigration, /grant execute on function public\.jw_get_public_writer_profile_v2\(text\) to authenticated, service_role/i);
+});
 
 test('task posting is idempotent and production duplicates remain auditable', () => {
   assert.match(html, /client_request_id:\s*task\.client_request_id\s*\|\|\s*jwGetPostingRequestId\(\)/);

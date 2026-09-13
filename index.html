@@ -17773,7 +17773,9 @@ function taskRatingSummary(t) {
 }
 
 function getTaskById(id) {
-  return tasks.find(t => String(t.id) === String(id));
+  const needle = String(id || '').trim().toLowerCase();
+  if (!needle) return null;
+  return tasks.find(t => String(t.id || '').trim().toLowerCase() === needle) || null;
 }
 
 function canCurrentUserSeeTask(t) {
@@ -19612,14 +19614,20 @@ function initialsFromName(name, email = '') {
   return base.slice(0,2).toUpperCase();
 }
 
+const _jwPublicWriterProfileCache = new Map();
+const _jwPublicWriterProfileFlights = new Map();
+
 function smallPartnerProfileButton(email, name) {
   if (!email) return '';
-  const local = getLocalProfile(email);
+  const emailKey = String(email).trim().toLowerCase();
+  const cached = _jwPublicWriterProfileCache.get(emailKey);
+  const local = cached?.profile || getLocalProfile(email);
   const photo = local?.photo || '';
   const avatar = photo
-    ? `<span class="partner-profile-mini-avatar"><img src="${photo}" alt="${esc(name || email)}"></span>`
+    ? `<span class="partner-profile-mini-avatar"><img src="${esc(photo)}" alt="${esc(name || email)}"></span>`
     : `<span class="partner-profile-mini-avatar">${esc(initialsFromName(name, email))}</span>`;
-  return `<button class="partner-profile-mini" type="button" onclick="event.stopPropagation();openWriterProfileModal('${escJS(email)}','${escJS(name || '')}')">${avatar}<span>View Profile</span></button>`;
+  if (!photo) setTimeout(() => jwHydratePartnerProfileButtons(email, name), 0);
+  return `<button class="partner-profile-mini" type="button" data-writer-profile-email="${esc(emailKey)}" onclick="event.stopPropagation();openWriterProfileModal('${escJS(email)}','${escJS(name || '')}')">${avatar}<span>View Profile</span></button>`;
 }
 
 function profileValue(value, fallback = 'Not provided') {
@@ -25088,19 +25096,63 @@ function safePublicWriterProfileFromRow(row, fallbackName = '') {
   };
 }
 
+function jwRememberPublicWriterProfile(result) {
+  const key = String(result?.email || '').trim().toLowerCase();
+  if (key) _jwPublicWriterProfileCache.set(key, result);
+  return result;
+}
+
+async function jwGetPublicWriterProfileFromApi(email) {
+  const { data:sessionData } = await _sb.auth.getSession();
+  const token = sessionData?.session?.access_token;
+  if (!token) throw new Error('A signed-in session is required to view this profile.');
+
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeout = setTimeout(() => {
+    try { controller?.abort(); } catch {}
+  }, 10000);
+
+  try {
+    const response = await fetch(`${SECURE_PROFILE_API}?email=${encodeURIComponent(email)}`, {
+      method:'GET',
+      headers:{ 'Authorization':'Bearer ' + token },
+      signal:controller?.signal
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || 'Could not load public writer profile.');
+    return body.user || null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function getPublicWriterProfileSafe(email, fallbackName = '') {
   if (!email) return null;
+  const emailKey = String(email).trim().toLowerCase();
+  const cached = _jwPublicWriterProfileCache.get(emailKey);
+  if (cached) return cached;
+
+  // The server returns an explicit public-field allowlist and never exposes the
+  // target account's identity, admin, contact, payment or private profile data.
+  try {
+    const apiUser = await jwGetPublicWriterProfileFromApi(email);
+    if (apiUser) return jwRememberPublicWriterProfile(safePublicWriterProfileFromRow(apiUser, fallbackName));
+  } catch (err) {
+    console.warn('Public writer profile service unavailable:', err?.message || err);
+  }
 
   // Preferred secure path: returns only safe public writer profile fields.
   try {
     if (_sb?.rpc) {
-      const { data, error } = await _sb.rpc('jw_get_public_writer_profile', { p_email: email });
-      if (!error && data) {
-        const row = Array.isArray(data) ? data[0] : data;
-        if (row) return safePublicWriterProfileFromRow(row, fallbackName);
-      }
-      if (error && !String(error.message || '').toLowerCase().includes('function')) {
-        console.warn('Public writer profile RPC failed:', error.message);
+      for (const rpcName of ['jw_get_public_writer_profile_v2', 'jw_get_public_writer_profile']) {
+        const { data, error } = await _sb.rpc(rpcName, { p_email: email });
+        if (!error && data) {
+          const row = Array.isArray(data) ? data[0] : data;
+          if (row) return jwRememberPublicWriterProfile(safePublicWriterProfileFromRow(row, fallbackName));
+        }
+        if (error && !String(error.message || '').toLowerCase().includes('function')) {
+          console.warn('Public writer profile RPC failed:', error.message);
+        }
       }
     }
   } catch (err) {
@@ -25110,7 +25162,7 @@ async function getPublicWriterProfileSafe(email, fallbackName = '') {
   // Fallback for admin/self or permissive RLS. This may be blocked for normal employers, which is okay.
   try {
     const dbUser = await dbGetUserByEmail(email);
-    if (dbUser) return safePublicWriterProfileFromRow(dbUser, fallbackName);
+    if (dbUser) return jwRememberPublicWriterProfile(safePublicWriterProfileFromRow(dbUser, fallbackName));
   } catch (err) {
     console.warn('Direct writer profile lookup blocked or unavailable:', err?.message || err);
   }
@@ -25118,10 +25170,36 @@ async function getPublicWriterProfileSafe(email, fallbackName = '') {
   // Last fallback: local cache only.
   const local = getLocalProfile(email);
   if (local && Object.keys(local).length) {
-    return safePublicWriterProfileFromRow({ email, name: fallbackName || email, profile: local }, fallbackName);
+    return jwRememberPublicWriterProfile(safePublicWriterProfileFromRow({ email, name: fallbackName || email, profile: local }, fallbackName));
   }
 
   return { email, name: fallbackName || email || 'Writer', profile: {} };
+}
+
+async function jwHydratePartnerProfileButtons(email, fallbackName = '') {
+  const emailKey = String(email || '').trim().toLowerCase();
+  if (!emailKey) return;
+  if (_jwPublicWriterProfileFlights.has(emailKey)) return _jwPublicWriterProfileFlights.get(emailKey);
+
+  const flight = getPublicWriterProfileSafe(email, fallbackName)
+    .then(result => {
+      const photo = result?.profile?.photo || '';
+      if (!photo) return result;
+      document.querySelectorAll('[data-writer-profile-email]').forEach(button => {
+        if (String(button.dataset.writerProfileEmail || '').toLowerCase() !== emailKey) return;
+        const avatar = button.querySelector('.partner-profile-mini-avatar');
+        if (avatar) avatar.innerHTML = `<img src="${esc(photo)}" alt="${esc(result.name || fallbackName || email)}">`;
+      });
+      return result;
+    })
+    .catch(err => {
+      console.warn('Writer profile image hydration was delayed:', err?.message || err);
+      return null;
+    })
+    .finally(() => _jwPublicWriterProfileFlights.delete(emailKey));
+
+  _jwPublicWriterProfileFlights.set(emailKey, flight);
+  return flight;
 }
 
 openWriterProfileModal = async function(email, fallbackName = '') {
@@ -33219,7 +33297,7 @@ function jwCanKeepActiveTaskSnapshot(task) {
 
 function jwRememberActiveTaskSnapshot(task) {
   const id = jwActiveTaskDetailId();
-  if (!id || !task || String(task.id) !== id || !jwCanKeepActiveTaskSnapshot(task)) return;
+  if (!id || !task || String(task.id || '').trim().toLowerCase() !== id.toLowerCase() || !jwCanKeepActiveTaskSnapshot(task)) return;
   _jwActiveTaskSnapshot = {
     key:jwTaskLoadUserKey(),
     id,
@@ -33243,9 +33321,22 @@ async function jwRevalidateActiveTaskDetail(taskId) {
         return null;
       }
       if (!data) {
-        _jwActiveTaskSnapshot = null;
-        tasks = (Array.isArray(tasks) ? tasks : []).filter(task => String(task.id) !== id);
-        if (jwTaskDetailIsOpen() && typeof renderTaskDetailsPage === 'function') renderTaskDetailsPage();
+        // An empty PostgREST result can be caused by a session refresh, a
+        // momentary RLS visibility change, or a delayed replica. It is not
+        // proof that the task was deleted. Keep the task that this user opened
+        // and let a later list/realtime update replace it authoritatively.
+        const snapshot = _jwActiveTaskSnapshot;
+        if (snapshot && snapshot.key === key
+            && String(snapshot.id || '').trim().toLowerCase() === id.toLowerCase()
+            && jwCanKeepActiveTaskSnapshot(snapshot.task)) {
+          if (!getTaskById(id)) {
+            tasks = typeof dedupeTasks === 'function'
+              ? dedupeTasks([snapshot.task, ...(Array.isArray(tasks) ? tasks : [])])
+              : [snapshot.task, ...(Array.isArray(tasks) ? tasks : [])];
+          }
+          console.warn('Open task revalidation returned no row; keeping the authorized task snapshot.');
+          return snapshot.task;
+        }
         return null;
       }
 
@@ -33272,10 +33363,10 @@ function jwMergeTaskCachePreservingActive(rows) {
   const id = jwActiveTaskDetailId();
   if (!id || !jwTaskDetailIsOpen()) return merged;
 
-  const selected = merged.find(task => String(task.id) === id);
+  const selected = merged.find(task => String(task.id || '').trim().toLowerCase() === id.toLowerCase());
   if (selected) {
     const snapshot = _jwActiveTaskSnapshot;
-    if (snapshot && snapshot.id === id && snapshot.key === jwTaskLoadUserKey()
+    if (snapshot && String(snapshot.id || '').trim().toLowerCase() === id.toLowerCase() && snapshot.key === jwTaskLoadUserKey()
         && snapshot.task?._jwSummaryOnly === false && selected._jwSummaryOnly !== false) {
       const fullSelected = { ...snapshot.task, ...selected, _jwSummaryOnly:false };
       const selectedIndex = merged.indexOf(selected);
@@ -33288,7 +33379,7 @@ function jwMergeTaskCachePreservingActive(rows) {
   }
 
   const snapshot = _jwActiveTaskSnapshot;
-  if (snapshot && snapshot.id === id && snapshot.key === jwTaskLoadUserKey() && jwCanKeepActiveTaskSnapshot(snapshot.task)) {
+  if (snapshot && String(snapshot.id || '').trim().toLowerCase() === id.toLowerCase() && snapshot.key === jwTaskLoadUserKey() && jwCanKeepActiveTaskSnapshot(snapshot.task)) {
     setTimeout(() => jwRevalidateActiveTaskDetail(id), 0);
     return typeof dedupeTasks === 'function'
       ? dedupeTasks([snapshot.task, ...merged])
@@ -33440,7 +33531,9 @@ if (typeof openTaskDetailsPage === 'function') {
     const id = String(taskId || '').trim();
     if (!id) return false;
 
-    const selectedTask = typeof getTaskById === 'function' ? getTaskById(id) : null;
+    const selectedTask = typeof findTask === 'function'
+      ? findTask(id)
+      : (typeof getTaskById === 'function' ? getTaskById(id) : null);
     if (selectedTask) {
       window._activeTaskDetailId = id;
       jwRememberActiveTaskSnapshot(selectedTask);

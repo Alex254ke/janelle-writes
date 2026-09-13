@@ -1,6 +1,6 @@
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import handler, { configuredAdminEmails } from '../api/auth/profile.js';
+import handler, { configuredAdminEmails, publicProfileFields } from '../api/auth/profile.js';
 
 const originalFetch = globalThis.fetch;
 const originalEnv = {
@@ -40,6 +40,8 @@ function responseRecorder() {
 
 async function invoke({
   body,
+  method = 'POST',
+  query = {},
   email = 'user@example.com',
   authId = '11111111-1111-4111-8111-111111111111',
   existing = null,
@@ -66,7 +68,8 @@ async function invoke({
   };
 
   const req = {
-    method: 'POST',
+    method,
+    query,
     headers: { authorization: 'Bearer test-user-token' },
     body
   };
@@ -74,6 +77,52 @@ async function invoke({
   await handler(req, res);
   return { res, calls };
 }
+
+test('public profile allowlist removes private and privileged fields', () => {
+  assert.deepEqual(
+    publicProfileFields({
+      photo: 'data:image/png;base64,abc',
+      bio: 'Public bio',
+      phone: '+254700000000',
+      payment: { account: 'private' },
+      is_admin: true,
+      auth_id: 'private-id'
+    }),
+    { photo: 'data:image/png;base64,abc', bio: 'Public bio' }
+  );
+});
+
+test('authenticated users can read only allowlisted public writer fields', async () => {
+  const existing = {
+    email: 'writer@example.com',
+    name: 'Writer Name',
+    role: 'writer',
+    auth_id: 'private-auth-id',
+    is_admin: false,
+    profile: {
+      photo: 'data:image/png;base64,abc',
+      bio: 'Public bio',
+      phone: '+254700000000',
+      payment: { account: 'private' },
+      portfolio: 'https://private.example.test'
+    }
+  };
+  const { res } = await invoke({
+    method: 'GET',
+    query: { email: 'writer@example.com' },
+    existing
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.user.email, 'writer@example.com');
+  assert.equal(res.body.user.profile.photo, 'data:image/png;base64,abc');
+  assert.equal(res.body.user.profile.bio, 'Public bio');
+  assert.equal(res.body.user.profile.phone, undefined);
+  assert.equal(res.body.user.profile.payment, undefined);
+  assert.equal(res.body.user.profile.portfolio, undefined);
+  assert.equal(res.body.user.auth_id, undefined);
+  assert.equal(res.body.user.is_admin, undefined);
+});
 
 test('normalizes the server admin allowlist', () => {
   assert.deepEqual(

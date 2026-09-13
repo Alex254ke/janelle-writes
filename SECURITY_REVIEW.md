@@ -25,6 +25,19 @@ Compatibility risk is low: the storage SELECT policy is broadened only for the
 pre-assignment instruction-review workflow. Review the code and Vercel preview,
 then apply the migration and test with one task owner and one unassigned writer.
 
+Migration `20260913101500_public_writer_profile_v2.sql` is also awaiting
+production review. It adds an authenticated RPC that returns only a writer's
+deliberately public name, photo, biography, skills, experience, availability,
+and related display fields. It does not expose `auth_id`, admin state, phone,
+payment data, identity metadata, or the full `jw_users` row. The matching
+server endpoint applies the same allowlist so previews can display public
+writer profiles without weakening the existing own-user/admin RLS policy.
+
+The task-detail client now preserves a task that the signed-in user already
+opened when a later exact-row revalidation temporarily returns no row. It does
+not grant any new database or Storage access; Supabase continues to enforce the
+authoritative task and file policies.
+
 ## Admin control upgrade awaiting production review
 
 Migration `20260730084329_admin_control_system.sql` has been created locally but
