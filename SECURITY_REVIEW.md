@@ -4,6 +4,27 @@ Audit date: 2026-07-19
 Supabase project: `ughwzaowgpergpizenko`
 Database: PostgreSQL 17, project status `ACTIVE_HEALTHY`
 
+## Instruction preview and profile compatibility awaiting review
+
+Migration `20260913090000_instruction_preview_and_profile_compatibility.sql`
+has been created but has **not** been applied to production. It preserves the
+private `jw-submissions` bucket while allowing an authenticated user whose
+Auth-linked profile role is `writer` to read only the `instructions` folder of
+a pending, unassigned task. Submitted work and materials for assigned,
+completed, cancelled, or disputed tasks remain participant/admin-only.
+
+The migration also creates `jw_users.profile` as an empty JSONB object only if
+an older environment does not already have that column. Existing profile rows,
+task rows, and stored files are not modified or deleted.
+
+The matching frontend sends profile edits through `/api/auth/profile` instead
+of directly updating protected profile metadata from the browser. This fixes
+the misleading local-only save warning and retains unrelated profile settings.
+
+Compatibility risk is low: the storage SELECT policy is broadened only for the
+pre-assignment instruction-review workflow. Review the code and Vercel preview,
+then apply the migration and test with one task owner and one unassigned writer.
+
 ## Admin control upgrade awaiting production review
 
 Migration `20260730084329_admin_control_system.sql` has been created locally but

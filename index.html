@@ -17865,7 +17865,7 @@ function renderInstructionFiles(t) {
 async function downloadInstructionFile(taskId, index) {
   const t = getTaskById(taskId);
   if (!t) { notify('⚠️ Order not found'); return; }
-  if (currentUser?.role !== 'writer' && !canCurrentUserSeeTask(t)) { notify('⚠️ You do not have access to this file'); return; }
+  if (!jwCanAccessInstructionMaterials(t)) { notify('⚠️ You do not have access to this file'); return; }
   const f = parseInstructionFiles(t.instruction_files)[index];
   try {
     const url = await resolveSubmittedFileUrl(f, 3600);
@@ -19527,7 +19527,11 @@ function fillProfileForm(profile) {
 
 function collectProfileForm() {
   const val = id => document.getElementById(id)?.value?.trim() || '';
+  // Preserve unrelated preferences and keep protected server metadata unchanged.
+  // The authenticated profile service strips protected keys before saving edits.
+  const existing = normalizeProfile(currentUser?.profile || getLocalProfile());
   return {
+    ...existing,
     name: val('profile-name') || currentUser?.name || '',
     photo: _profilePhotoData || '',
     title: val('profile-title'),
@@ -19543,8 +19547,7 @@ function collectProfileForm() {
     availability: val('profile-availability'),
     rate: val('profile-rate'),
     company: val('profile-company'),
-    preferred_style: val('profile-preferred-style'),
-    updated_at: new Date().toISOString()
+    preferred_style: val('profile-preferred-style')
   };
 }
 
@@ -19738,19 +19741,39 @@ async function saveProfile() {
   if (!currentUser?.email) return;
   const profile = collectProfileForm();
   if (!profile.name.trim()) { notify('⚠️ Please enter your name.'); return; }
-  currentUser.name = profile.name;
-  currentUser.profile = profile;
-  localStorage.setItem('jw_session', JSON.stringify(currentUser));
+
+  // Preserve the edit locally while the authenticated server endpoint performs
+  // the authoritative write. Direct browser writes conflict with protected
+  // profile metadata and caused valid image selections to appear unsuccessful.
   saveLocalProfile(profile);
-  updateUserDisplay();
-  updateProfilePreview();
   try {
-    await dbUpdateUser(currentUser.email, { name: profile.name, profile });
+    const saved = await secureUpsertPlatformUser({
+      email:currentUser.email,
+      name:profile.name,
+      role:currentUser.role,
+      profile
+    });
+    const authShape = {
+      email:currentUser.email,
+      name:profile.name,
+      role:currentUser.role,
+      provider:currentUser.provider || 'email',
+      auth_id:currentUser.auth_id
+    };
+    saveCurrentSessionUser(platformUserFromRecord(saved, authShape, saved.role || currentUser.role));
+    saveLocalProfile(currentUser.profile);
+    _profilePhotoData = currentUser.profile?.photo || profile.photo || null;
+    updateUserDisplay();
+    updateProfilePreview();
     notify('✅ Profile saved successfully.');
   } catch (err) {
     console.warn('Supabase profile save failed:', err?.message || err);
-    try { await dbUpdateUser(currentUser.email, { name: profile.name }); } catch (_) {}
-    notify('✅ Profile saved on this device. Add the profile JSONB column in Supabase to sync it across accounts.');
+    currentUser.name = profile.name;
+    currentUser.profile = profile;
+    localStorage.setItem('jw_session', JSON.stringify(currentUser));
+    updateUserDisplay();
+    updateProfilePreview();
+    notify('Profile was kept on this device, but could not sync online. Please check your connection and try Save Profile again.');
   }
 }
 
@@ -33096,9 +33119,24 @@ async function jwSubmitReviewDecision() {
   }
 }
 
+function jwCanAccessInstructionMaterials(task) {
+  if (!currentUser || !task) return false;
+  try {
+    if (typeof isJwAdmin === 'function' && isJwAdmin()) return true;
+    if (typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(task)) return true;
+  } catch {}
+  const userEmail = String(currentUser.email || '').trim().toLowerCase();
+  if (userEmail && [task.posted_by, task.taken_by].some(email => String(email || '').trim().toLowerCase() === userEmail)) {
+    return true;
+  }
+  return String(currentUser.role || '').toLowerCase() === 'writer'
+    && String(task.status || '').toLowerCase() === 'pending'
+    && !task.taken_by;
+}
+
 async function jwOpenInstructionMaterial(taskId, index) {
   const task = getTaskById(taskId);
-  if (!task || !canCurrentUserSeeTask(task)) return notify('You do not have access to this instruction file.');
+  if (!task || !jwCanAccessInstructionMaterials(task)) return notify('You do not have access to this instruction file.');
   const file = parseInstructionFiles(task.instruction_files)[index];
   if (!file) return notify('Instruction file not found.');
   const preview = window.open('', '_blank');

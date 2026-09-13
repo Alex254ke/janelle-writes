@@ -42,6 +42,27 @@ select
   count(*) filter (where auth_id is not null) as auth_linked_profiles
 from public.jw_users;
 
+select exists (
+  select 1
+  from information_schema.columns
+  where table_schema = 'public'
+    and table_name = 'jw_users'
+    and column_name = 'profile'
+    and data_type = 'jsonb'
+) as profile_jsonb_is_available;
+
+select exists (
+  select 1
+  from pg_policies
+  where schemaname = 'storage'
+    and tablename = 'objects'
+    and policyname = 'Task participants and browsing writers can read task files'
+    and roles @> array['authenticated']::name[]
+    and qual like '%instructions%'
+    and qual like '%pending%'
+    and qual like '%writer%'
+) as pending_task_instruction_preview_is_scoped;
+
 -- Admin control system assertions (run after migration
 -- 20260730084329_admin_control_system.sql is explicitly approved and applied).
 select
