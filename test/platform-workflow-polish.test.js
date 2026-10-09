@@ -55,6 +55,8 @@ test('task details retain authorized orders across partial background refreshes'
 test('task detail deadline action survives partial owner task records', () => {
   assert.match(html, /var visibleToOwner=!!\(currentUser&&\['employer','student'\]\.includes\(currentUser\.role\)/);
   assert.match(html, /ownerCanExtend=.*visibleToOwner/);
+  assert.match(html, /data-jw-detail-deadline-action/);
+  assert.match(html, /const rememberedTask = window\.__jwTaskDetailMemory instanceof Map/);
 });
 
 test('cross-script workflow helpers use explicit window exports', () => {

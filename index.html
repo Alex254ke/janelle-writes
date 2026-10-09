@@ -35305,7 +35305,18 @@ if (typeof window.renderTaskDetailsPage === 'function' && !window.renderTaskDeta
   const jwOriginalRenderTaskDetails = window.renderTaskDetailsPage;
   window.renderTaskDetailsPage = function() {
     const result = jwOriginalRenderTaskDetails.apply(this, arguments);
-    const t = getTaskById(window._activeTaskDetailId || '');
+    const detailId = String(window._activeTaskDetailId || '').trim();
+    const rememberedTask = window.__jwTaskDetailMemory instanceof Map ? window.__jwTaskDetailMemory.get(detailId.toLowerCase()) : null;
+    const t = getTaskById(detailId) || rememberedTask;
+    const actions = document.querySelector('#task-details-wrap .task-detail-actions');
+    const taskStatus = String(t?.status || '').toLowerCase();
+    const ownerPageCanExtend = !!(currentUser && ['employer','student'].includes(currentUser.role) && t && !['completed','cancelled'].includes(taskStatus));
+    if (actions && ownerPageCanExtend && !actions.querySelector('[data-jw-detail-deadline-action]')) {
+      actions.insertAdjacentHTML('beforeend', `<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`);
+    }
+    if (actions && jwCanWriterRequestExtension(t) && !actions.querySelector('[data-jw-detail-deadline-action]')) {
+      actions.insertAdjacentHTML('beforeend', `<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`);
+    }
     const body = document.querySelector('#task-details-wrap .task-detail-body');
     const danger = body?.querySelector('.task-detail-danger-note');
     const panel = t ? jwDeadlineExtensionPanel(t) : '';
