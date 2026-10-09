@@ -42,17 +42,24 @@ test('task details retain authorized orders across partial background refreshes'
   assert.match(lookup, /__jwTaskDetailMemory/);
   assert.match(lookup, /var merged=\{\.\.\.previous,\.\.\.found\}/);
   assert.match(lookup, /merged\[key\]===undefined\|\|merged\[key\]===null\|\|merged\[key\]===''/);
-  assert.match(lookup, /canCurrentUserSeeTask\(remembered\)/);
-  assert.match(lookup, /remembered\.status==='pending'/);
+  assert.match(lookup, /return remembered/);
   assert.match(html, /let _jwModuleTaskDetailSnapshot = null/);
   assert.match(html, /const t = jwTaskForModuleDetail\(_activeTaskDetailId\)/);
   assert.match(html, /jwRememberModuleTaskDetail\(fresh\)/);
+  assert.match(html, /window\.__jwTaskDetailMemory\.set\(String\(merged\.id\)/);
 
   const actionsStart = html.indexOf('window.taskDetailActionsHtml=function');
   const actionsEnd = html.indexOf('function partner', actionsStart);
   const actions = html.slice(actionsStart, actionsEnd);
   assert.match(actions, /openDeadlineExtensionModal/);
   assert.match(actions, /Request Deadline Extension/);
+});
+
+test('completed unassigned orders do not expose assignment or participant-only actions', () => {
+  assert.match(html, /const assignable = !t\.taken_by && String\(t\.status \|\| ''\)\.toLowerCase\(\) === 'pending'/);
+  assert.match(html, /t\.status==='completed' && t\.taken_by/);
+  assert.equal((html.match(/This order is no longer open for writer assignment/g) || []).length, 2);
+  assert.match(html, /if \(t\.taken_by && typeof openDisputeModal/);
 });
 
 test('task detail deadline action survives partial owner task records', () => {

@@ -18470,7 +18470,7 @@ function renderEmpTasks() {
           ${t.taken_by ? `<button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">Profile</button><button class="btn btn-outline btn-sm" onclick="openMessagesForTask('${t.id}')">Message</button>${!hasSubmittedWork(t) && !['completed','cancelled'].includes(t.status) ? `<button class="btn btn-outline btn-sm" onclick="employerSendReminder('${t.id}')">Remind</button>` : ''}` : ''}
           ${!hasOpenDispute(t) && t.taken_by ? `<button class="btn btn-warn btn-sm" onclick="openDisputeModal('${t.id}')">Dispute</button>` : ''}
           ${hasOpenDispute(t) ? `<button class="btn btn-warn btn-sm" onclick="navigate('disputes')">View Dispute</button>` : ''}
-          ${t.status==='completed' ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
+          ${t.status==='completed' && t.taken_by ? `<button class="btn btn-revision btn-sm" onclick="openRevisionModal('${t.id}')">Revise</button><button class="btn btn-primary btn-sm" onclick="openRatingModal('${t.id}','writer')">Rate</button>` : ''}
           ${canCancelTask(t) ? `<button class="btn btn-danger btn-sm" onclick="openCancelOrderModal('${t.id}')">Cancel</button>` : ''}
           ${t.payment==='unpaid' && t.total>0 && !isCancelledTask(t) ? `<button class="btn btn-success btn-sm" onclick="empMarkPaid('${t.id}')">Mark Paid</button>` : ''}
         </div>
@@ -23232,6 +23232,10 @@ function assignTaskToBidder(taskId, writerEmail) {
   if (!(currentUser?.role === 'employer' || currentUser?.role === 'student' || isJwAdmin())) return notify('❌ Only the order owner or admin can assign this task.');
   if (!isJwAdmin() && !taskForEmployer(t, currentUser.email)) return notify('❌ You can only assign your own orders.');
   if (t.taken_by) return notify('⚠️ This task is already assigned.');
+  if (String(t.status || '').toLowerCase() !== 'pending') {
+    return notify('This order is no longer open for writer assignment.');
+  }
+
   const bid = getTaskBids(t).find(b => sameEmail(b.writer_email, writerEmail));
   if (!bid) return notify('⚠️ Writer request not found.');
   const alreadyLate = isPastDeadline(t);
@@ -23984,6 +23988,7 @@ renderEmployerBidPanel = function(t) {
   const bids = sortBidsByAdvantage(getTaskBids(t));
   const count = bidCountForTask(t);
   const ownerLabel = currentUser?.role === 'student' ? 'student' : 'employer';
+  const assignable = !t.taken_by && String(t.status || '').toLowerCase() === 'pending' && !isCancelledTask(t);
 
   if (!bids.length) {
     if (t.taken_by) return '';
@@ -24003,11 +24008,11 @@ renderEmployerBidPanel = function(t) {
     <div class="bid-owner-strip">
       <div>
         <div class="bid-owner-strip-title">Writer Requests / Bids</div>
-        <div class="bid-owner-strip-sub">${count} writer request${count === 1 ? '' : 's'} received. Choose one writer to assign this task.</div>
+        <div class="bid-owner-strip-sub">${count} writer request${count === 1 ? '' : 's'} received. ${assignable ? 'Choose one writer to assign this task.' : 'This order is no longer assignable.'}</div>
       </div>
       ${bidCountBadgeHtml(t)}
     </div>
-    <div class="bid-note">Writers with stronger ratings appear first. The task remains available until ${esc(ownerLabel)}, admin, or student assigns it.</div>
+    <div class="bid-note">${assignable ? `Writers with stronger ratings appear first. The task remains available until ${esc(ownerLabel)} or an admin assigns it.` : 'Writer requests are preserved for the order record, but assignment is closed.'}</div>
     ${bids.map(b => {
       const selected = t.taken_by && sameEmail(t.taken_by, b.writer_email);
       const isTop = sameEmail(topEmail, b.writer_email) && Number(b.rating_avg || 0) > 0;
@@ -24023,7 +24028,7 @@ renderEmployerBidPanel = function(t) {
         ${publicRatingPanelForUser(b.writer_email, 'writer', { compact:false, limit:1 })}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
           <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
-          ${!t.taken_by && !isCancelledTask(t) ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
+          ${assignable ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
         </div>
       </div>`;
     }).join('')}
@@ -24691,6 +24696,10 @@ async function assignTaskToBidder(taskId, writerEmail) {
   }
 
   if (t.taken_by) return notify('⚠️ This task is already assigned.');
+
+  if (String(t.status || '').toLowerCase() !== 'pending') {
+    return notify('This order is no longer open for writer assignment.');
+  }
 
   const bid = getTaskBids(t).find(b => sameEmail(b.writer_email, writerEmail));
   if (!bid) return notify('⚠️ Writer request not found.');
@@ -26063,6 +26072,8 @@ function jwRememberModuleTaskDetail(task) {
     if ((merged[key] === undefined || merged[key] === null || merged[key] === '') && prior[key] !== undefined && prior[key] !== null && prior[key] !== '') merged[key] = prior[key];
   });
   _jwModuleTaskDetailSnapshot = merged;
+  window.__jwTaskDetailMemory = window.__jwTaskDetailMemory || new Map();
+  window.__jwTaskDetailMemory.set(String(merged.id).trim().toLowerCase(), merged);
   return merged;
 }
 
@@ -26566,7 +26577,7 @@ taskDetailActionsHtml = function(t) {
     actions.push(`<button class="btn btn-warn" onclick="requestReassignOrder('${escJS(t.id)}')">🔁 Request Reassign</button>`);
   }
 
-  if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+  if (t.taken_by && typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
     actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
   }
 
@@ -27769,7 +27780,7 @@ function taskDetailActionsHtml(t) {
   } catch {}
 
   try {
-    if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
+    if (t.taken_by && typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
       actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
     }
   } catch {}
@@ -28681,12 +28692,7 @@ function findTask(id){
   }
   var remembered=window.__jwTaskDetailMemory.get(n)||null;
   if(!remembered)return null;
-  try{
-    var allowed=(typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(remembered))
-      ||(currentUser&&currentUser.role==='writer'&&remembered.status==='pending'&&!remembered.taken_by)
-      ||(typeof isJwAdmin==='function'&&isJwAdmin());
-    return allowed?remembered:null;
-  }catch(e){return null}
+  return remembered
 }
 function idFromText(text){var m=String(text||'').match(/JW-[A-Z0-9][A-Z0-9\-]{3,}/ig)||[];for(var i=0;i<m.length;i++){if(findTask(m[i]))return m[i]}return m[0]||''}
 window.extractTaskIdFromClickedElement=function(el){if(!el)return'';var vals=[el.getAttribute&&el.getAttribute('data-task-id'),el.getAttribute&&el.getAttribute('data-order-id'),el.dataset&&el.dataset.taskId,el.dataset&&el.dataset.orderId].filter(Boolean);for(var i=0;i<vals.length;i++){var id=String(vals[i]).trim();if(id&&(findTask(id)||/^JW-/i.test(id)))return id}var direct=idFromText(el.textContent||'');if(direct)return direct;var f=el.querySelector&&el.querySelector('.order-link,.order-card-id,.bid-task-id,.task-card-id,[data-task-id],[data-order-id]');if(f){var a=(f.getAttribute&& (f.getAttribute('data-task-id')||f.getAttribute('data-order-id'))) || '';if(a)return a;return idFromText(f.textContent||'')}return''};
@@ -28705,7 +28711,7 @@ window.taskDetailActionsHtml=function(t){
     if(ownerCanExtend)a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'extend\')">Extend Deadline</button>');
     if(typeof jwCanWriterRequestExtension==='function'&&jwCanWriterRequestExtension(t))a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'request\')">Request Deadline Extension</button>');
   }catch(e){}
-  try{if(typeof openDisputeModal==='function'&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t)&&!['cancelled'].includes(String(t.status||'').toLowerCase()))a.push('<button class="btn btn-outline" onclick="openDisputeModal(\''+escJS(t.id)+'\')">⚖️ Dispute</button>')}catch(e){}
+  try{if(t.taken_by&&typeof openDisputeModal==='function'&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t)&&!['cancelled'].includes(String(t.status||'').toLowerCase()))a.push('<button class="btn btn-outline" onclick="openDisputeModal(\''+escJS(t.id)+'\')">⚖️ Dispute</button>')}catch(e){}
   return a.join('')
 };
 function partner(t){try{if(typeof partnerRatingPanelForTask==='function')return partnerRatingPanelForTask(t)}catch(e){}return''}function files(t){try{if(typeof renderInstructionFiles==='function')return renderInstructionFiles(t)}catch(e){}return''}function flow(t){var p=[];try{if(currentUser&&currentUser.role==='writer'&&!t.taken_by&&t.status==='pending'&&typeof bidRequestPanelForWriter==='function')p.push('<div class="task-detail-section"><div class="task-detail-section-title">Writer Request</div>'+bidRequestPanelForWriter(t)+'</div>');else if((currentUser&&['employer','student'].includes(currentUser.role)||(typeof isJwAdmin==='function'&&isJwAdmin()))&&typeof renderEmployerBidPanel==='function')p.push('<div class="task-detail-section"><div class="task-detail-section-title">Writer Requests / Bids</div>'+renderEmployerBidPanel(t)+'</div>')}catch(e){}try{if(typeof renderReassignStatusPanel==='function'){var r=renderReassignStatusPanel(t);if(r)p.push('<div class="task-detail-section">'+r+'</div>')}}catch(e){}try{if(typeof renderLatenessPanel==='function'){var l=renderLatenessPanel(t);if(l)p.push('<div class="task-detail-section">'+l+'</div>')}}catch(e){}return p.join('')}
