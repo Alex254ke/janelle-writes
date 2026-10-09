@@ -57,6 +57,7 @@ test('task detail deadline action survives partial owner task records', () => {
   assert.match(html, /ownerCanExtend=.*visibleToOwner/);
   assert.match(html, /data-jw-detail-deadline-action/);
   assert.match(html, /const rememberedTask = window\.__jwTaskDetailMemory instanceof Map/);
+  assert.match(html, /var __jwTaskDetailRendererWithActions=window\.renderTaskDetailsPage/);
 });
 
 test('cross-script workflow helpers use explicit window exports', () => {
