@@ -23722,7 +23722,7 @@ function jwCleanPhotoSrc(src) {
 function jwAvatarImgHTML(src, initials, alt = 'Profile image') {
   const clean = jwCleanPhotoSrc(src);
   if (!clean) return esc(initials || 'JW');
-  return `<img src="${clean}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="this.parentElement.dataset.imgError='1';this.parentElement.textContent=this.parentElement.dataset.initials||'${escJS(initials || 'JW')}'">`;
+  return `<img src="${clean}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="var p=this.parentElement;if(!p)return;p.dataset.imgError='1';p.textContent=p.dataset.initials||'${escJS(initials || 'JW')}'">`;
 }
 
 function jwSetAvatarElement(el, photo, name, email) {

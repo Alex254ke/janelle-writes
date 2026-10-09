@@ -220,6 +220,11 @@ test('profile save and public photos have cross-device fallbacks', () => {
   assert.match(html, /function jwHydratePartnerProfileButtons\(email, fallbackName = ''\)/);
 });
 
+test('avatar image fallbacks tolerate repeated error events after replacement', () => {
+  assert.match(html, /onerror="var p=this\.parentElement;if\(!p\)return;p\.dataset\.imgError='1'/);
+  assert.doesNotMatch(html, /onerror="this\.parentElement\.dataset\.imgError='1'/);
+});
+
 test('an open full task survives a partial task-list response', () => {
   const match = html.match(/function jwMergeTaskCachePreservingActive\(rows\) \{([\s\S]*?)\n\}/);
   assert.ok(match, 'active-task cache merge helper should exist');
