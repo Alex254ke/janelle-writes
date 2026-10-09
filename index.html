@@ -16109,7 +16109,59 @@ function getHomePage() {
   return currentUser.role === 'employer' ? 'emp-dashboard' : 'writer-dashboard';
 }
 
+function canRestoreAppPage(page) {
+  if (!currentUser || !page || !document.getElementById('page-' + page)) return false;
+
+  const commonPages = new Set([
+    'cancelled', 'disputes', 'messages', 'message-room', 'profile',
+    'guide', 'faq', 'rules', 'wallet', 'fines', 'task-details'
+  ]);
+  if (commonPages.has(page)) return true;
+
+  if (isJwAdmin()) {
+    return page.startsWith('admin-');
+  }
+  if (currentUser.role === 'student') {
+    return ['student-dashboard', 'emp-post', 'emp-tasks'].includes(page);
+  }
+  if (currentUser.role === 'employer') {
+    return ['emp-dashboard', 'emp-post', 'emp-tasks', 'emp-invoice', 'emp-payment', 'bid-requests'].includes(page);
+  }
+  return [
+    'writer-dashboard', 'writer-available', 'writer-tasks', 'writer-submit',
+    'writer-revisions', 'writer-tracker', 'writer-payment', 'writer-earnings',
+    'writer-bids'
+  ].includes(page);
+}
+
+function getRefreshRoute() {
+  const rawHash = String(window.location.hash || '').replace(/^#/, '');
+  if (!rawHash) return { page: getHomePage(), taskId: '' };
+
+  if (rawHash.startsWith('task=')) {
+    const taskId = decodeURIComponent(rawHash.slice(5)).trim();
+    if (taskId && canRestoreAppPage('task-details')) {
+      return { page: 'task-details', taskId };
+    }
+  }
+
+  // Authentication callbacks also use the URL fragment. Never interpret their
+  // token fields as in-app pages.
+  if (rawHash.includes('access_token=') || rawHash.includes('refresh_token=') || rawHash.includes('error=')) {
+    return { page: getHomePage(), taskId: '' };
+  }
+
+  let page = '';
+  try { page = decodeURIComponent(rawHash).trim(); } catch { page = rawHash.trim(); }
+  return canRestoreAppPage(page)
+    ? { page, taskId: '' }
+    : { page: getHomePage(), taskId: '' };
+}
+
 function appRouteUrl(page) {
+  if (page === 'task-details' && /^#task=/.test(window.location.hash || '')) {
+    return window.location.pathname + window.location.search + window.location.hash;
+  }
   return window.location.pathname + window.location.search + '#' + encodeURIComponent(page || getHomePage());
 }
 
@@ -16128,12 +16180,12 @@ function setAppHistory(page, mode = 'push') {
   }
 }
 
-function initBackButtonGuard() {
+function initBackButtonGuard(initialPage = getHomePage()) {
   if (!currentUser) return;
   _appHistoryReady = true;
   resetBackLogoutWarning();
-  setAppHistory(getHomePage(), 'replace');
-  setAppHistory(getHomePage(), 'push');
+  setAppHistory(initialPage, 'replace');
+  setAppHistory(initialPage, 'push');
 }
 
 function handleBackButtonAction(event) {
@@ -16207,10 +16259,11 @@ function launchApp(options = {}) {
   buildSidebar();
   buildTopbar();
   updateUserDisplay();
-  const home = getHomePage();
-  navigate(home, { skipHistory: true });
+  const initialRoute = getRefreshRoute();
+  if (initialRoute.taskId) window._activeTaskDetailId = initialRoute.taskId;
+  navigate(initialRoute.page, { skipHistory: true });
   finishInitialPageBoot(true);
-  initBackButtonGuard();
+  initBackButtonGuard(initialRoute.page);
   initSessionGuard();
   refreshDashboardDataInBackground({ notifyOnFailure: true });
   if (!options.silentWelcome) notify('✦ Welcome, ' + currentUser.name + '!');
