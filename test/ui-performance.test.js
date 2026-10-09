@@ -229,7 +229,8 @@ test('an open full task survives a partial task-list response', () => {
   const match = html.match(/function jwMergeTaskCachePreservingActive\(rows\) \{([\s\S]*?)\n\}/);
   assert.ok(match, 'active-task cache merge helper should exist');
 
-  const fullTask = { id:'JW-TEST-1', subject:'Original', description:'Full instructions', _jwSummaryOnly:false };
+  const submittedFile = { name:'finished.pdf', path:'submissions/finished.pdf' };
+  const fullTask = { id:'JW-TEST-1', subject:'Original', description:'Full instructions', submitted_files:[submittedFile], _jwSummaryOnly:false };
   const remembered = [];
   const revalidated = [];
   const merge = new Function(
@@ -240,6 +241,7 @@ test('an open full task survives a partial task-list response', () => {
     '_jwActiveTaskSnapshot',
     'jwTaskLoadUserKey',
     'jwCanKeepActiveTaskSnapshot',
+    'jwMergeTaskDetailRecord',
     'setTimeout',
     'jwRevalidateActiveTaskDetail',
     `return function(rows) {${match[1]}\n}`
@@ -251,6 +253,14 @@ test('an open full task survives a partial task-list response', () => {
     { key:'writer@example.com|writer', id:'JW-TEST-1', task:fullTask },
     () => 'writer@example.com|writer',
     () => true,
+    (previous, incoming) => {
+      const merged = { ...previous, ...incoming };
+      if (incoming._jwSummaryOnly !== false && previous._jwSummaryOnly === false && (!incoming.submitted_files || !incoming.submitted_files.length)) {
+        merged.submitted_files = previous.submitted_files;
+        merged._jwSummaryOnly = false;
+      }
+      return merged;
+    },
     callback => { callback(); return 1; },
     id => revalidated.push(id)
   );
@@ -260,10 +270,11 @@ test('an open full task survives a partial task-list response', () => {
   assert.equal(omitted[0].description, 'Full instructions');
   assert.deepEqual(revalidated, ['JW-TEST-1']);
 
-  const summarized = merge([{ id:'JW-TEST-1', subject:'Updated', _jwSummaryOnly:true }]);
+  const summarized = merge([{ id:'JW-TEST-1', subject:'Updated', submitted_files:[], _jwSummaryOnly:true }]);
   assert.equal(summarized[0].subject, 'Updated');
   assert.equal(summarized[0].description, 'Full instructions');
   assert.equal(summarized[0]._jwSummaryOnly, false);
+  assert.deepEqual(summarized[0].submitted_files, [submittedFile]);
   assert.equal(remembered.at(-1).description, 'Full instructions');
 });
 

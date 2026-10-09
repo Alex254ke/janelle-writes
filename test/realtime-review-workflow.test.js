@@ -71,11 +71,22 @@ test('summary refreshes cannot erase loaded task files or review controls', () =
   assert.deepEqual(merged.submitted_files, [file]);
   assert.equal(merged._jwSummaryOnly, false);
 
+  const unmarkedFull = { id:'JW-1', status:'submitted', submitted_files:[file] };
+  const mergedFromUnmarked = merge(unmarkedFull, summary);
+  assert.deepEqual(mergedFromUnmarked.submitted_files, [file]);
+  assert.equal(mergedFromUnmarked._jwSummaryOnly, false);
+
   const ensureStart = html.indexOf('function jwEnsureSubmittedMaterialsInTaskPage');
   const ensureEnd = html.indexOf('// Patch the full task detail renderer', ensureStart);
   const ensure = html.slice(ensureStart, ensureEnd);
   assert.ok(ensure.indexOf('const html = jwSubmissionViewerHtml(t)') < ensure.indexOf("body.querySelectorAll('#jw-task-submissions-section"));
   assert.match(ensure, /if \(!html\)[\s\S]*?jwEnsureFullTaskLoaded/);
+
+  const rendererStart = html.indexOf("if (typeof renderTaskDetailsPage === 'function' && !renderTaskDetailsPage.__jwSubmittedMaterialsViewPatched)");
+  const rendererEnd = html.indexOf('// Patch workflow HTML too', rendererStart);
+  const renderer = html.slice(rendererStart, rendererEnd);
+  assert.match(renderer, /previousSubmission/);
+  assert.match(renderer, /!body\.querySelector\('#jw-task-submissions-section'\)/);
 });
 
 test('orders bids messages and reviews use realtime database events', () => {

@@ -26361,13 +26361,18 @@ function jwMergeTaskDetailRecord(previous, incoming) {
   const prior = previous && typeof previous === 'object' ? previous : {};
   const next = incoming && typeof incoming === 'object' ? incoming : {};
   const merged = { ...prior, ...next };
+  const protectedPayloadKeys = ['submitted_files', 'instruction_files'];
   const incomingIsSummary = next._jwSummaryOnly !== false;
-  const priorIsFull = prior._jwSummaryOnly === false;
+  const priorHasProtectedPayload = protectedPayloadKeys.some(key => {
+    const value = prior[key];
+    return Array.isArray(value) ? value.length > 0 : !!value;
+  });
+  const priorIsFull = prior._jwSummaryOnly === false || priorHasProtectedPayload;
 
   // Summary queries intentionally omit large file payloads. Never allow those
   // placeholder empty arrays to erase files already loaded for an open task.
   if (incomingIsSummary && priorIsFull) {
-    ['submitted_files', 'instruction_files'].forEach(key => {
+    protectedPayloadKeys.forEach(key => {
       const priorValue = prior[key];
       const nextValue = next[key];
       const priorHasPayload = Array.isArray(priorValue) ? priorValue.length > 0 : !!priorValue;
@@ -31108,7 +31113,7 @@ function jwTaskHasSubmittedMaterials(t) {
 
 function jwLooksSubmittedOrCompleted(t) {
   const status = String(t?.status || '').toLowerCase();
-  return ['completed', 'revision', 'disputed'].includes(status) || jwTaskHasSubmittedMaterials(t);
+  return ['submitted', 'completed', 'revision', 'disputed'].includes(status) || jwTaskHasSubmittedMaterials(t);
 }
 
 function jwFileDisplayName(f, index = 0) {
@@ -31440,6 +31445,9 @@ function jwEnsureSubmittedMaterialsInTaskPage(taskId = '') {
       ? jwMergeTaskDetailRecord(remembered, current)
       : (current || remembered);
     if (!t) return;
+    if (window.__jwTaskDetailMemory instanceof Map && id) {
+      window.__jwTaskDetailMemory.set(String(id).trim().toLowerCase(), t);
+    }
 
     const body = page.querySelector('.task-detail-body');
     if (!body) return;
@@ -31468,7 +31476,19 @@ if (typeof renderTaskDetailsPage === 'function' && !renderTaskDetailsPage.__jwSu
   const __jwOriginalRenderTaskDetailsPageForSubmissions = renderTaskDetailsPage;
 
   renderTaskDetailsPage = function() {
+    const previousSubmission = document.querySelector('#task-details-wrap #jw-task-submissions-section')?.outerHTML || '';
     const result = __jwOriginalRenderTaskDetailsPageForSubmissions.apply(this, arguments);
+    // The canonical task renderer rebuilds the detail body. Preserve the last
+    // verified submission synchronously if a background summary arrives before
+    // the full row, so there is never a visible gap or lost download control.
+    if (previousSubmission) {
+      const body = document.querySelector('#task-details-wrap .task-detail-body');
+      const danger = body?.querySelector('.task-detail-danger-note');
+      if (body && !body.querySelector('#jw-task-submissions-section')) {
+        if (danger) danger.insertAdjacentHTML('beforebegin', previousSubmission);
+        else body.insertAdjacentHTML('beforeend', previousSubmission);
+      }
+    }
     setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 20);
     setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 250);
     return result;
@@ -33895,6 +33915,8 @@ function jwRememberActiveTaskSnapshot(task) {
     task:{ ...stableTask }
   };
   window.__jwLastRenderedTaskSnapshot = { id, task:{ ...stableTask } };
+  window.__jwTaskDetailMemory = window.__jwTaskDetailMemory || new Map();
+  window.__jwTaskDetailMemory.set(id.toLowerCase(), stableTask);
   const storageKey = jwTaskSnapshotStorageKey(id);
   if (storageKey) {
     try {
@@ -33983,7 +34005,10 @@ function jwMergeTaskCachePreservingActive(rows) {
     const snapshot = _jwActiveTaskSnapshot;
     if (snapshot && String(snapshot.id || '').trim().toLowerCase() === id.toLowerCase() && snapshot.key === jwTaskLoadUserKey()
         && snapshot.task?._jwSummaryOnly === false && selected._jwSummaryOnly !== false) {
-      const fullSelected = { ...snapshot.task, ...selected, _jwSummaryOnly:false };
+      const fullSelected = typeof jwMergeTaskDetailRecord === 'function'
+        ? jwMergeTaskDetailRecord(snapshot.task, selected)
+        : { ...snapshot.task, ...selected };
+      fullSelected._jwSummaryOnly = false;
       const selectedIndex = merged.indexOf(selected);
       merged[selectedIndex] = fullSelected;
       jwRememberActiveTaskSnapshot(fullSelected);
@@ -34012,7 +34037,13 @@ function jwMergeTaskSummariesWithLoadedRows(rows) {
 
   return (rows || []).map(row => {
     const full = loaded.get(String(row.id));
-    if (full) return { ...full, ...row, _jwSummaryOnly:false };
+    if (full) {
+      const merged = typeof jwMergeTaskDetailRecord === 'function'
+        ? jwMergeTaskDetailRecord(full, { ...row, _jwSummaryOnly:true })
+        : { ...full, ...row };
+      merged._jwSummaryOnly = false;
+      return merged;
+    }
     return { ...row, submitted_files:[], instruction_files:[], _jwSummaryOnly:true };
   });
 }
