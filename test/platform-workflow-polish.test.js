@@ -55,6 +55,11 @@ test('task detail deadline action survives partial owner task records', () => {
   assert.match(html, /ownerCanExtend=.*visibleToOwner/);
 });
 
+test('cross-script workflow helpers use explicit window exports', () => {
+  assert.match(html, /window\.jwHydratePartnerProfileButtons = jwHydratePartnerProfileButtons/);
+  assert.doesNotMatch(html, /window\._activeTaskDetailId \|\| activeTaskId/);
+});
+
 test('ratings are persisted through a participant-aware RPC and exposed as aggregates', () => {
   assert.match(html, /jwWorkflowRpc\('jw_rate_task'/);
   assert.match(migration, /Only task participants can rate this task/i);

@@ -25236,6 +25236,7 @@ async function jwHydratePartnerProfileButtons(email, fallbackName = '') {
   _jwPublicWriterProfileFlights.set(emailKey, flight);
   return flight;
 }
+window.jwHydratePartnerProfileButtons = jwHydratePartnerProfileButtons;
 
 openWriterProfileModal = async function(email, fallbackName = '') {
   if (!email) {
@@ -35096,7 +35097,7 @@ function jwRefreshWorkflowViews(taskId = '') {
   try { renderWriterTasks(); } catch {}
   try { renderDisputesPage(); } catch {}
   try { updateBadges(); } catch {}
-  if (String(window._activeTaskDetailId || activeTaskId || '') === String(taskId)) {
+  if (String(window._activeTaskDetailId || '') === String(taskId)) {
     try { renderTaskDetailsPage(); } catch {}
   }
 }
@@ -35296,7 +35297,7 @@ if (typeof window.renderTaskDetailsPage === 'function' && !window.renderTaskDeta
   const jwOriginalRenderTaskDetails = window.renderTaskDetailsPage;
   window.renderTaskDetailsPage = function() {
     const result = jwOriginalRenderTaskDetails.apply(this, arguments);
-    const t = getTaskById(window._activeTaskDetailId || activeTaskId);
+    const t = getTaskById(window._activeTaskDetailId || '');
     const body = document.querySelector('#task-details-wrap .task-detail-body');
     const danger = body?.querySelector('.task-detail-danger-note');
     const panel = t ? jwDeadlineExtensionPanel(t) : '';
