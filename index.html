@@ -14244,6 +14244,29 @@ body.dark-mode .jw-live-indicator {
   </div>
 </div>
 
+<!-- Admin Reassignment Decision Modal -->
+<div class="modal-overlay jw-admin-review-modal" id="modal-admin-reassign-review">
+  <div class="modal">
+    <div class="modal-title" id="admin-reassign-review-title">Review Reassignment Request</div>
+    <div class="modal-sub">Confirm the order context and record why this decision is appropriate.</div>
+    <div id="admin-reassign-review-banner" class="jw-admin-decision-banner"></div>
+    <div id="admin-reassign-review-context" class="jw-admin-review-context"></div>
+    <div class="form-group">
+      <label class="form-label" for="admin-reassign-review-note">Decision note</label>
+      <textarea class="form-textarea" id="admin-reassign-review-note" rows="4" maxlength="1000" placeholder="Record what you reviewed and why this order should or should not be reopened."></textarea>
+      <div class="text-muted">Required: at least 10 characters. This note stays with the reassignment record.</div>
+    </div>
+    <label class="jw-admin-confirm-check">
+      <input type="checkbox" id="admin-reassign-review-confirm">
+      <span>I have reviewed the request and understand that approval reopens the order and clears its current writer assignment.</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-outline" type="button" onclick="closeModal('modal-admin-reassign-review')">Cancel</button>
+      <button class="btn btn-primary" type="button" id="admin-reassign-review-submit" onclick="submitAdminReassignReview()">Confirm decision</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Notification -->
 <div class="notification" id="notification" role="status" aria-live="polite">
@@ -23347,69 +23370,115 @@ function requestReassignOrder(taskId) {
     updateBadges();
   }).catch(err => notify('❌ Reassign request failed: ' + err.message));
 }
-function approveReassignRequest(taskId) {
-  if (!isJwAdmin()) return notify('❌ Admin access required.');
-  const t = getTaskById(taskId);
-  if (!t) return;
-  const meta = taskWorkflowMeta(t);
-  const req = meta.__reassign_request;
-  if (!req || req.status !== 'pending') return notify('⚠️ No pending reassign request found.');
-  const history = Array.isArray(meta.__cancellation_history) ? meta.__cancellation_history : [];
-  if (meta.__cancellation) history.push(meta.__cancellation);
-  const ratings = {
-    ...meta,
-    __reassign_request: {
-      ...req,
-      status: 'approved',
-      approved_by: currentUser.email,
-      approved_at: new Date().toISOString()
-    },
-    __cancellation_history: history,
-    __bids: []
-  };
-  delete ratings.__cancellation;
+let _pendingAdminReassignReview = null;
 
-  const updates = {
-    status: 'pending',
-    taken_by: null,
-    taken_by_name: null,
-    submitted_notes: null,
-    submitted_link: null,
-    submitted_text: null,
-    submitted_files: [],
-    revision_notes: null,
-    ratings
-  };
-  dbUpdateTask(t.id, updates).then(() => {
-    Object.assign(t, updates);
-    notify('✓ Reassign request approved. Order is open again.');
-    renderAdminReassignPage();
-    updateBadges();
-  }).catch(err => notify('❌ Approval failed: ' + err.message));
-}
-function rejectReassignRequest(taskId) {
+function openAdminReassignReview(taskId, decision) {
   if (!isJwAdmin()) return notify('❌ Admin access required.');
   const t = getTaskById(taskId);
   if (!t) return;
   const meta = taskWorkflowMeta(t);
   const req = meta.__reassign_request;
   if (!req || req.status !== 'pending') return notify('⚠️ No pending reassign request found.');
-  const adminNote = prompt('Optional admin note for rejecting this request:', '') || '';
-  const ratings = saveTaskWorkflowMeta(t, {
-    __reassign_request: {
-      ...req,
-      status: 'rejected',
-      rejected_by: currentUser.email,
-      rejected_at: new Date().toISOString(),
-      admin_note: adminNote
+  const approving = decision === 'approved';
+  _pendingAdminReassignReview = { taskId: t.id, decision: approving ? 'approved' : 'rejected' };
+  document.getElementById('admin-reassign-review-title').textContent = `${approving ? 'Approve' : 'Reject'} Reassignment Request`;
+  document.getElementById('admin-reassign-review-banner').innerHTML = `<i class="bi ${approving ? 'bi-arrow-repeat' : 'bi-x-circle'}" aria-hidden="true"></i><span>${approving ? 'Approval will reopen this order, clear its current writer assignment, and make it available for requests again.' : 'Rejection will keep this order cancelled and close the current reassignment request.'}</span>`;
+  document.getElementById('admin-reassign-review-context').innerHTML = `
+    <div class="jw-admin-review-detail"><small>Order</small><strong>${esc(t.id)}</strong></div>
+    <div class="jw-admin-review-detail"><small>Employer / student</small><strong>${esc(t.posted_by_name || t.posted_by || 'Unknown')}</strong></div>
+    <div class="jw-admin-review-detail"><small>Subject</small><strong>${esc(t.subject || 'Untitled')}</strong></div>
+    <div class="jw-admin-review-detail"><small>Request note</small><strong>${esc(req.note || 'No note provided')}</strong></div>`;
+  document.getElementById('admin-reassign-review-note').value = '';
+  document.getElementById('admin-reassign-review-confirm').checked = false;
+  const submit = document.getElementById('admin-reassign-review-submit');
+  submit.disabled = false;
+  submit.className = approving ? 'btn btn-primary' : 'btn btn-danger';
+  submit.textContent = approving ? 'Approve & reopen order' : 'Reject request';
+  document.getElementById('modal-admin-reassign-review').classList.add('open');
+}
+
+function approveReassignRequest(taskId) {
+  openAdminReassignReview(taskId, 'approved');
+}
+
+function rejectReassignRequest(taskId) {
+  openAdminReassignReview(taskId, 'rejected');
+}
+
+async function submitAdminReassignReview() {
+  if (!isJwAdmin()) return notify('❌ Admin access required.');
+  const pending = _pendingAdminReassignReview;
+  const t = pending ? getTaskById(pending.taskId) : null;
+  if (!pending || !t) return notify('⚠️ Reassignment request context is unavailable.');
+  const meta = taskWorkflowMeta(t);
+  const req = meta.__reassign_request;
+  if (!req || req.status !== 'pending') return notify('⚠️ No pending reassign request found.');
+  const adminNote = document.getElementById('admin-reassign-review-note')?.value?.trim() || '';
+  const confirmed = document.getElementById('admin-reassign-review-confirm')?.checked;
+  if (adminNote.length < 10) return notify('⚠️ Add a decision note of at least 10 characters.');
+  if (!confirmed) return notify('⚠️ Confirm that you reviewed the reassignment request.');
+
+  const approving = pending.decision === 'approved';
+  const submit = document.getElementById('admin-reassign-review-submit');
+  submit.disabled = true;
+  submit.textContent = approving ? 'Reopening order…' : 'Rejecting request…';
+
+  try {
+    let updates;
+    if (approving) {
+      const history = Array.isArray(meta.__cancellation_history) ? [...meta.__cancellation_history] : [];
+      if (meta.__cancellation) history.push(meta.__cancellation);
+      const ratings = {
+        ...meta,
+        __reassign_request: {
+          ...req,
+          status: 'approved',
+          approved_by: currentUser.email,
+          approved_at: new Date().toISOString(),
+          admin_note: adminNote
+        },
+        __cancellation_history: history,
+        __bids: []
+      };
+      delete ratings.__cancellation;
+      updates = {
+        status: 'pending',
+        taken_by: null,
+        taken_by_name: null,
+        submitted_notes: null,
+        submitted_link: null,
+        submitted_text: null,
+        submitted_files: [],
+        revision_notes: null,
+        ratings
+      };
+    } else {
+      updates = {
+        ratings: saveTaskWorkflowMeta(t, {
+          __reassign_request: {
+            ...req,
+            status: 'rejected',
+            rejected_by: currentUser.email,
+            rejected_at: new Date().toISOString(),
+            admin_note: adminNote
+          }
+        })
+      };
     }
-  });
-  dbUpdateTask(t.id, { ratings }).then(() => {
-    t.ratings = ratings;
-    notify('✓ Reassign request rejected.');
+
+    await dbUpdateTask(t.id, updates);
+    Object.assign(t, updates);
+    closeModal('modal-admin-reassign-review');
+    _pendingAdminReassignReview = null;
+    notify(approving ? '✓ Reassign request approved. Order is open again.' : '✓ Reassign request rejected.');
     renderAdminReassignPage();
     updateBadges();
-  }).catch(err => notify('❌ Rejection failed: ' + err.message));
+    if (document.getElementById('modal-view-task')?.classList.contains('open')) empViewTask(t.id);
+  } catch (err) {
+    notify(`❌ ${approving ? 'Approval' : 'Rejection'} failed: ${err.message}`);
+    submit.disabled = false;
+    submit.textContent = approving ? 'Approve & reopen order' : 'Reject request';
+  }
 }
 function renderAdminReassignPage() {
   const wrap = document.getElementById('admin-reassign-wrap');

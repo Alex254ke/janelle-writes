@@ -18,6 +18,11 @@ test('admin control center exposes deliberate review workflows', () => {
   assert.match(html, /id="admin-wallet-review-confirm"/);
   assert.match(html, /id="modal-admin-task-override"/);
   assert.match(html, /id="admin-task-override-reason"/);
+  assert.match(html, /id="modal-admin-reassign-review"/);
+  assert.match(html, /id="admin-reassign-review-note"/);
+  assert.match(html, /id="admin-reassign-review-confirm"/);
+  assert.match(html, /function approveReassignRequest\(taskId\)\s*\{\s*openAdminReassignReview\(taskId, 'approved'\)/);
+  assert.match(html, /function rejectReassignRequest\(taskId\)\s*\{\s*openAdminReassignReview\(taskId, 'rejected'\)/);
 });
 
 test('financial approvals use the controlled RPC instead of browser ledger writes', () => {
