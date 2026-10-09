@@ -44,9 +44,20 @@ test('writer submissions wait for owner review and paid completion', () => {
   assert.match(html, /\.rpc\('jw_review_task_submission'/);
   assert.match(html, /Approve &amp; Complete/);
   assert.match(html, /Request Revision/);
+  assert.match(html, /\.jw-submission-review-mounted'\)\.forEach\(el => el\.remove\(\)\)/);
+  assert.equal((html.match(/class="jw-review-workflow jw-submission-review-mounted"/g) || []).length, 2);
   assert.match(migration, /status = 'submitted'/i);
   assert.match(migration, /Confirm payment before completing this task/i);
   assert.match(migration, /Revision instructions must be between 10 and 10000 characters/i);
+});
+
+test('task details link to writer profiles without listing review history inline', () => {
+  const start = html.indexOf('function partnerRatingPanelForTask(t)');
+  const end = html.indexOf('function taskRatingSummary(t)', start);
+  const panel = html.slice(start, end);
+  assert.match(panel, /smallPartnerProfileButton/);
+  assert.match(panel, /Open the writer's profile to view ratings, feedback, and experience/);
+  assert.doesNotMatch(panel, /publicRatingPanelForUser\(t\.taken_by/);
 });
 
 test('orders bids messages and reviews use realtime database events', () => {

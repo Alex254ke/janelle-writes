@@ -17859,9 +17859,21 @@ function publicRatingPanelForUser(email, targetType, options = {}) {
 function partnerRatingPanelForTask(t) {
   if (!currentUser || !t) return '';
 
-  // Employers see the assigned writer's public work history.
-  if (currentUser.role === 'employer' && t.taken_by) {
-    return publicRatingPanelForUser(t.taken_by, 'writer', { limit: 3 });
+  // Keep review details on the writer profile instead of repeating them on
+  // every task. Owners get one clear profile action from the task page.
+  const canOpenWriterProfile = ['employer', 'student'].includes(currentUser.role)
+    || (typeof isJwAdmin === 'function' && isJwAdmin());
+  if (canOpenWriterProfile && t.taken_by) {
+    const button = typeof smallPartnerProfileButton === 'function'
+      ? smallPartnerProfileButton(t.taken_by, t.taken_by_name || '')
+      : `<button class="btn btn-outline" type="button" onclick="openWriterProfileModal('${escJS(t.taken_by)}','${escJS(t.taken_by_name || '')}')">View Writer Profile</button>`;
+    return `<div class="task-detail-section jw-task-writer-profile">
+      <div class="task-detail-section-title">Writer Profile</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span class="text-muted" style="font-size:12px;">Open the writer's profile to view ratings, feedback, and experience.</span>
+        ${button}
+      </div>
+    </div>`;
   }
 
   // Writers see the employer's public order history.
@@ -31377,7 +31389,7 @@ function jwEnsureSubmittedMaterialsInTaskPage(taskId = '') {
     const body = page.querySelector('.task-detail-body');
     if (!body) return;
 
-    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted').forEach(el => el.remove());
+    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted, .jw-submission-review-mounted').forEach(el => el.remove());
 
     const html = jwSubmissionViewerHtml(t);
     if (!html) return;
@@ -33537,14 +33549,14 @@ function jwReviewPanelHtml(task) {
   const isAdmin = isJwAdmin();
   const isWriter = sameEmail(task.taken_by, currentUser?.email);
   if (isWriter && !isOwner && !isAdmin) {
-    return `<section class="jw-review-workflow">
+    return `<section class="jw-review-workflow jw-submission-review-mounted" data-jw-review-task="${esc(task.id)}">
       <div class="jw-review-heading">Submission under review</div>
       <p>The task owner has been notified. You will receive a live notification when the work is approved, returned for revision, or disputed.</p>
     </section>`;
   }
   if (!isOwner && !isAdmin) return '';
   const paid = String(task.payment || '').toLowerCase() === 'paid';
-  return `<section class="jw-review-workflow">
+  return `<section class="jw-review-workflow jw-submission-review-mounted" data-jw-review-task="${esc(task.id)}">
     <div class="jw-review-heading">Review this submission</div>
     <p>Open the submitted materials, then approve the work, request a specific revision, or open a dispute. Completing an order releases it from the active workflow.</p>
     ${!paid && !isAdmin ? `<div class="jw-review-payment-note">Payment must be confirmed before this task can be marked complete.</div>` : ''}
