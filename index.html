@@ -27722,6 +27722,19 @@ function taskDetailActionsHtml(t) {
   } catch {}
 
   try {
+    const taskState = String(t.status || '').toLowerCase();
+    const visible = typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t);
+    const admin = typeof isJwAdmin === 'function' && isJwAdmin();
+    if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || admin) && (visible || admin) && !['completed','cancelled'].includes(taskState)) {
+      actions.push(`<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`);
+    }
+    const pendingExtension = Array.isArray(t.deadline_extensions) && t.deadline_extensions.some(item => String(item?.status || '').toLowerCase() === 'pending');
+    if (currentUser?.role === 'writer' && typeof taskForWriter === 'function' && taskForWriter(t, currentUser.email) && ['progress','in_progress','late','revision'].includes(taskState) && !pendingExtension) {
+      actions.push(`<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`);
+    }
+  } catch {}
+
+  try {
     if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
       actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
     }
@@ -27945,6 +27958,7 @@ setInterval(jwRemoveMobileRefreshButton, 1200);
 function jwIsMobileDeviceView() {
   return window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
 }
+window.jwIsMobileDeviceView = jwIsMobileDeviceView;
 
 function jwPromiseTimeout(promise, ms, label = 'Request') {
   return Promise.race([
@@ -33504,7 +33518,7 @@ async function jwLoadTaskSummaries() {
   if (!currentUser) return [];
   const email = String(currentUser.email || '').trim().toLowerCase();
   const role = String(currentUser.role || '').toLowerCase();
-  const limit = jwIsMobileDeviceView?.() ? 120 : 500;
+  const limit = window.jwIsMobileDeviceView?.() ? 120 : 500;
 
   if (typeof isJwAdmin === 'function' && isJwAdmin()) {
     return jwRunTaskSummaryQuery(

@@ -58,10 +58,13 @@ test('task detail deadline action survives partial owner task records', () => {
   assert.match(html, /data-jw-detail-deadline-action/);
   assert.match(html, /const rememberedTask = window\.__jwTaskDetailMemory instanceof Map/);
   assert.match(html, /var __jwTaskDetailRendererWithActions=window\.renderTaskDetailsPage/);
+  assert.match(html, /const pendingExtension = Array\.isArray\(t\.deadline_extensions\)/);
 });
 
 test('cross-script workflow helpers use explicit window exports', () => {
   assert.match(html, /window\.jwHydratePartnerProfileButtons = jwHydratePartnerProfileButtons/);
+  assert.match(html, /window\.jwIsMobileDeviceView = jwIsMobileDeviceView/);
+  assert.match(html, /window\.jwIsMobileDeviceView\?\.\(\) \? 120 : 500/);
   assert.doesNotMatch(html, /window\._activeTaskDetailId \|\| activeTaskId/);
 });
 
