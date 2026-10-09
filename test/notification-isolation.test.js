@@ -24,7 +24,7 @@ test('notification rows retain and enforce their recipient in every client cache
 
 test('database notification policies never expose all rows to an administrator session', () => {
   const selectPolicy = migration.match(
-    /create policy "Users can view own notifications"([\s\S]*?);\n\ncreate policy/
+    /create policy "Users can view own notifications"([\s\S]*?);\r?\n\r?\ncreate policy/
   );
   assert.ok(selectPolicy, 'the recipient-only select policy should exist');
   assert.match(selectPolicy[1], /lower\(btrim\(user_email\)\)/i);

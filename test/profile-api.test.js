@@ -62,6 +62,9 @@ async function invoke({
         user_metadata: { name: 'Authenticated User' }
       });
     }
+    if (String(url).includes('/rest/v1/rpc/jw_get_public_writer_profile_v2')) {
+      return jsonResponse(200, existing ? [existing] : []);
+    }
     if (options.method === 'GET') return jsonResponse(200, existing ? [existing] : []);
     const record = JSON.parse(options.body);
     return jsonResponse(200, [{ id: existing?.id || 1, ...record }]);
@@ -83,12 +86,13 @@ test('public profile allowlist removes private and privileged fields', () => {
     publicProfileFields({
       photo: 'data:image/png;base64,abc',
       bio: 'Public bio',
+      rating_summary: { average: 4.8, count: 12 },
       phone: '+254700000000',
       payment: { account: 'private' },
       is_admin: true,
       auth_id: 'private-id'
     }),
-    { photo: 'data:image/png;base64,abc', bio: 'Public bio' }
+    { photo: 'data:image/png;base64,abc', bio: 'Public bio', rating_summary: { average:4.8, count:12 } }
   );
 });
 
@@ -102,6 +106,7 @@ test('authenticated users can read only allowlisted public writer fields', async
     profile: {
       photo: 'data:image/png;base64,abc',
       bio: 'Public bio',
+      rating_summary: { average: 4.8, count: 12 },
       phone: '+254700000000',
       payment: { account: 'private' },
       portfolio: 'https://private.example.test'
@@ -117,11 +122,26 @@ test('authenticated users can read only allowlisted public writer fields', async
   assert.equal(res.body.user.email, 'writer@example.com');
   assert.equal(res.body.user.profile.photo, 'data:image/png;base64,abc');
   assert.equal(res.body.user.profile.bio, 'Public bio');
+  assert.deepEqual(res.body.user.profile.rating_summary, { average: 4.8, count: 12 });
   assert.equal(res.body.user.profile.phone, undefined);
   assert.equal(res.body.user.profile.payment, undefined);
   assert.equal(res.body.user.profile.portfolio, undefined);
   assert.equal(res.body.user.auth_id, undefined);
   assert.equal(res.body.user.is_admin, undefined);
+});
+
+test('public writer lookup uses the aggregate-only profile RPC', async () => {
+  const { res, calls } = await invoke({
+    method: 'GET',
+    query: { email: 'writer@example.com' },
+    existing: { email:'writer@example.com', name:'Writer', role:'writer', profile:{} }
+  });
+  assert.equal(res.statusCode, 200);
+  const lookup = calls.find(call => call.url.includes('/rest/v1/rpc/jw_get_public_writer_profile_v2'));
+  assert.ok(lookup);
+  assert.equal(lookup.options.method, 'POST');
+  assert.equal(lookup.options.headers.Authorization, 'Bearer test-user-token');
+  assert.deepEqual(JSON.parse(lookup.options.body), { p_email:'writer@example.com' });
 });
 
 test('normalizes the server admin allowlist', () => {

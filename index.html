@@ -13847,6 +13847,7 @@ body.dark-mode .jw-live-indicator {
           <div class="profile-name" id="profile-preview-name">Your Name</div>
           <div class="profile-title" id="profile-preview-title">Add your professional title</div>
           <div class="profile-role-pill" id="profile-preview-role">Account</div>
+          <div id="profile-reputation"></div>
           <div class="profile-bio-preview" id="profile-preview-bio">Add a short bio so other users can quickly understand who you are, what you do, and how you work.</div>
           <div class="profile-chip-list" id="profile-preview-chips"></div>
         </div>
@@ -14118,6 +14119,28 @@ body.dark-mode .jw-live-indicator {
   </div>
 </div>
 
+<!-- Deadline Extension Modal -->
+<div class="modal-overlay" id="modal-deadline-extension">
+  <div class="modal">
+    <div class="modal-title" id="deadline-extension-title">Extend Deadline</div>
+    <div class="modal-sub" id="deadline-extension-sub">Choose a later date and add a short note.</div>
+    <input type="hidden" id="deadline-extension-task-id">
+    <input type="hidden" id="deadline-extension-mode" value="extend">
+    <div class="form-group">
+      <label class="form-label" for="deadline-extension-date">New Deadline</label>
+      <input class="form-input" type="date" id="deadline-extension-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="deadline-extension-note" id="deadline-extension-note-label">Note</label>
+      <textarea class="form-textarea" id="deadline-extension-note" rows="4" placeholder="Explain the deadline change."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-deadline-extension')">Cancel</button>
+      <button class="btn btn-primary" id="deadline-extension-submit" onclick="confirmDeadlineExtension()">Save Deadline</button>
+    </div>
+  </div>
+</div>
+
 <!-- Cancel Order Modal -->
 <div class="modal-overlay" id="modal-cancel-order">
   <div class="modal">
@@ -14257,7 +14280,7 @@ const JW_TASK_SUMMARY_COLUMNS = [
   'description','requirements','order_date','status','payment','mpesa_code','posted_by',
   'posted_by_name','taken_by','taken_by_name','submitted_link','submitted_text',
   'submitted_notes','revision_notes','revision_at','created_at','messages','ratings',
-  'disputes','commission_rate','commission_amount','writer_payout','commission_paid',
+  'disputes','deadline_extensions','commission_rate','commission_amount','writer_payout','commission_paid',
   'admin_override_at','admin_override_by','payhero_reference','paid_at','student_order',
   'order_type','writer_page_rate','writer_payout_estimate','student_currency_code',
   'student_currency_symbol','client_request_id','duplicate_of','instruction_link',
@@ -19653,12 +19676,23 @@ function partnerAvatarHTML(profile, name, email) {
   return `<div class="partner-profile-avatar">${esc(initialsFromName(name, email))}</div>`;
 }
 
+function publicRatingPanelForSummary(summary, targetType = 'writer', options = {}) {
+  const count = Number(summary?.count || 0);
+  const average = Number(summary?.average || 0);
+  if (!count || !average) return '';
+  const nameLabel = targetType === 'writer' ? 'writer' : 'employer';
+  if (options.compact) {
+    return `<span class="public-rating-mini">${ratingStars(Math.round(average))} ${average.toFixed(1)} from ${count} rating${count === 1 ? '' : 's'}</span>`;
+  }
+  return `<div class="public-rating-panel"><div class="public-rating-head"><span class="public-rating-title">${nameLabel === 'writer' ? 'Writer' : 'Employer'} reputation</span><span class="rating-chip">${ratingStars(Math.round(average))} ${average.toFixed(1)}</span></div><div class="text-muted" style="font-size:12px;">Based on ${count} completed-order rating${count === 1 ? '' : 's'}.</div></div>`;
+}
+
 function renderPartnerProfileCard(profile, user, fallbackName = '') {
   profile = normalizeProfile(profile);
   const name = sanitizePublicContactText(profile.name || user?.name || fallbackName || user?.email || 'Writer');
   const email = user?.email || '';
   const title = sanitizePublicContactText(profile.title || 'Academic Writer');
-  const rating = publicRatingPanelForUser(email, 'writer', { limit: 3 });
+  const rating = publicRatingPanelForSummary(profile.rating_summary, 'writer') || publicRatingPanelForUser(email, 'writer', { limit: 3 });
   const portfolio = isJwAdmin() && profile.portfolio ? `<a href="${esc(profile.portfolio)}" target="_blank" rel="noopener" style="color:var(--teal);word-break:break-all;">${esc(profile.portfolio)}</a>` : '<span style="color:var(--muted);font-weight:600;">Kept private</span>';
 
   return `
@@ -20754,7 +20788,7 @@ if (!window.__jwPasswordToggleObserver) {
 // ══════════════════════════════════════════════════════
 //  COMMISSION / MONETIZATION ENGINE
 // ══════════════════════════════════════════════════════
-const COMMISSION_RATE = 0.12;
+const COMMISSION_RATE = 0.05;
 const ADMIN_COMMISSION_EMAILS = [];
 
 function isCommissionAdmin() {
@@ -25090,6 +25124,7 @@ function safePublicWriterProfileFromRow(row, fallbackName = '') {
       skills: profile.skills || '',
       education: profile.education || '',
       experience: profile.experience || '',
+      rating_summary: profile.rating_summary || null,
       // Keep direct contact/payment fields private.
       portfolio: (isJwAdmin && isJwAdmin()) ? (profile.portfolio || '') : ''
     })
@@ -28591,7 +28626,7 @@ if(typeof openTask==='function'){window.__jwOriginalOpenTask=window.__jwOriginal
 if(typeof pageTitles==='object')pageTitles['task-details']='Task Details';
 if(typeof navigate==='function'&&!navigate.__jwFinalTaskPatch){var oldNav=navigate;navigate=function(page,opts){var r=oldNav.apply(this,arguments);if(page==='task-details'){var w=q('task-details-wrap');if(w&&!w.innerHTML.trim())w.innerHTML=jwGlobalLoadingInline('Opening task details...');setTimeout(renderTaskDetailsPage,120)}setTimeout(jwPolishFloatingSupportButton,120);return r};navigate.__jwFinalTaskPatch=true}
 document.addEventListener('pointerdown',function(e){if(!window.currentUser)return;var p=currentPageName();if(!p||p==='task-details')return;var c=e.target.closest&&e.target.closest('.order-link,.order-card,.bid-task-card,.task-card,[data-task-id],[data-order-id],tbody tr');if(c)saveBack('',p)},true);
-document.addEventListener('click',function(e){if(!window.currentUser)return;if(e.target.closest&&e.target.closest('#page-messages,#page-admin-student-messages,.modal-overlay'))return;var c=e.target.closest&&e.target.closest('.order-link,.order-card,.bid-task-card,.task-card,[data-task-id],[data-order-id],tbody tr');if(!c)return;var id=extractTaskIdFromClickedElement(c);if(!id||!/^JW-/i.test(id))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation&&e.stopImmediatePropagation();return openTaskDetailsPage(id)},true);
+document.addEventListener('click',function(e){if(!window.currentUser)return;if(e.target.closest&&e.target.closest('#page-messages,#page-admin-student-messages,.modal-overlay'))return;var interactive=e.target.closest&&e.target.closest('button,a,input,select,textarea,label');if(interactive&&!interactive.classList.contains('order-link'))return;var c=e.target.closest&&e.target.closest('.order-link,.order-card,.bid-task-card,.task-card,[data-task-id],[data-order-id],tbody tr');if(!c)return;var id=extractTaskIdFromClickedElement(c);if(!id||!/^JW-/i.test(id))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation&&e.stopImmediatePropagation();return openTaskDetailsPage(id)},true);
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button,a');if(!b||!window.currentUser)return;var text=String(b.textContent||'').toLowerCase(),on=String(b.getAttribute('onclick')||'').toLowerCase();var likely=text.indexOf('view')>-1||text.indexOf('open full task')>-1||text.indexOf('read instructions')>-1||on.indexOf('empviewtask')>-1||on.indexOf('opentakeordermodal')>-1;if(!likely)return;var box=b.closest('tr,.order-card,.bid-task-card,.task-card,.modal,.card,[data-task-id],[data-order-id]');var id=extractTaskIdFromClickedElement(box||b);if(!id||!/^JW-/i.test(id))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation&&e.stopImmediatePropagation();return openTaskDetailsPage(id)},true);
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#page-task-details button');if(!b)return;var t=(b.textContent||'').trim().toLowerCase();if(t==='← back'||t==='back'||t.indexOf('back')>-1)returnFromTaskDetails(e)},true);
 if(typeof dbGetTasks==='function'&&!dbGetTasks.__jwLoader){var oldDb=dbGetTasks;dbGetTasks=async function(){try{jwShowGlobalLoader('Loading tasks...')}catch(e){}try{return await oldDb.apply(this,arguments)}finally{setTimeout(jwHideGlobalLoader,180)}};dbGetTasks.__jwLoader=true}
@@ -34984,6 +35019,275 @@ if (typeof doLogout === 'function' && !doLogout.__jwLiveCoherenceCleanup) {
     return result;
   };
   doLogout.__jwLiveCoherenceCleanup = true;
+}
+
+// Reliable task workflows: all sensitive changes go through participant-aware
+// database functions instead of broad client-side row updates.
+function jwWorkflowExtensions(t) {
+  return Array.isArray(t?.deadline_extensions) ? t.deadline_extensions : [];
+}
+
+function jwPendingExtension(t) {
+  return jwWorkflowExtensions(t).find(item => String(item?.status || '').toLowerCase() === 'pending') || null;
+}
+
+function jwCanOwnerExtend(t) {
+  if (!currentUser || !t || ['completed','cancelled'].includes(String(t.status || '').toLowerCase())) return false;
+  return (typeof isJwAdmin === 'function' && isJwAdmin()) || sameEmail(t.posted_by, currentUser.email);
+}
+
+function jwCanWriterRequestExtension(t) {
+  if (!currentUser || currentUser.role !== 'writer' || !sameEmail(t?.taken_by, currentUser.email)) return false;
+  return ['progress','in_progress','late','revision'].includes(String(t.status || '').toLowerCase()) && !jwPendingExtension(t);
+}
+
+async function jwWorkflowRpc(name, args) {
+  const { data, error } = await _sb.rpc(name, args);
+  if (error) throw error;
+  return Array.isArray(data) ? data[0] : data;
+}
+
+function jwApplyWorkflowTask(row) {
+  if (!row?.id) return;
+  if (typeof upsertLocalTask === 'function') upsertLocalTask(row);
+  else {
+    const index = tasks.findIndex(item => String(item.id) === String(row.id));
+    if (index >= 0) tasks[index] = row;
+    else tasks.push(row);
+  }
+  if (typeof dedupeTasks === 'function') tasks = dedupeTasks(tasks);
+}
+
+function jwRefreshWorkflowViews(taskId = '') {
+  try { renderEmpTasks(); } catch {}
+  try { renderWriterTasks(); } catch {}
+  try { renderDisputesPage(); } catch {}
+  try { updateBadges(); } catch {}
+  if (String(window._activeTaskDetailId || activeTaskId || '') === String(taskId)) {
+    try { renderTaskDetailsPage(); } catch {}
+  }
+}
+
+function openDeadlineExtensionModal(taskId, mode = 'extend') {
+  const t = getTaskById(taskId);
+  const requesting = mode === 'request';
+  if (!t || (requesting ? !jwCanWriterRequestExtension(t) : !jwCanOwnerExtend(t))) {
+    notify(requesting ? 'This task is not eligible for an extension request.' : 'You cannot extend this task deadline.');
+    return;
+  }
+  const currentDate = t.deadline ? new Date(`${String(t.deadline).slice(0,10)}T12:00:00`) : new Date();
+  const suggested = new Date(Math.max(currentDate.getTime(), Date.now()));
+  suggested.setDate(suggested.getDate() + 2);
+  document.getElementById('deadline-extension-task-id').value = t.id;
+  document.getElementById('deadline-extension-mode').value = mode;
+  document.getElementById('deadline-extension-date').value = suggested.toISOString().slice(0,10);
+  document.getElementById('deadline-extension-note').value = '';
+  document.getElementById('deadline-extension-title').textContent = requesting ? 'Request Deadline Extension' : 'Extend Task Deadline';
+  document.getElementById('deadline-extension-sub').textContent = `${t.id} — current deadline ${fmtDate(t.deadline)}`;
+  document.getElementById('deadline-extension-note-label').textContent = requesting ? 'Reason for Request' : 'Note to Writer';
+  document.getElementById('deadline-extension-submit').textContent = requesting ? 'Send Request' : 'Extend Deadline';
+  document.getElementById('modal-deadline-extension').classList.add('open');
+}
+
+async function confirmDeadlineExtension() {
+  const taskId = document.getElementById('deadline-extension-task-id').value;
+  const mode = document.getElementById('deadline-extension-mode').value;
+  const newDeadline = document.getElementById('deadline-extension-date').value;
+  const note = document.getElementById('deadline-extension-note').value.trim();
+  if (!newDeadline) return notify('Please choose a new deadline.');
+  if (mode === 'request' && note.length < 10) return notify('Please explain why you need more time (at least 10 characters).');
+  try {
+    setLoading(true);
+    const row = mode === 'request'
+      ? await jwWorkflowRpc('jw_request_deadline_extension', { p_task_id:taskId, p_requested_deadline:newDeadline, p_reason:note })
+      : await jwWorkflowRpc('jw_extend_task_deadline', { p_task_id:taskId, p_new_deadline:newDeadline, p_note:note });
+    jwApplyWorkflowTask(row);
+    closeModal('modal-deadline-extension');
+    jwRefreshWorkflowViews(taskId);
+    notify(mode === 'request' ? 'Deadline extension request sent.' : 'Deadline extended successfully.');
+  } catch (err) {
+    notify('Deadline change failed: ' + (err?.message || err));
+  } finally { setLoading(false); }
+}
+
+async function respondDeadlineExtension(taskId, requestId, decision) {
+  const t = getTaskById(taskId);
+  const request = jwWorkflowExtensions(t).find(item => item?.id === requestId);
+  if (!request || !jwCanOwnerExtend(t)) return notify('This request is no longer available.');
+  if (!window.confirm(`${decision === 'approved' ? 'Approve' : 'Decline'} this deadline extension request?`)) return;
+  try {
+    setLoading(true);
+    const row = await jwWorkflowRpc('jw_respond_deadline_extension', {
+      p_task_id:taskId,
+      p_request_id:requestId,
+      p_decision:decision,
+      p_new_deadline:decision === 'approved' ? request.requested_deadline : null,
+      p_note:''
+    });
+    jwApplyWorkflowTask(row);
+    jwRefreshWorkflowViews(taskId);
+    notify(`Extension request ${decision}.`);
+  } catch (err) {
+    notify('Could not update the request: ' + (err?.message || err));
+  } finally { setLoading(false); }
+}
+
+function jwDeadlineExtensionPanel(t) {
+  const entries = jwWorkflowExtensions(t);
+  if (!entries.length) return '';
+  const rows = entries.slice(0,5).map(item => {
+    const pending = String(item.status || '').toLowerCase() === 'pending';
+    const actions = pending && jwCanOwnerExtend(t) ? `<div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-success btn-sm" onclick="respondDeadlineExtension('${escJS(t.id)}','${escJS(item.id)}','approved')">Approve</button><button class="btn btn-outline btn-sm" onclick="respondDeadlineExtension('${escJS(t.id)}','${escJS(item.id)}','rejected')">Decline</button></div>` : '';
+    const deadline = item.approved_deadline || item.requested_deadline || '';
+    return `<div class="public-rating-review"><strong>${esc(String(item.status || 'pending').toUpperCase())}</strong> · ${deadline ? `Requested date: ${fmtDate(deadline)}` : 'Deadline update'}<br>${item.reason ? esc(item.reason) : '<span class="text-muted">No note added.</span>'}${actions}</div>`;
+  }).join('');
+  return `<div class="task-detail-section" id="jw-deadline-extension-panel"><div class="task-detail-section-title">Deadline Extensions</div><div style="display:grid;gap:10px;">${rows}</div></div>`;
+}
+
+if (typeof statusBadgeForTask === 'function' && !statusBadgeForTask.__jwDisputeState) {
+  const jwOriginalStatusBadge = statusBadgeForTask;
+  statusBadgeForTask = function(t) {
+    const base = jwOriginalStatusBadge(t);
+    return hasOpenDispute(t) && String(t?.status || '').toLowerCase() !== 'disputed'
+      ? base + ' <span class="badge badge-warn"><span class="dot"></span>Dispute open</span>'
+      : base;
+  };
+  statusBadgeForTask.__jwDisputeState = true;
+}
+
+confirmDispute = async function() {
+  const id = document.getElementById('dispute-task-id').value;
+  const reason = document.getElementById('dispute-reason').value;
+  const requested = document.getElementById('dispute-outcome').value;
+  const note = document.getElementById('dispute-note').value.trim();
+  if (note.length < 10) return notify('Please add at least 10 characters of factual detail.');
+  try {
+    setLoading(true);
+    const row = await jwWorkflowRpc('jw_open_dispute', { p_task_id:id, p_reason:reason, p_requested_outcome:requested, p_note:note });
+    jwApplyWorkflowTask(row);
+    closeModal('modal-dispute');
+    jwRefreshWorkflowViews(id);
+    notify('Dispute opened successfully.', 'message');
+    navigate('disputes');
+  } catch (err) {
+    notify('Could not open dispute: ' + (err?.message || err));
+  } finally { setLoading(false); }
+};
+
+confirmResolveDispute = async function() {
+  const id = document.getElementById('resolve-dispute-task-id')?.value || _activeResolveDisputeId;
+  const type = document.getElementById('resolve-dispute-type')?.value || 'standard';
+  const note = (document.getElementById('resolve-dispute-note')?.value || '').trim();
+  const newDeadline = document.getElementById('resolve-new-deadline')?.value || null;
+  try {
+    setLoading(true);
+    const row = await jwWorkflowRpc('jw_resolve_dispute', { p_task_id:id, p_action:'resolved', p_resolution_type:type, p_note:note, p_new_deadline:newDeadline });
+    jwApplyWorkflowTask(row);
+    closeModal('modal-resolve-dispute');
+    jwRefreshWorkflowViews(id);
+    notify('Dispute resolved successfully.');
+  } catch (err) {
+    notify('Could not resolve dispute: ' + (err?.message || err));
+  } finally { setLoading(false); }
+};
+
+withdrawDispute = async function(id) {
+  if (!window.confirm('Withdraw this dispute?')) return;
+  try {
+    setLoading(true);
+    const row = await jwWorkflowRpc('jw_resolve_dispute', { p_task_id:id, p_action:'withdrawn', p_resolution_type:'withdrawn', p_note:'Withdrawn by the dispute opener.', p_new_deadline:null });
+    jwApplyWorkflowTask(row);
+    jwRefreshWorkflowViews(id);
+    notify('Dispute withdrawn.');
+  } catch (err) {
+    notify('Could not withdraw dispute: ' + (err?.message || err));
+  } finally { setLoading(false); }
+};
+
+confirmRating = async function() {
+  const taskId = document.getElementById('rating-task-id').value;
+  const score = Number(document.getElementById('rating-score').value) || 0;
+  const comment = document.getElementById('rating-comment').value.trim();
+  if (score < 1 || score > 5) return notify('Please choose a rating from 1 to 5 stars.');
+  try {
+    setLoading(true);
+    const row = await jwWorkflowRpc('jw_rate_task', { p_task_id:taskId, p_score:score, p_comment:comment });
+    jwApplyWorkflowTask(row);
+    closeModal('modal-rating');
+    refreshLiveRatingViews(taskId);
+    jwRefreshWorkflowViews(taskId);
+    notify('Rating saved and added to the user profile.');
+  } catch (err) {
+    notify('Could not save rating: ' + (err?.message || err));
+  } finally { setLoading(false); }
+};
+
+function jwAddWorkflowTableButtons() {
+  document.querySelectorAll('#emp-tasks-table tr').forEach(row => {
+    const t = getTaskById(row.querySelector('.order-link')?.textContent?.trim());
+    const actions = row.querySelector('td:last-child > div');
+    if (!t || !actions || actions.querySelector('[data-jw-deadline-action]') || !jwCanOwnerExtend(t)) return;
+    actions.insertAdjacentHTML('beforeend', `<button class="btn btn-outline btn-sm" data-jw-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`);
+  });
+  document.querySelectorAll('#writer-tasks-table tr').forEach(row => {
+    const t = getTaskById(row.querySelector('.order-link')?.textContent?.trim());
+    const actions = row.querySelector('td:last-child > div');
+    if (!t || !actions || actions.querySelector('[data-jw-deadline-action]') || !jwCanWriterRequestExtension(t)) return;
+    actions.insertAdjacentHTML('beforeend', `<button class="btn btn-outline btn-sm" data-jw-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Extension</button>`);
+  });
+}
+
+if (typeof renderEmpTasks === 'function' && !renderEmpTasks.__jwDeadlineButtons) {
+  const jwOriginalRenderEmpTasks = renderEmpTasks;
+  renderEmpTasks = function() { const result = jwOriginalRenderEmpTasks.apply(this, arguments); jwAddWorkflowTableButtons(); return result; };
+  renderEmpTasks.__jwDeadlineButtons = true;
+}
+if (typeof renderWriterTasks === 'function' && !renderWriterTasks.__jwDeadlineButtons) {
+  const jwOriginalRenderWriterTasks = renderWriterTasks;
+  renderWriterTasks = function() { const result = jwOriginalRenderWriterTasks.apply(this, arguments); jwAddWorkflowTableButtons(); return result; };
+  renderWriterTasks.__jwDeadlineButtons = true;
+}
+
+if (typeof window.taskDetailActionsHtml === 'function' && !window.taskDetailActionsHtml.__jwWorkflowActions) {
+  const jwOriginalTaskDetailActions = window.taskDetailActionsHtml;
+  window.taskDetailActionsHtml = function(t) {
+    let html = jwOriginalTaskDetailActions(t);
+    if (jwCanOwnerExtend(t)) html += `<button class="btn btn-outline" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`;
+    if (jwCanWriterRequestExtension(t)) html += `<button class="btn btn-outline" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`;
+    return html;
+  };
+  window.taskDetailActionsHtml.__jwWorkflowActions = true;
+}
+
+if (typeof window.renderTaskDetailsPage === 'function' && !window.renderTaskDetailsPage.__jwWorkflowPanel) {
+  const jwOriginalRenderTaskDetails = window.renderTaskDetailsPage;
+  window.renderTaskDetailsPage = function() {
+    const result = jwOriginalRenderTaskDetails.apply(this, arguments);
+    const t = getTaskById(window._activeTaskDetailId || activeTaskId);
+    const body = document.querySelector('#task-details-wrap .task-detail-body');
+    const danger = body?.querySelector('.task-detail-danger-note');
+    const panel = t ? jwDeadlineExtensionPanel(t) : '';
+    if (panel && danger && !body.querySelector('#jw-deadline-extension-panel')) danger.insertAdjacentHTML('beforebegin', panel);
+    return result;
+  };
+  window.renderTaskDetailsPage.__jwWorkflowPanel = true;
+}
+
+function jwRenderOwnReputation() {
+  const target = document.getElementById('profile-reputation');
+  if (!target || !currentUser?.email) return;
+  const type = currentUser.role === 'writer' ? 'writer' : 'employer';
+  target.innerHTML = publicRatingPanelForUser(currentUser.email, type, { compact:true });
+}
+
+if (typeof renderProfilePage === 'function' && !renderProfilePage.__jwReputation) {
+  const jwOriginalRenderProfile = renderProfilePage;
+  renderProfilePage = async function() {
+    const result = await jwOriginalRenderProfile.apply(this, arguments);
+    jwRenderOwnReputation();
+    return result;
+  };
+  renderProfilePage.__jwReputation = true;
 }
 
 function jwInitializeUxRefresh() {

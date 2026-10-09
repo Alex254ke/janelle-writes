@@ -36,6 +36,7 @@ const PUBLIC_PROFILE_KEYS = new Set([
   'name',
   'photo',
   'rate',
+  'rating_summary',
   'skills',
   'timezone',
   'title'
@@ -138,14 +139,18 @@ export default async function handler(req, res) {
     const targetEmail = normalizeEmail(req.query?.email);
     if (!targetEmail) return sendJson(res, 400, { error: 'A writer email is required.' });
 
-    const publicUrl = `${supabaseUrl}/rest/v1/jw_users?email=eq.${encodeURIComponent(targetEmail)}&select=email,name,role,profile`;
-    const publicRes = await supabaseFetch(publicUrl, serviceKey, { method: 'GET' });
+    const publicUrl = `${supabaseUrl}/rest/v1/rpc/jw_get_public_writer_profile_v2`;
+    const publicRes = await supabaseFetch(publicUrl, serviceKey, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ p_email: targetEmail })
+    });
     const publicRows = await readJsonResponse(publicRes);
     if (!publicRes.ok) {
       return sendJson(res, publicRes.status, { error: 'Could not read public writer profile.' });
     }
 
-    const target = Array.isArray(publicRows) ? publicRows[0] : null;
+    const target = Array.isArray(publicRows) ? publicRows[0] : publicRows;
     if (!target || String(target.role || '').toLowerCase() !== 'writer') {
       return sendJson(res, 404, { error: 'Public writer profile was not found.' });
     }
