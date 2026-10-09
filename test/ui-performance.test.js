@@ -87,8 +87,8 @@ test('workspace animation releases quickly while data continues in background', 
   assert.match(html, /Math\.max\(0, 650 - \(Date\.now\(\) - startedAt\)\)/);
   assert.match(html, /function jwReleaseWorkspaceAnimation\(\)[\s\S]*?jwHideDataOverlay\(\)[\s\S]*?jwStrictHideWorkspaceLoader\(\)/);
   assert.match(html, /document\.getElementById\('jw-data-loading-overlay'\)[\s\S]*?dataOverlay\.style\.display = 'none'/);
-  assert.match(html, /app\.style\.visibility = 'visible'/);
-  assert.match(html, /modal\.style\.display = ''/);
+  assert.match(html, /function jwRestoreAuthenticatedWorkspaceShell\(\)[\s\S]*?app\.style\.visibility = 'visible'/);
+  assert.match(html, /function jwRestoreAuthenticatedWorkspaceShell\(\)[\s\S]*?modal\.style\.display = ''/);
 });
 
 test('an empty mobile workspace does not trigger an endless task refresh', () => {

@@ -33870,6 +33870,23 @@ if (typeof updateUserDisplay === 'function') {
 let _jwWorkspaceBackgroundFlight = null;
 let _jwWorkspaceAnimationTimer = null;
 
+function jwRestoreAuthenticatedWorkspaceShell() {
+  if (!currentUser) return;
+  const app = document.getElementById('app-shell');
+  if (app) {
+    app.style.display = 'block';
+    app.style.visibility = 'visible';
+    app.removeAttribute('aria-hidden');
+  }
+  document.body.classList.remove('jw-logout-transition', 'jw-logged-out-safe');
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    // Logout hides workflow overlays inline. Clear that stale state for the
+    // next authenticated account so dispute and deadline dialogs can open.
+    modal.style.display = '';
+    modal.removeAttribute('aria-hidden');
+  });
+}
+
 function jwReleaseWorkspaceAnimation() {
   clearTimeout(_jwWorkspaceAnimationTimer);
   _jwWorkspaceAnimationTimer = null;
@@ -33877,21 +33894,7 @@ function jwReleaseWorkspaceAnimation() {
   __jwStrictWorkspaceBootRunning = false;
   document.body.classList.remove('jw-workspace-booting');
   document.body.classList.add('jw-workspace-ready');
-  if (currentUser) {
-    const app = document.getElementById('app-shell');
-    if (app) {
-      app.style.display = 'block';
-      app.style.visibility = 'visible';
-      app.removeAttribute('aria-hidden');
-    }
-    document.body.classList.remove('jw-logout-transition', 'jw-logged-out-safe');
-    document.querySelectorAll('.modal-overlay').forEach(modal => {
-      // Logout hides workflow overlays inline. Clear that stale state for the
-      // next authenticated account so dispute and deadline dialogs can open.
-      modal.style.display = '';
-      modal.removeAttribute('aria-hidden');
-    });
-  }
+  jwRestoreAuthenticatedWorkspaceShell();
   // Mobile launchApp historically opens a second, older data overlay. Always
   // release it together with the branded loader so a successful session can
   // never remain hidden behind either loading layer.
@@ -33998,6 +34001,22 @@ jwStrictWorkspaceBoot = function(reason = 'login') {
   _jwWorkspaceAnimationTimer = setTimeout(jwReleaseWorkspaceAnimation, 1400);
   return work;
 };
+
+if (typeof launchApp === 'function' && !launchApp.__jwWorkspaceVisibilityPatched) {
+  const jwVisibleWorkspaceLaunch = launchApp;
+  launchApp = function() {
+    const result = jwVisibleWorkspaceLaunch.apply(this, arguments);
+    jwRestoreAuthenticatedWorkspaceShell();
+    setTimeout(jwRestoreAuthenticatedWorkspaceShell, 0);
+    setTimeout(jwRestoreAuthenticatedWorkspaceShell, 1600);
+    return result;
+  };
+  launchApp.__jwWorkspaceVisibilityPatched = true;
+}
+
+// Saved sessions can be restored after the scripts finish evaluating and may
+// skip the animated boot path. The delayed guard covers that route too.
+setTimeout(jwRestoreAuthenticatedWorkspaceShell, 1800);
 
 </script>
 

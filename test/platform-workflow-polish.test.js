@@ -62,13 +62,15 @@ test('task details retain authorized orders across partial background refreshes'
 });
 
 test('account switching restores the workspace and reusable workflow dialogs', () => {
-  const start = html.indexOf('function jwReleaseWorkspaceAnimation()');
-  const end = html.indexOf('function jwApplyBackgroundWorkspaceResults', start);
-  const release = html.slice(start, end);
-  assert.match(release, /app\.style\.visibility = 'visible'/);
-  assert.match(release, /app\.removeAttribute\('aria-hidden'\)/);
-  assert.match(release, /document\.querySelectorAll\('\.modal-overlay'\)/);
-  assert.match(release, /modal\.style\.display = ''/);
+  const start = html.indexOf('function jwRestoreAuthenticatedWorkspaceShell()');
+  const end = html.indexOf('function jwReleaseWorkspaceAnimation', start);
+  const restore = html.slice(start, end);
+  assert.match(restore, /app\.style\.visibility = 'visible'/);
+  assert.match(restore, /app\.removeAttribute\('aria-hidden'\)/);
+  assert.match(restore, /document\.querySelectorAll\('\.modal-overlay'\)/);
+  assert.match(restore, /modal\.style\.display = ''/);
+  assert.match(html, /launchApp\.__jwWorkspaceVisibilityPatched/);
+  assert.match(html, /setTimeout\(jwRestoreAuthenticatedWorkspaceShell, 1800\)/);
 });
 
 test('expired pending orders are not offered for new writer bids', () => {
