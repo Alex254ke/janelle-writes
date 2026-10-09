@@ -26051,6 +26051,28 @@ document.addEventListener('click', function(e) {
 //  DEDICATED TASK DETAIL PAGE WITH BLINKING LOGO LOADER
 // ══════════════════════════════════════════════════════
 let _activeTaskDetailId = '';
+let _jwModuleTaskDetailSnapshot = null;
+
+function jwRememberModuleTaskDetail(task) {
+  if (!task?.id) return null;
+  const prior = _jwModuleTaskDetailSnapshot && String(_jwModuleTaskDetailSnapshot.id) === String(task.id)
+    ? _jwModuleTaskDetailSnapshot
+    : {};
+  const merged = { ...prior, ...task };
+  Object.keys(prior).forEach(key => {
+    if ((merged[key] === undefined || merged[key] === null || merged[key] === '') && prior[key] !== undefined && prior[key] !== null && prior[key] !== '') merged[key] = prior[key];
+  });
+  _jwModuleTaskDetailSnapshot = merged;
+  return merged;
+}
+
+function jwTaskForModuleDetail(id) {
+  const current = typeof getTaskById === 'function' ? getTaskById(id) : null;
+  if (current) return jwRememberModuleTaskDetail(current);
+  return _jwModuleTaskDetailSnapshot && String(_jwModuleTaskDetailSnapshot.id) === String(id)
+    ? _jwModuleTaskDetailSnapshot
+    : null;
+}
 
 function taskDetailLoaderHtml() {
   return `<div class="jw-task-detail-loader">
@@ -26546,6 +26568,17 @@ taskDetailActionsHtml = function(t) {
 
   if (typeof openDisputeModal === 'function' && typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t) && !['cancelled'].includes(String(t.status || '').toLowerCase())) {
     actions.push(`<button class="btn btn-outline" onclick="openDisputeModal('${escJS(t.id)}')">⚖️ Dispute</button>`);
+  }
+
+  const taskState = String(t.status || '').toLowerCase();
+  const visible = typeof canCurrentUserSeeTask === 'function' && canCurrentUserSeeTask(t);
+  const admin = typeof isJwAdmin === 'function' && isJwAdmin();
+  if ((currentUser?.role === 'employer' || currentUser?.role === 'student' || admin) && (visible || admin) && !['completed','cancelled'].includes(taskState)) {
+    actions.push(`<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`);
+  }
+  const pendingExtension = Array.isArray(t.deadline_extensions) && t.deadline_extensions.some(item => String(item?.status || '').toLowerCase() === 'pending');
+  if (currentUser?.role === 'writer' && typeof taskForWriter === 'function' && taskForWriter(t, currentUser.email) && ['progress','in_progress','late','revision'].includes(taskState) && !pendingExtension) {
+    actions.push(`<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`);
   }
 
   return actions.join('');
@@ -27188,6 +27221,7 @@ doLogout = async function() {
     tasks = [];
     _currentPage = null;
     _activeTaskDetailId = '';
+    _jwModuleTaskDetailSnapshot = null;
     _backLogoutArmed = false;
     _appHistoryReady = false;
     _preselectMessageTaskId = null;
@@ -27781,7 +27815,7 @@ function renderTaskDetailsPage() {
   const wrap = document.getElementById('task-details-wrap');
   if (!wrap) return;
 
-  const t = typeof getTaskById === 'function' ? getTaskById(_activeTaskDetailId) : null;
+  const t = jwTaskForModuleDetail(_activeTaskDetailId);
   if (!t) {
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Task not found.</p><button class="btn btn-primary" onclick="returnFromTaskDetails(event)">Go Back</button></div>`;
     return;
@@ -27852,6 +27886,7 @@ function renderTaskDetailsPage() {
 function openTaskDetailsPage(taskId, options = {}) {
   if (!taskId) return;
   _activeTaskDetailId = String(taskId).trim();
+  jwRememberModuleTaskDetail(typeof getTaskById === 'function' ? getTaskById(_activeTaskDetailId) : null);
   jwSaveTaskReturnPage(_activeTaskDetailId, options.returnPage);
 
   const wrap = document.getElementById('task-details-wrap');
@@ -28401,6 +28436,7 @@ function jwOpenDedicatedTaskPageOnly(taskId, options = {}) {
 
   jwCloseLegacyTaskDetailModals();
   _activeTaskDetailId = id;
+  jwRememberModuleTaskDetail(typeof getTaskById === 'function' ? getTaskById(id) : null);
   try { jwSaveTaskReturnPage(id, options.returnPage); } catch {}
 
   const wrap = document.getElementById('task-details-wrap');
@@ -28433,6 +28469,7 @@ function jwOpenDedicatedTaskPageOnly(taskId, options = {}) {
     jwFetchFreshTaskRow(id).then(fresh => {
       if (!fresh) return;
       fresh._jwSummaryOnly = false;
+      jwRememberModuleTaskDetail(fresh);
       if (typeof upsertLocalTask === 'function') upsertLocalTask(fresh);
       if (String(_activeTaskDetailId || '') === id) {
         renderTaskDetailsPage();
