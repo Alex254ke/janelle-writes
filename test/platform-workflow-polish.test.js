@@ -80,6 +80,11 @@ test('expired pending orders are not offered for new writer bids', () => {
   assert.match(html, /This order deadline has passed and it is no longer open for requests\./);
 });
 
+test('writer revision badges count only active revision tasks', () => {
+  assert.match(html, /c\.revisions = assigned\.filter\(t => String\(t\.status \|\| ''\)\.toLowerCase\(\) === 'revision'\)\.length/);
+  assert.doesNotMatch(html, /c\.revisions = assigned\.filter\([^\n]*\|\| t\.revision_notes/);
+});
+
 test('completed unassigned orders do not expose assignment or participant-only actions', () => {
   assert.match(html, /const assignable = !t\.taken_by && String\(t\.status \|\| ''\)\.toLowerCase\(\) === 'pending'/);
   assert.match(html, /t\.status==='completed' && t\.taken_by/);

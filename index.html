@@ -31562,7 +31562,9 @@ if (typeof currentBadgeCounts === 'function' && !currentBadgeCounts.__jwWriterWo
     if (currentUser?.role === 'writer' && c) {
       const assigned = jwWriterAssignedTasks();
       c.totalTasks = assigned.length;
-      c.revisions = assigned.filter(t => String(t.status || '').toLowerCase() === 'revision' || t.revision_notes).length;
+      // Historical revision notes remain on completed tasks. Count only tasks
+      // that are currently in the revision workflow.
+      c.revisions = assigned.filter(t => String(t.status || '').toLowerCase() === 'revision').length;
       c.late = assigned.filter(t => jwWriterTaskStatusGroup(t) === 'late').length;
       c.disputes = assigned.filter(t => typeof hasOpenDispute === 'function' && hasOpenDispute(t)).length;
       c.completed = assigned.filter(t => jwWriterTaskStatusGroup(t) === 'completed').length;
