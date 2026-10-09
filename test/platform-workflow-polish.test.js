@@ -88,8 +88,8 @@ test('ratings are persisted through a participant-aware RPC and exposed as aggre
   assert.doesNotMatch(migration.slice(migration.indexOf('create or replace function public.jw_get_public_writer_profile_v2')), /'comment'/i);
   assert.match(api, /jw_get_public_writer_profile_v2/);
   assert.match(api, /'rating_summary'/);
-  assert.match(html, /jwBidWriterRatingInline\(b\.writer_email\)/);
-  assert.match(html, /jwBidWriterRatingPanel\(b\.writer_email\)/);
+  assert.equal((html.match(/jwBidWriterRatingInline\(b\.writer_email\)/g) || []).length, 2);
+  assert.equal((html.match(/jwBidWriterRatingPanel\(b\.writer_email\)/g) || []).length, 2);
   assert.match(html, /window\.jwHydrateBidWriterRatings = jwHydrateBidWriterRatings/);
 });
 

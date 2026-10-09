@@ -24045,12 +24045,12 @@ renderEmployerBidPanel = function(t) {
         <div class="bid-card-top">
           <div>
             <div class="bid-writer-name">${esc(b.writer_name || b.writer_email)} ${isTop ? '<span class="bid-advantage">Top rated advantage</span>' : ''}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${ratingChipForUser(b.writer_email, 'writer')} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${jwBidWriterRatingInline(b.writer_email)} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
           </div>
           <div>${selected ? '<span class="bid-status-pill bid-status-selected">Assigned</span>' : bidStatusHtml(b.status)}</div>
         </div>
         <div class="bid-message">${esc(b.message || 'No message added.')}</div>
-        ${publicRatingPanelForUser(b.writer_email, 'writer', { compact:false, limit:1 })}
+        ${jwBidWriterRatingPanel(b.writer_email)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
           <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
           ${assignable ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
