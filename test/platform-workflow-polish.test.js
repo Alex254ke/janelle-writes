@@ -35,6 +35,21 @@ test('deadline changes are available to owners and requestable by assigned write
   assert.match(migration, /A deadline extension request is already pending/i);
 });
 
+test('task details retain authorized orders across partial background refreshes', () => {
+  const start = html.indexOf('function findTask(id)');
+  const end = html.indexOf('function idFromText', start);
+  const lookup = html.slice(start, end);
+  assert.match(lookup, /__jwTaskDetailMemory/);
+  assert.match(lookup, /canCurrentUserSeeTask\(remembered\)/);
+  assert.match(lookup, /remembered\.status==='pending'/);
+
+  const actionsStart = html.indexOf('window.taskDetailActionsHtml=function');
+  const actionsEnd = html.indexOf('function partner', actionsStart);
+  const actions = html.slice(actionsStart, actionsEnd);
+  assert.match(actions, /openDeadlineExtensionModal/);
+  assert.match(actions, /Request Deadline Extension/);
+});
+
 test('ratings are persisted through a participant-aware RPC and exposed as aggregates', () => {
   assert.match(html, /jwWorkflowRpc\('jw_rate_task'/);
   assert.match(migration, /Only task participants can rate this task/i);
