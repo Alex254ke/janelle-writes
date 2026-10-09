@@ -62,6 +62,7 @@ test('completed unassigned orders do not expose assignment or participant-only a
   assert.match(html, /t\.status==='completed' && t\.taken_by/);
   assert.equal((html.match(/This order is no longer open for writer assignment/g) || []).length, 2);
   assert.match(html, /if \(t\.taken_by && typeof openDisputeModal/);
+  assert.match(html, /String\(t\.status \|\| ''\)\.toLowerCase\(\) === 'pending' && !isCancelledTask\(t\) && bidCountForTask\(t\) > 0/);
 });
 
 test('task detail deadline action survives partial owner task records', () => {
@@ -87,6 +88,9 @@ test('ratings are persisted through a participant-aware RPC and exposed as aggre
   assert.doesNotMatch(migration.slice(migration.indexOf('create or replace function public.jw_get_public_writer_profile_v2')), /'comment'/i);
   assert.match(api, /jw_get_public_writer_profile_v2/);
   assert.match(api, /'rating_summary'/);
+  assert.match(html, /jwBidWriterRatingInline\(b\.writer_email\)/);
+  assert.match(html, /jwBidWriterRatingPanel\(b\.writer_email\)/);
+  assert.match(html, /window\.jwHydrateBidWriterRatings = jwHydrateBidWriterRatings/);
 });
 
 test('new workflow RPCs are denied to anonymous users', () => {

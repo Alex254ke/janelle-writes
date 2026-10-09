@@ -19687,6 +19687,31 @@ function publicRatingPanelForSummary(summary, targetType = 'writer', options = {
   return `<div class="public-rating-panel"><div class="public-rating-head"><span class="public-rating-title">${nameLabel === 'writer' ? 'Writer' : 'Employer'} reputation</span><span class="rating-chip">${ratingStars(Math.round(average))} ${average.toFixed(1)}</span></div><div class="text-muted" style="font-size:12px;">Based on ${count} completed-order rating${count === 1 ? '' : 's'}.</div></div>`;
 }
 
+function jwBidWriterRatingSummary(email) {
+  try {
+    const cached = _jwPublicWriterProfileCache.get(String(email || '').trim().toLowerCase());
+    return cached?.profile?.rating_summary || null;
+  } catch {
+    return null;
+  }
+}
+
+function jwBidWriterRatingInline(email) {
+  const key = String(email || '').trim().toLowerCase();
+  const summary = jwBidWriterRatingSummary(key);
+  if (!summary?.count) setTimeout(() => window.jwHydrateBidWriterRatings?.(key), 0);
+  const content = publicRatingPanelForSummary(summary, 'writer', { compact:true }) || ratingChipForUser(key, 'writer');
+  return `<span data-jw-bid-rating-inline="${esc(key)}">${content}</span>`;
+}
+
+function jwBidWriterRatingPanel(email) {
+  const key = String(email || '').trim().toLowerCase();
+  const summary = jwBidWriterRatingSummary(key);
+  if (!summary?.count) setTimeout(() => window.jwHydrateBidWriterRatings?.(key), 0);
+  const content = publicRatingPanelForSummary(summary, 'writer') || publicRatingPanelForUser(key, 'writer', { compact:false, limit:1 });
+  return `<div data-jw-bid-rating-panel="${esc(key)}">${content}</div>`;
+}
+
 function renderPartnerProfileCard(profile, user, fallbackName = '') {
   profile = normalizeProfile(profile);
   const name = sanitizePublicContactText(profile.name || user?.name || fallbackName || user?.email || 'Writer');
@@ -23180,12 +23205,12 @@ function renderEmployerBidPanel(t) {
         <div class="bid-card-top">
           <div>
             <div class="bid-writer-name">${esc(b.writer_name || b.writer_email)} ${isTop ? '<span class="bid-advantage">Top rated advantage</span>' : ''}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${ratingChipForUser(b.writer_email, 'writer')} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${jwBidWriterRatingInline(b.writer_email)} · Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
           </div>
           <div>${selected ? '<span class="bid-status-pill bid-status-selected">Assigned</span>' : bidStatusHtml(b.status)}</div>
         </div>
         <div class="bid-message">${esc(b.message || 'No message added.')}</div>
-        ${publicRatingPanelForUser(b.writer_email, 'writer', { compact:false, limit:1 })}
+        ${jwBidWriterRatingPanel(b.writer_email)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
           <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
           ${!t.taken_by && !isCancelledTask(t) ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
@@ -24292,7 +24317,7 @@ function renderBidRequestsPage() {
     <div class="admin-control-grid" style="margin-bottom:18px;">
       <div class="admin-control-card"><strong>${list.length}</strong><span>Orders With Bid Activity</span></div>
       <div class="admin-control-card"><strong>${ownerBidRequestsCount()}</strong><span>Total Writer Requests</span></div>
-      <div class="admin-control-card"><strong>${list.filter(t => !t.taken_by && bidCountForTask(t) > 0).length}</strong><span>Ready To Assign</span></div>
+      <div class="admin-control-card"><strong>${list.filter(t => !t.taken_by && String(t.status || '').toLowerCase() === 'pending' && !isCancelledTask(t) && bidCountForTask(t) > 0).length}</strong><span>Ready To Assign</span></div>
     </div>
 
     <div class="bid-requests-layout">
@@ -25246,6 +25271,26 @@ async function jwHydratePartnerProfileButtons(email, fallbackName = '') {
   return flight;
 }
 window.jwHydratePartnerProfileButtons = jwHydratePartnerProfileButtons;
+
+async function jwHydrateBidWriterRatings(email) {
+  const key = String(email || '').trim().toLowerCase();
+  if (!key) return null;
+  const result = await jwHydratePartnerProfileButtons(key);
+  const summary = result?.profile?.rating_summary || jwBidWriterRatingSummary(key);
+  if (!summary?.count) return result;
+  document.querySelectorAll('[data-jw-bid-rating-inline]').forEach(node => {
+    if (String(node.dataset.jwBidRatingInline || '').toLowerCase() === key) {
+      node.innerHTML = publicRatingPanelForSummary(summary, 'writer', { compact:true });
+    }
+  });
+  document.querySelectorAll('[data-jw-bid-rating-panel]').forEach(node => {
+    if (String(node.dataset.jwBidRatingPanel || '').toLowerCase() === key) {
+      node.innerHTML = publicRatingPanelForSummary(summary, 'writer');
+    }
+  });
+  return result;
+}
+window.jwHydrateBidWriterRatings = jwHydrateBidWriterRatings;
 
 openWriterProfileModal = async function(email, fallbackName = '') {
   if (!email) {
