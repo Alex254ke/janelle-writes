@@ -60,6 +60,24 @@ test('task details link to writer profiles without listing review history inline
   assert.doesNotMatch(panel, /publicRatingPanelForUser\(t\.taken_by/);
 });
 
+test('summary refreshes cannot erase loaded task files or review controls', () => {
+  const mergeMatch = html.match(/function jwMergeTaskDetailRecord\(previous, incoming\) \{([\s\S]*?)\n\}/);
+  assert.ok(mergeMatch, 'stable task-detail merge helper should exist');
+  const merge = new Function('previous', 'incoming', `${mergeMatch[1]}\n`);
+  const file = { name:'completed-order.docx', path:'submissions/completed-order.docx' };
+  const full = { id:'JW-1', status:'submitted', submitted_files:[file], _jwSummaryOnly:false };
+  const summary = { id:'JW-1', status:'submitted', submitted_files:[], _jwSummaryOnly:true };
+  const merged = merge(full, summary);
+  assert.deepEqual(merged.submitted_files, [file]);
+  assert.equal(merged._jwSummaryOnly, false);
+
+  const ensureStart = html.indexOf('function jwEnsureSubmittedMaterialsInTaskPage');
+  const ensureEnd = html.indexOf('// Patch the full task detail renderer', ensureStart);
+  const ensure = html.slice(ensureStart, ensureEnd);
+  assert.ok(ensure.indexOf('const html = jwSubmissionViewerHtml(t)') < ensure.indexOf("body.querySelectorAll('#jw-task-submissions-section"));
+  assert.match(ensure, /if \(!html\)[\s\S]*?jwEnsureFullTaskLoaded/);
+});
+
 test('orders bids messages and reviews use realtime database events', () => {
   assert.match(html, /table:'jw_tasks'/);
   assert.match(html, /Task request sent\. It will update live/);

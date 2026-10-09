@@ -23,9 +23,19 @@
 <script>
   try { history.scrollRestoration = 'manual'; } catch (err) {}
   document.documentElement.classList.add('jw-booting');
+  try { window.__jwBootHadSavedSession = !!localStorage.getItem('jw_session'); } catch (err) { window.__jwBootHadSavedSession = false; }
   // Never leave first-time visitors on a blank page if a third-party script is
   // blocked by their network, privacy extension, or a transient CDN outage.
+  // Saved sessions remain behind the neutral loader until the workspace is
+  // restored, so the public/login screen never flashes during a refresh.
   window.__jwBootFallbackTimer = window.setTimeout(() => {
+    if (window.__jwBootHadSavedSession) {
+      const heading = document.querySelector('#auth-callback-loading h2');
+      const copy = document.querySelector('#auth-callback-loading p');
+      if (heading) heading.textContent = 'Restoring your workspace…';
+      if (copy) copy.textContent = 'Your signed-in session is being restored securely.';
+      return;
+    }
     document.documentElement.classList.remove('jw-booting');
   }, 4500);
 </script>
@@ -62,6 +72,9 @@ html.jw-booting #landing-page,
 html.jw-booting #auth-screen,
 html.jw-booting #app-shell {
   display:none !important;
+}
+html.jw-booting #auth-callback-loading {
+  display:flex !important;
 }
 
 /* ── AUTH SCREENS ─────────────────── */
@@ -12058,8 +12071,8 @@ body.dark-mode .jw-live-indicator {
 <div class="auth-callback-loading" id="auth-callback-loading" aria-live="polite">
   <div class="auth-callback-card">
     <div class="auth-callback-mark">J</div>
-    <h2>Signing you in…</h2>
-    <p>Please wait while Janelle Writes securely verifies your account.</p>
+    <h2>Loading Janelle Writes…</h2>
+    <p>Please wait while your workspace is prepared.</p>
     <div class="auth-callback-spinner"></div>
   </div>
 </div>
@@ -20105,11 +20118,11 @@ function renderMessageConversationList(listOverride, selectedId) {
   if (!wrap) return;
   const list = listOverride || messageableTasks();
   const sorted = [...list].sort((a, b) => {
+    const recentDiff = messageSortValue(b) - messageSortValue(a);
+    if (recentDiff) return recentDiff;
     const unreadDiff = unreadMessagesForTask(b) - unreadMessagesForTask(a);
     if (unreadDiff) return unreadDiff;
-    const msgDiff = visibleMessagesForCurrentUser(b).length - visibleMessagesForCurrentUser(a).length;
-    if (msgDiff) return msgDiff;
-    return messageSortValue(b) - messageSortValue(a);
+    return String(b.id || '').localeCompare(String(a.id || ''));
   });
   if (!sorted.length) {
     wrap.innerHTML = '<div class="message-conversation-empty">No message conversations yet.<br>Open an assigned order and click <strong>Message</strong> to start one.</div>';
@@ -20139,7 +20152,7 @@ function selectMessageThread(id) {
 }
 function renderMessagesPage() {
   const sel = document.getElementById('msg-order-select');
-  const list = messageableTasks();
+  const list = [...messageableTasks()].sort((a, b) => messageSortValue(b) - messageSortValue(a));
   sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(messageOptionLabel(t))}</option>`).join('');
 
   const preselected = _preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId) ? _preselectMessageTaskId : '';
@@ -20170,7 +20183,7 @@ function loadMessageThread() {
     ? `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Support: Janelle Writes Admin<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`
     : `<strong>${esc(t.subject)}</strong><br>Status: ${statusBadgeForTask(t)}<br>Employer: ${esc(t.posted_by_name || t.posted_by || '—')}<br>Writer: ${esc(t.taken_by_name || t.taken_by || 'Unassigned')}`;
   markTaskMessagesRead(t);
-  const messages = visibleMessagesForCurrentUser(t);
+  const messages = messagesNewestFirst(visibleMessagesForCurrentUser(t));
   const currentOption = Array.from(document.getElementById('msg-order-select').options).find(opt => opt.value === t.id);
   if (currentOption) currentOption.textContent = messageOptionLabel(t);
   renderMessageConversationList(messageableTasks(), t.id);
@@ -20185,7 +20198,7 @@ function loadMessageThread() {
         <div class="message-text">${esc(m.body || '')}</div>
       </div>`;
     }).join('');
-    thread.scrollTop = thread.scrollHeight;
+    thread.scrollTop = 0;
   }
   composer.style.display = '';
   if (channelSelect) channelSelect.style.display = isStudentOrder(t) && isJwAdmin() ? '' : 'none';
@@ -20242,7 +20255,21 @@ function taskParticipant(t) {
   return currentUser && ((typeof isJwAdmin === 'function' && isJwAdmin()) || sameEmail(t.posted_by, currentUser.email) || sameEmail(t.taken_by, currentUser.email));
 }
 function latestMessage(messages) {
-  return messages && messages.length ? messages[messages.length - 1] : null;
+  return messagesNewestFirst(messages)[0] || null;
+}
+
+function messageSentAtValue(message) {
+  const value = message?.at || message?.created_at || message?.sent_at || '';
+  const parsed = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function messagesNewestFirst(messages) {
+  return [...(Array.isArray(messages) ? messages : [])].sort((a, b) => {
+    const timeDiff = messageSentAtValue(b) - messageSentAtValue(a);
+    if (timeDiff) return timeDiff;
+    return String(b?.id || '').localeCompare(String(a?.id || ''));
+  });
 }
 
 const _notifiedMessageIds = new Set();
@@ -21452,7 +21479,7 @@ loadMessageThread = function() {
   const t = getTaskById(id);
   const thread = document.getElementById('msg-thread');
   if (!t || !thread || !getTaskMessages(t).length) return;
-  thread.innerHTML = getTaskMessages(t).map(m => {
+  thread.innerHTML = messagesNewestFirst(getTaskMessages(t)).map(m => {
     const mine = m.sender_email === currentUser.email;
     const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
     const admin = m.sender_role === 'admin' || isJwAdminEmail(m.sender_email);
@@ -21464,7 +21491,7 @@ loadMessageThread = function() {
       <div class="message-text">${esc(m.body || '')}</div>
     </div>`;
   }).join('');
-  thread.scrollTop = thread.scrollHeight;
+  thread.scrollTop = 0;
 };
 
 function renderAdminControlPage() {
@@ -22511,7 +22538,7 @@ function renderAdminStudentMessagesPage() {
     if (composer) composer.style.display = 'none';
     return;
   }
-  const list = adminStudentOrders();
+  const list = [...adminStudentOrders()].sort((a, b) => messageSortValue(b) - messageSortValue(a));
   if (!list.length) {
     listWrap.innerHTML = `<div class="message-conversation-empty">No student order conversations yet.</div>`;
     thread.innerHTML = `<div class="empty-state"><div class="empty-icon">🎓</div><p>No student messages yet.</p></div>`;
@@ -22542,7 +22569,7 @@ function renderAdminStudentMessagesPage() {
     return;
   }
 
-  const messages = getTaskMessages(selected);
+  const messages = messagesNewestFirst(getTaskMessages(selected));
   if (title) title.innerHTML = `${esc(selected.id)} — ${esc(selected.subject || 'Student order')}`;
   if (summary) summary.innerHTML = `
     <strong>Student:</strong> ${esc(selected.posted_by_name || selected.posted_by || 'Student')}<br>
@@ -22564,7 +22591,7 @@ function renderAdminStudentMessagesPage() {
         <div class="message-text">${esc(m.body || '')}</div>
       </div>`;
     }).join('');
-    thread.scrollTop = thread.scrollHeight;
+    thread.scrollTop = 0;
   }
   if (composer) composer.style.display = '';
 }
@@ -25758,7 +25785,7 @@ function styleAdminStudentMessageOverlays() {
   const thread = document.getElementById('admin-student-msg-thread');
   const task = getTaskById(_adminStudentMessageTaskId);
   if (thread && task) {
-    const messages = getTaskMessages(task);
+    const messages = messagesNewestFirst(getTaskMessages(task));
     thread.querySelectorAll('.message-bubble').forEach((bubble, idx) => {
       const msg = messages[idx];
       if (!msg) return;
@@ -26330,15 +26357,40 @@ document.addEventListener('click', function(e) {
 let _activeTaskDetailId = '';
 let _jwModuleTaskDetailSnapshot = null;
 
+function jwMergeTaskDetailRecord(previous, incoming) {
+  const prior = previous && typeof previous === 'object' ? previous : {};
+  const next = incoming && typeof incoming === 'object' ? incoming : {};
+  const merged = { ...prior, ...next };
+  const incomingIsSummary = next._jwSummaryOnly !== false;
+  const priorIsFull = prior._jwSummaryOnly === false;
+
+  // Summary queries intentionally omit large file payloads. Never allow those
+  // placeholder empty arrays to erase files already loaded for an open task.
+  if (incomingIsSummary && priorIsFull) {
+    ['submitted_files', 'instruction_files'].forEach(key => {
+      const priorValue = prior[key];
+      const nextValue = next[key];
+      const priorHasPayload = Array.isArray(priorValue) ? priorValue.length > 0 : !!priorValue;
+      const nextIsPlaceholder = nextValue == null || nextValue === '' || (Array.isArray(nextValue) && nextValue.length === 0);
+      if (priorHasPayload && nextIsPlaceholder) merged[key] = priorValue;
+    });
+    merged._jwSummaryOnly = false;
+  }
+
+  Object.keys(prior).forEach(key => {
+    if ((merged[key] === undefined || merged[key] === null || merged[key] === '') && prior[key] !== undefined && prior[key] !== null && prior[key] !== '') {
+      merged[key] = prior[key];
+    }
+  });
+  return merged;
+}
+
 function jwRememberModuleTaskDetail(task) {
   if (!task?.id) return null;
   const prior = _jwModuleTaskDetailSnapshot && String(_jwModuleTaskDetailSnapshot.id) === String(task.id)
     ? _jwModuleTaskDetailSnapshot
     : {};
-  const merged = { ...prior, ...task };
-  Object.keys(prior).forEach(key => {
-    if ((merged[key] === undefined || merged[key] === null || merged[key] === '') && prior[key] !== undefined && prior[key] !== null && prior[key] !== '') merged[key] = prior[key];
-  });
+  const merged = jwMergeTaskDetailRecord(prior, task);
   _jwModuleTaskDetailSnapshot = merged;
   window.__jwTaskDetailMemory = window.__jwTaskDetailMemory || new Map();
   window.__jwTaskDetailMemory.set(String(merged.id).trim().toLowerCase(), merged);
@@ -28951,10 +29003,7 @@ function findTask(id){
   if(!found){try{found=(tasks||[]).find(function(t){return String(t.id||'').trim().toLowerCase()===n})||null}catch(e){}}
   if(found){
     var previous=window.__jwTaskDetailMemory.get(n)||{};
-    var merged={...previous,...found};
-    Object.keys(previous).forEach(function(key){
-      if((merged[key]===undefined||merged[key]===null||merged[key]==='')&&previous[key]!==undefined&&previous[key]!==null&&previous[key]!=='')merged[key]=previous[key]
-    });
+    var merged=typeof jwMergeTaskDetailRecord==='function'?jwMergeTaskDetailRecord(previous,found):{...previous,...found};
     window.__jwTaskDetailMemory.set(n,merged);
     return merged
   }
@@ -31383,16 +31432,28 @@ function jwEnsureSubmittedMaterialsInTaskPage(taskId = '') {
     if (!page || !page.classList.contains('active')) return;
 
     const id = taskId || (typeof _activeTaskDetailId !== 'undefined' ? _activeTaskDetailId : '');
-    const t = typeof getTaskById === 'function' ? getTaskById(id) : (tasks || []).find(x => String(x.id) === String(id));
+    const current = typeof getTaskById === 'function' ? getTaskById(id) : (tasks || []).find(x => String(x.id) === String(id));
+    const remembered = window.__jwTaskDetailMemory instanceof Map
+      ? window.__jwTaskDetailMemory.get(String(id).trim().toLowerCase())
+      : null;
+    const t = typeof jwMergeTaskDetailRecord === 'function'
+      ? jwMergeTaskDetailRecord(remembered, current)
+      : (current || remembered);
     if (!t) return;
 
     const body = page.querySelector('.task-detail-body');
     if (!body) return;
 
-    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted, .jw-submission-review-mounted').forEach(el => el.remove());
-
     const html = jwSubmissionViewerHtml(t);
-    if (!html) return;
+    if (!html) {
+      // A transient auth/summary refresh must not clear a visible submission.
+      // Revalidate quietly and keep the current controls until replacement
+      // content is ready.
+      if (typeof jwEnsureFullTaskLoaded === 'function') jwEnsureFullTaskLoaded(id).catch(() => {});
+      return;
+    }
+
+    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted, .jw-submission-review-mounted').forEach(el => el.remove());
 
     const danger = body.querySelector('.task-detail-danger-note');
     if (danger) danger.insertAdjacentHTML('beforebegin', html);
@@ -32664,7 +32725,7 @@ function renderMessageRoomPage() {
   }
 
   const msgs = markTaskMessagesRead(t);
-  const visible = visibleMessagesForCurrentUser(t, msgs);
+  const visible = messagesNewestFirst(visibleMessagesForCurrentUser(t, msgs));
   const other = conversationOtherName(t);
   const otherInitials = String(other || 'JW').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'JW';
   const status = typeof statusBadgeForTask === 'function' ? statusBadgeForTask(t) : esc(t.status || '—');
@@ -32713,7 +32774,7 @@ function renderMessageRoomPage() {
 
   setTimeout(() => {
     const thread = document.getElementById('message-room-thread');
-    if (thread) thread.scrollTop = thread.scrollHeight;
+    if (thread) thread.scrollTop = 0;
   }, 30);
 
   try { updateBadges(); } catch {}
@@ -32968,11 +33029,11 @@ if (typeof renderMessageConversationList === 'function' && !renderMessageConvers
     }
 
     const sorted = [...list].sort((a, b) => {
+      const recentDiff = messageSortValue(b) - messageSortValue(a);
+      if (recentDiff) return recentDiff;
       const unreadDiff = unreadMessagesForTask(b) - unreadMessagesForTask(a);
       if (unreadDiff) return unreadDiff;
-      const msgDiff = visibleMessagesForCurrentUser(b).length - visibleMessagesForCurrentUser(a).length;
-      if (msgDiff) return msgDiff;
-      return messageSortValue(b) - messageSortValue(a);
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
 
     if (!sorted.length) {
@@ -33543,6 +33604,46 @@ jwWriterTaskRow = function(task) {
   return html.replace('<tr data-task-id=', `<tr data-task-status="${esc(String(task?.status || ''))}" data-task-id=`);
 };
 
+// Task pages show writer feedback only after the owner deliberately opens the
+// profile. Keep bid cards focused on the request, assignment state, and action.
+renderEmployerBidPanel = function(t) {
+  const bids = sortBidsByAdvantage(getTaskBids(t));
+  const count = bids.length;
+  const assignable = !t.taken_by && String(t.status || '').toLowerCase() === 'pending' && !isCancelledTask(t);
+  const ownerLabel = currentUser?.role === 'student' ? 'student' : 'employer';
+  if (!count) {
+    if (t.taken_by) return '';
+    return `<div class="bid-panel"><div class="bid-panel-title">Writer Requests</div><div class="text-muted" style="font-size:13px;">No writer has requested this order yet.</div></div>`;
+  }
+  return `<div class="bid-panel">
+    <div class="bid-owner-strip">
+      <div>
+        <div class="bid-owner-strip-title">Writer Requests / Bids</div>
+        <div class="bid-owner-strip-sub">${count} writer request${count === 1 ? '' : 's'} received. ${assignable ? 'Choose one writer to assign this task.' : 'This order is no longer assignable.'}</div>
+      </div>
+      ${bidCountBadgeHtml(t)}
+    </div>
+    <div class="bid-note">${assignable ? `Review each request and open Profile for ratings and experience. The task remains available until ${esc(ownerLabel)} or an admin assigns it.` : 'Writer requests are preserved for the order record. Open Profile to view ratings and experience.'}</div>
+    ${bids.map(b => {
+      const selected = t.taken_by && sameEmail(t.taken_by, b.writer_email);
+      return `<div class="bid-card">
+        <div class="bid-card-top">
+          <div>
+            <div class="bid-writer-name">${esc(b.writer_name || b.writer_email)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Requested ${b.at ? fmtDate(b.at) : 'recently'}</div>
+          </div>
+          <div>${selected ? '<span class="bid-status-pill bid-status-selected">Assigned</span>' : bidStatusHtml(b.status)}</div>
+        </div>
+        <div class="bid-message">${esc(b.message || 'No message added.')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button class="btn btn-outline btn-sm" onclick="openWriterProfileModal('${escJS(b.writer_email)}','${escJS(b.writer_name || '')}')">Profile</button>
+          ${assignable ? `<button class="btn btn-primary btn-sm" onclick="assignTaskToBidder('${escJS(t.id)}','${escJS(b.writer_email)}')">Assign Task</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+};
+
 function jwReviewPanelHtml(task) {
   if (!task || String(task.status || '').toLowerCase() !== 'submitted') return '';
   const isOwner = sameEmail(task.posted_by, currentUser?.email);
@@ -33782,16 +33883,22 @@ window.jwReadDurableTaskSnapshot = function(taskId) {
 function jwRememberActiveTaskSnapshot(task) {
   const id = jwActiveTaskDetailId();
   if (!id || !task || String(task.id || '').trim().toLowerCase() !== id.toLowerCase() || !jwCanKeepActiveTaskSnapshot(task)) return;
+  const previous = _jwActiveTaskSnapshot && String(_jwActiveTaskSnapshot.id || '').toLowerCase() === id.toLowerCase()
+    ? _jwActiveTaskSnapshot.task
+    : (window.__jwTaskDetailMemory instanceof Map ? window.__jwTaskDetailMemory.get(id.toLowerCase()) : null);
+  const stableTask = typeof jwMergeTaskDetailRecord === 'function'
+    ? jwMergeTaskDetailRecord(previous, task)
+    : { ...(previous || {}), ...task };
   _jwActiveTaskSnapshot = {
     key:jwTaskLoadUserKey(),
     id,
-    task:{ ...task }
+    task:{ ...stableTask }
   };
-  window.__jwLastRenderedTaskSnapshot = { id, task:{ ...task } };
+  window.__jwLastRenderedTaskSnapshot = { id, task:{ ...stableTask } };
   const storageKey = jwTaskSnapshotStorageKey(id);
   if (storageKey) {
     try {
-      sessionStorage.setItem(storageKey, JSON.stringify({ savedAt:Date.now(), task:jwTaskSnapshotForStorage(task) }));
+      sessionStorage.setItem(storageKey, JSON.stringify({ savedAt:Date.now(), task:jwTaskSnapshotForStorage(stableTask) }));
     } catch (error) {
       console.warn('Task snapshot could not be cached for this tab:', error);
     }
@@ -35381,9 +35488,10 @@ subscribeRealtime = function() {
         if (String(old.id || '') === jwActiveTaskDetailId()) _jwActiveTaskSnapshot = null;
         tasks = tasks.filter(task => String(task.id) !== String(old.id));
       } else if (row?.id) {
-        if (!row.duplicate_of || isJwAdmin()) upsertLocalTask(row);
+        const liveRow = { ...row, _jwSummaryOnly:false };
+        if (!row.duplicate_of || isJwAdmin()) upsertLocalTask(liveRow);
         else tasks = tasks.filter(task => String(task.id) !== String(row.id));
-        if (String(row.id) === jwActiveTaskDetailId()) jwRememberActiveTaskSnapshot(row);
+        if (String(row.id) === jwActiveTaskDetailId()) jwRememberActiveTaskSnapshot(liveRow);
       }
       tasks = dedupeTasks(tasks);
 

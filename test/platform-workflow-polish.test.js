@@ -40,8 +40,9 @@ test('task details retain authorized orders across partial background refreshes'
   const end = html.indexOf('function idFromText', start);
   const lookup = html.slice(start, end);
   assert.match(lookup, /__jwTaskDetailMemory/);
-  assert.match(lookup, /var merged=\{\.\.\.previous,\.\.\.found\}/);
-  assert.match(lookup, /merged\[key\]===undefined\|\|merged\[key\]===null\|\|merged\[key\]===''/);
+  assert.match(lookup, /jwMergeTaskDetailRecord\(previous,found\)/);
+  assert.match(html, /function jwMergeTaskDetailRecord\(previous, incoming\)/);
+  assert.match(html, /incomingIsSummary && priorIsFull/);
   assert.match(lookup, /return remembered/);
   assert.match(html, /let _jwModuleTaskDetailSnapshot = null/);
   assert.match(html, /const t = jwTaskForModuleDetail\(_activeTaskDetailId\)/);
@@ -116,8 +117,11 @@ test('ratings are persisted through a participant-aware RPC and exposed as aggre
   assert.doesNotMatch(migration.slice(migration.indexOf('create or replace function public.jw_get_public_writer_profile_v2')), /'comment'/i);
   assert.match(api, /jw_get_public_writer_profile_v2/);
   assert.match(api, /'rating_summary'/);
-  assert.equal((html.match(/jwBidWriterRatingInline\(b\.writer_email\)/g) || []).length, 2);
-  assert.equal((html.match(/jwBidWriterRatingPanel\(b\.writer_email\)/g) || []).length, 2);
+  const finalBidPanelStart = html.lastIndexOf('renderEmployerBidPanel = function(t)');
+  const finalBidPanelEnd = html.indexOf('function jwReviewPanelHtml', finalBidPanelStart);
+  const finalBidPanel = html.slice(finalBidPanelStart, finalBidPanelEnd);
+  assert.match(finalBidPanel, /openWriterProfileModal/);
+  assert.doesNotMatch(finalBidPanel, /jwBidWriterRatingInline|jwBidWriterRatingPanel|rating_avg|Top rated advantage/);
   assert.match(html, /window\.jwHydrateBidWriterRatings = jwHydrateBidWriterRatings/);
 });
 

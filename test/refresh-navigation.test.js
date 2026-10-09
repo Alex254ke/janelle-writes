@@ -60,3 +60,10 @@ test('app launch and browser history preserve the resolved refresh location', ()
   assert.match(routeUrl, /\^#task=/);
   assert.match(routeUrl, /window\.location\.hash/);
 });
+
+test('saved sessions show only a neutral loader until the workspace is restored', () => {
+  assert.match(html, /window\.__jwBootHadSavedSession = !!localStorage\.getItem\('jw_session'\)/);
+  assert.match(html, /html\.jw-booting #auth-callback-loading \{\s*display:flex !important;/);
+  assert.match(html, /if \(window\.__jwBootHadSavedSession\)[\s\S]*?Restoring your workspace/);
+  assert.doesNotMatch(html, /html\.jw-booting #landing-page[\s\S]*?display:block !important/);
+});
