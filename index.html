@@ -31461,7 +31461,18 @@ function jwEnsureSubmittedMaterialsInTaskPage(taskId = '') {
       return;
     }
 
-    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted, .jw-submission-review-mounted').forEach(el => el.remove());
+    const statusIsSubmitted = String(t.status || '').toLowerCase() === 'submitted';
+    const reviewHtml = statusIsSubmitted && typeof jwReviewPanelHtml === 'function'
+      ? jwReviewPanelHtml(t)
+      : '';
+
+    body.querySelectorAll('#jw-task-submissions-section, .jw-submission-mounted').forEach(el => el.remove());
+    // Keep the last authorized review controls during a transient account or
+    // role refresh. Replace them only when a fresh authorized panel is ready,
+    // or remove them when the task authoritatively leaves submitted status.
+    if (!statusIsSubmitted || reviewHtml) {
+      body.querySelectorAll('.jw-submission-review-mounted').forEach(el => el.remove());
+    }
 
     const danger = body.querySelector('.task-detail-danger-note');
     if (danger) danger.insertAdjacentHTML('beforebegin', html);
@@ -31477,6 +31488,7 @@ if (typeof renderTaskDetailsPage === 'function' && !renderTaskDetailsPage.__jwSu
 
   renderTaskDetailsPage = function() {
     const previousSubmission = document.querySelector('#task-details-wrap #jw-task-submissions-section')?.outerHTML || '';
+    const previousReview = document.querySelector('#task-details-wrap .jw-submission-review-mounted')?.outerHTML || '';
     const result = __jwOriginalRenderTaskDetailsPageForSubmissions.apply(this, arguments);
     // The canonical task renderer rebuilds the detail body. Preserve the last
     // verified submission synchronously if a background summary arrives before
@@ -31487,6 +31499,14 @@ if (typeof renderTaskDetailsPage === 'function' && !renderTaskDetailsPage.__jwSu
       if (body && !body.querySelector('#jw-task-submissions-section')) {
         if (danger) danger.insertAdjacentHTML('beforebegin', previousSubmission);
         else body.insertAdjacentHTML('beforeend', previousSubmission);
+      }
+    }
+    if (previousReview) {
+      const body = document.querySelector('#task-details-wrap .task-detail-body');
+      const danger = body?.querySelector('.task-detail-danger-note');
+      if (body && !body.querySelector('.jw-submission-review-mounted')) {
+        if (danger) danger.insertAdjacentHTML('beforebegin', previousReview);
+        else body.insertAdjacentHTML('beforeend', previousReview);
       }
     }
     setTimeout(() => jwEnsureSubmittedMaterialsInTaskPage(), 20);

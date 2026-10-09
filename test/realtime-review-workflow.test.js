@@ -44,7 +44,7 @@ test('writer submissions wait for owner review and paid completion', () => {
   assert.match(html, /\.rpc\('jw_review_task_submission'/);
   assert.match(html, /Approve &amp; Complete/);
   assert.match(html, /Request Revision/);
-  assert.match(html, /\.jw-submission-review-mounted'\)\.forEach\(el => el\.remove\(\)\)/);
+  assert.match(html, /if \(!statusIsSubmitted \|\| reviewHtml\)[\s\S]*?\.jw-submission-review-mounted'\)\.forEach\(el => el\.remove\(\)\)/);
   assert.equal((html.match(/class="jw-review-workflow jw-submission-review-mounted"/g) || []).length, 2);
   assert.match(migration, /status = 'submitted'/i);
   assert.match(migration, /Confirm payment before completing this task/i);
@@ -86,7 +86,9 @@ test('summary refreshes cannot erase loaded task files or review controls', () =
   const rendererEnd = html.indexOf('// Patch workflow HTML too', rendererStart);
   const renderer = html.slice(rendererStart, rendererEnd);
   assert.match(renderer, /previousSubmission/);
+  assert.match(renderer, /previousReview/);
   assert.match(renderer, /!body\.querySelector\('#jw-task-submissions-section'\)/);
+  assert.match(renderer, /!body\.querySelector\('\.jw-submission-review-mounted'\)/);
 });
 
 test('orders bids messages and reviews use realtime database events', () => {
