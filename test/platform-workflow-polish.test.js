@@ -50,6 +50,11 @@ test('task details retain authorized orders across partial background refreshes'
   assert.match(actions, /Request Deadline Extension/);
 });
 
+test('task detail deadline action survives partial owner task records', () => {
+  assert.match(html, /var visibleToOwner=!!\(currentUser&&\['employer','student'\]\.includes\(currentUser\.role\)/);
+  assert.match(html, /ownerCanExtend=.*visibleToOwner/);
+});
+
 test('ratings are persisted through a participant-aware RPC and exposed as aggregates', () => {
   assert.match(html, /jwWorkflowRpc\('jw_rate_task'/);
   assert.match(migration, /Only task participants can rate this task/i);

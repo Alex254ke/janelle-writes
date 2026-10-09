@@ -28639,7 +28639,10 @@ window.taskDetailActionsHtml=function(t){
   if(currentUser&&currentUser.role==='writer'&&!t.taken_by&&t.status==='pending')a.push('<button class="btn btn-primary" onclick="document.getElementById(\'writer-bid-message\')?.focus()">📝 Bid / Request</button>');
   try{if((currentUser&&['employer','student'].includes(currentUser.role)||(typeof isJwAdmin==='function'&&isJwAdmin()))&&typeof canRequestReassign==='function'&&canRequestReassign(t))a.push('<button class="btn btn-warn" onclick="requestReassignOrder(\''+escJS(t.id)+'\')">🔁 Request Reassign</button>')}catch(e){}
   try{
-    if(typeof jwCanOwnerExtend==='function'&&jwCanOwnerExtend(t))a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'extend\')">Extend Deadline</button>');
+    var taskStatus=String(t.status||'').toLowerCase();
+    var visibleToOwner=!!(currentUser&&['employer','student'].includes(currentUser.role)&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t));
+    var ownerCanExtend=(typeof jwCanOwnerExtend==='function'&&jwCanOwnerExtend(t))||(visibleToOwner&&!['completed','cancelled'].includes(taskStatus));
+    if(ownerCanExtend)a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'extend\')">Extend Deadline</button>');
     if(typeof jwCanWriterRequestExtension==='function'&&jwCanWriterRequestExtension(t))a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'request\')">Request Deadline Extension</button>');
   }catch(e){}
   try{if(typeof openDisputeModal==='function'&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t)&&!['cancelled'].includes(String(t.status||'').toLowerCase()))a.push('<button class="btn btn-outline" onclick="openDisputeModal(\''+escJS(t.id)+'\')">⚖️ Dispute</button>')}catch(e){}
