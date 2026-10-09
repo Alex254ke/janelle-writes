@@ -29033,8 +29033,8 @@ window.taskDetailActionsHtml=function(t){
     var taskStatus=String(t.status||'').toLowerCase();
     var visibleToOwner=!!(currentUser&&['employer','student'].includes(currentUser.role)&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t));
     var ownerCanExtend=(typeof jwCanOwnerExtend==='function'&&jwCanOwnerExtend(t))||(visibleToOwner&&!['completed','cancelled'].includes(taskStatus));
-    if(ownerCanExtend)a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'extend\')">Extend Deadline</button>');
-    if(typeof jwCanWriterRequestExtension==='function'&&jwCanWriterRequestExtension(t))a.push('<button class="btn btn-outline" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'request\')">Request Deadline Extension</button>');
+    if(ownerCanExtend)a.push('<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'extend\')">Extend Deadline</button>');
+    if(typeof jwCanWriterRequestExtension==='function'&&jwCanWriterRequestExtension(t))a.push('<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal(\''+escJS(t.id)+'\',\'request\')">Request Deadline Extension</button>');
   }catch(e){}
   try{if(t.taken_by&&typeof openDisputeModal==='function'&&typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t)&&!['cancelled'].includes(String(t.status||'').toLowerCase()))a.push('<button class="btn btn-outline" onclick="openDisputeModal(\''+escJS(t.id)+'\')">⚖️ Dispute</button>')}catch(e){}
   return a.join('')
@@ -35919,8 +35919,10 @@ if (typeof window.taskDetailActionsHtml === 'function' && !window.taskDetailActi
   const jwOriginalTaskDetailActions = window.taskDetailActionsHtml;
   window.taskDetailActionsHtml = function(t) {
     let html = jwOriginalTaskDetailActions(t);
-    if (jwCanOwnerExtend(t)) html += `<button class="btn btn-outline" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`;
-    if (jwCanWriterRequestExtension(t)) html += `<button class="btn btn-outline" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`;
+    if (!html.includes('data-jw-detail-deadline-action')) {
+      if (jwCanOwnerExtend(t)) html += `<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','extend')">Extend Deadline</button>`;
+      else if (jwCanWriterRequestExtension(t)) html += `<button class="btn btn-outline" data-jw-detail-deadline-action="1" onclick="openDeadlineExtensionModal('${escJS(t.id)}','request')">Request Deadline Extension</button>`;
+    }
     return html;
   };
   window.taskDetailActionsHtml.__jwWorkflowActions = true;

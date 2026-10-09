@@ -60,6 +60,13 @@ test('task details retain authorized orders across partial background refreshes'
   const actions = html.slice(actionsStart, actionsEnd);
   assert.match(actions, /openDeadlineExtensionModal/);
   assert.match(actions, /Request Deadline Extension/);
+  assert.match(actions, /data-jw-detail-deadline-action="1"/);
+
+  const workflowStart = html.indexOf("if (typeof window.taskDetailActionsHtml === 'function' && !window.taskDetailActionsHtml.__jwWorkflowActions)");
+  const workflowEnd = html.indexOf("if (typeof window.renderTaskDetailsPage === 'function'", workflowStart);
+  const workflowActions = html.slice(workflowStart, workflowEnd);
+  assert.match(workflowActions, /if \(!html\.includes\('data-jw-detail-deadline-action'\)\)/);
+  assert.match(workflowActions, /else if \(jwCanWriterRequestExtension\(t\)\)/);
 });
 
 test('account switching restores the workspace and reusable workflow dialogs', () => {
