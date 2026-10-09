@@ -4,6 +4,59 @@ Audit date: 2026-07-19
 Supabase project: `ughwzaowgpergpizenko`
 Database: PostgreSQL 17, project status `ACTIVE_HEALTHY`
 
+## Instruction preview and profile compatibility awaiting review
+
+Migration `20260913090000_instruction_preview_and_profile_compatibility.sql`
+has been created but has **not** been applied to production. It preserves the
+private `jw-submissions` bucket while allowing an authenticated user whose
+Auth-linked profile role is `writer` to read only the `instructions` folder of
+a pending, unassigned task. Submitted work and materials for assigned,
+completed, cancelled, or disputed tasks remain participant/admin-only.
+
+The migration also creates `jw_users.profile` as an empty JSONB object only if
+an older environment does not already have that column. Existing profile rows,
+task rows, and stored files are not modified or deleted.
+
+The matching frontend sends profile edits through `/api/auth/profile` instead
+of directly updating protected profile metadata from the browser. This fixes
+the misleading local-only save warning and retains unrelated profile settings.
+
+Compatibility risk is low: the storage SELECT policy is broadened only for the
+pre-assignment instruction-review workflow. Review the code and Vercel preview,
+then apply the migration and test with one task owner and one unassigned writer.
+
+Migration `20260913101500_public_writer_profile_v2.sql` is also awaiting
+production review. It adds an authenticated RPC that returns only a writer's
+deliberately public name, photo, biography, skills, experience, availability,
+and related display fields. It does not expose `auth_id`, admin state, phone,
+payment data, identity metadata, or the full `jw_users` row. The matching
+server endpoint applies the same allowlist so previews can display public
+writer profiles without weakening the existing own-user/admin RLS policy.
+
+The task-detail client now preserves a task that the signed-in user already
+opened when a later exact-row revalidation temporarily returns no row. It does
+not grant any new database or Storage access; Supabase continues to enforce the
+authoritative task and file policies.
+
+## Admin control upgrade awaiting production review
+
+Migration `20260730084329_admin_control_system.sql` has been created locally but
+has **not** been applied to production. It adds the control layer required by the
+new admin operations console:
+
+- an admin-only, append-only decision audit log;
+- mandatory review notes for deposits, withdrawals, transfers, and overrides;
+- row locking and a per-wallet advisory lock to prevent double approval;
+- one atomic wallet decision for the request, payout, commission, linked order,
+  and audit record;
+- controlled task payment/status override functions; and
+- removal of direct browser UPDATE/DELETE access to wallet transactions.
+
+Compatibility risk: once applied, old admin pages or cached clients that try to
+update wallet rows directly will fail closed. Deploy the matching frontend and
+test the preview before applying this migration. PesaPal server callbacks continue
+to use the service role and are not restricted by the browser grant change.
+
 ## Production application status
 
 Approved and applied on 2026-07-19 as migration version

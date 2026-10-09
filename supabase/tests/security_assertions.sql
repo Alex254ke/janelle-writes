@@ -41,3 +41,67 @@ select
   count(*) filter (where auth_id is null) as legacy_profiles_without_auth_id,
   count(*) filter (where auth_id is not null) as auth_linked_profiles
 from public.jw_users;
+
+select exists (
+  select 1
+  from information_schema.columns
+  where table_schema = 'public'
+    and table_name = 'jw_users'
+    and column_name = 'profile'
+    and data_type = 'jsonb'
+) as profile_jsonb_is_available;
+
+select exists (
+  select 1
+  from pg_policies
+  where schemaname = 'storage'
+    and tablename = 'objects'
+    and policyname = 'Task participants and browsing writers can read task files'
+    and roles @> array['authenticated']::name[]
+    and qual like '%instructions%'
+    and qual like '%pending%'
+    and qual like '%writer%'
+) as pending_task_instruction_preview_is_scoped;
+
+-- Admin control system assertions (run after migration
+-- 20260730084329_admin_control_system.sql is explicitly approved and applied).
+select
+  to_regclass('public.jw_admin_audit_log') is not null
+  and exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'jw_admin_audit_log'
+      and policyname = 'Admins can view admin audit log'
+  ) as admin_audit_log_is_protected;
+
+select
+  has_function_privilege(
+    'authenticated',
+    'public.jw_admin_resolve_wallet_transaction(uuid,text,text)',
+    'execute'
+  )
+  and has_function_privilege(
+    'authenticated',
+    'public.jw_admin_override_task(text,text,text,text)',
+    'execute'
+  )
+  and not has_table_privilege(
+    'authenticated',
+    'public.jw_wallet_transactions',
+    'update'
+  )
+  and not has_table_privilege(
+    'authenticated',
+    'public.jw_wallet_transactions',
+    'delete'
+  ) as controlled_admin_functions_are_enforced;
+
+select
+  exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'jw_wallet_transactions'
+      and column_name = 'review_note'
+  ) as wallet_review_note_present;
