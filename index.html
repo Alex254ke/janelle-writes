@@ -28619,7 +28619,15 @@ function findTask(id){
   var found=null;
   try{if(typeof getTaskById==='function')found=getTaskById(id)}catch(e){}
   if(!found){try{found=(tasks||[]).find(function(t){return String(t.id||'').trim().toLowerCase()===n})||null}catch(e){}}
-  if(found){window.__jwTaskDetailMemory.set(n,{...found});return found}
+  if(found){
+    var previous=window.__jwTaskDetailMemory.get(n)||{};
+    var merged={...previous,...found};
+    Object.keys(previous).forEach(function(key){
+      if((merged[key]===undefined||merged[key]===null||merged[key]==='')&&previous[key]!==undefined&&previous[key]!==null&&previous[key]!=='')merged[key]=previous[key]
+    });
+    window.__jwTaskDetailMemory.set(n,merged);
+    return merged
+  }
   var remembered=window.__jwTaskDetailMemory.get(n)||null;
   if(!remembered)return null;
   try{
