@@ -49,12 +49,33 @@ test('task details retain authorized orders across partial background refreshes'
   assert.match(html, /window\.__jwTaskDetailMemory\.set\(String\(merged\.id\)/);
   assert.match(html, /var snapshot=findTask\(id\)/);
   assert.match(html, /jwRememberModuleTaskDetail\(snapshot\)/);
+  assert.match(html, /var __jwTaskDetailRendererWithMemory=window\.renderTaskDetailsPage/);
+  assert.match(html, /remembered=jwTaskForModuleDetail\(detailId\)/);
+  assert.match(html, /remembered=_jwActiveTaskSnapshot\.task/);
+  assert.match(html, /jwRememberActiveTaskSnapshot\(snapshot\)/);
 
   const actionsStart = html.indexOf('window.taskDetailActionsHtml=function');
   const actionsEnd = html.indexOf('function partner', actionsStart);
   const actions = html.slice(actionsStart, actionsEnd);
   assert.match(actions, /openDeadlineExtensionModal/);
   assert.match(actions, /Request Deadline Extension/);
+});
+
+test('account switching restores the workspace and reusable workflow dialogs', () => {
+  const start = html.indexOf('function jwReleaseWorkspaceAnimation()');
+  const end = html.indexOf('function jwApplyBackgroundWorkspaceResults', start);
+  const release = html.slice(start, end);
+  assert.match(release, /app\.style\.visibility = 'visible'/);
+  assert.match(release, /app\.removeAttribute\('aria-hidden'\)/);
+  assert.match(release, /document\.querySelectorAll\('\.modal-overlay'\)/);
+  assert.match(release, /modal\.style\.display = ''/);
+});
+
+test('expired pending orders are not offered for new writer bids', () => {
+  assert.match(html, /function taskDeadlineOpenForBids\(t, now = Date\.now\(\)\)/);
+  assert.equal((html.match(/let list = tasks\.filter\(isPublicAvailableTask\)/g) || []).length, 2);
+  assert.match(html, /const available = tasks\.filter\(isPublicAvailableTask\)\.length/);
+  assert.match(html, /This order deadline has passed and it is no longer open for requests\./);
 });
 
 test('completed unassigned orders do not expose assignment or participant-only actions', () => {

@@ -16812,7 +16812,16 @@ function taskForWriter(t, email) {
 }
 
 function isPublicAvailableTask(t) {
-  return !!t && !t.taken_by && t.status === 'pending';
+  return !!t && !t.taken_by && t.status === 'pending' && taskDeadlineOpenForBids(t);
+}
+
+function taskDeadlineOpenForBids(t, now = Date.now()) {
+  const value = String(t?.deadline || '').trim();
+  if (!value) return true;
+  const dueAt = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? Date.parse(value + 'T23:59:59')
+    : Date.parse(value);
+  return !Number.isFinite(dueAt) || dueAt >= now;
 }
 
 function myTaskList() {
@@ -18678,7 +18687,7 @@ function confirmRevision() {
 //  WRITER: DASHBOARD
 // ══════════════════════════════════════════════════════
 function renderWriterDashboard() {
-  const available = tasks.filter(t => !t.taken_by && t.status === 'pending').length;
+  const available = tasks.filter(isPublicAvailableTask).length;
   const myTasks = tasks.filter(t => t.taken_by === currentUser.email);
   const done = myTasks.filter(t => t.status === 'completed').length;
   const revision = myTasks.filter(t => t.status === 'revision').length;
@@ -18744,7 +18753,7 @@ function renderAvailableOrders() {
   const filterStyle = document.getElementById('avail-filter-style')?.value || '';
   const filterLevel = document.getElementById('avail-filter-level')?.value || '';
 
-  let list = tasks.filter(t => !t.taken_by && t.status === 'pending');
+  let list = tasks.filter(isPublicAvailableTask);
   if (search) list = list.filter(t => t.id.toLowerCase().includes(search) || t.subject.toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search));
   if (filterStyle) list = list.filter(t => t.style === filterStyle);
   if (filterLevel) list = list.filter(t => t.level === filterLevel);
@@ -21955,7 +21964,7 @@ renderAvailableOrders = function() {
   const search = (document.getElementById('avail-search')?.value || '').toLowerCase();
   const filterStyle = document.getElementById('avail-filter-style')?.value || '';
   const filterLevel = document.getElementById('avail-filter-level')?.value || '';
-  let list = tasks.filter(t => !t.taken_by && t.status === 'pending');
+  let list = tasks.filter(isPublicAvailableTask);
   if (search) list = list.filter(t => String(t.id).toLowerCase().includes(search) || String(t.subject).toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search));
   if (filterStyle) list = list.filter(t => t.style === filterStyle);
   if (filterLevel) list = list.filter(t => t.level === filterLevel);
@@ -28761,6 +28770,20 @@ window.taskDetailActionsHtml=function(t){
 };
 function partner(t){try{if(typeof partnerRatingPanelForTask==='function')return partnerRatingPanelForTask(t)}catch(e){}return''}function files(t){try{if(typeof renderInstructionFiles==='function')return renderInstructionFiles(t)}catch(e){}return''}function flow(t){var p=[];try{if(currentUser&&currentUser.role==='writer'&&!t.taken_by&&t.status==='pending'&&typeof bidRequestPanelForWriter==='function')p.push('<div class="task-detail-section"><div class="task-detail-section-title">Writer Request</div>'+bidRequestPanelForWriter(t)+'</div>');else if((currentUser&&['employer','student'].includes(currentUser.role)||(typeof isJwAdmin==='function'&&isJwAdmin()))&&typeof renderEmployerBidPanel==='function')p.push('<div class="task-detail-section"><div class="task-detail-section-title">Writer Requests / Bids</div>'+renderEmployerBidPanel(t)+'</div>')}catch(e){}try{if(typeof renderReassignStatusPanel==='function'){var r=renderReassignStatusPanel(t);if(r)p.push('<div class="task-detail-section">'+r+'</div>')}}catch(e){}try{if(typeof renderLatenessPanel==='function'){var l=renderLatenessPanel(t);if(l)p.push('<div class="task-detail-section">'+l+'</div>')}}catch(e){}return p.join('')}
 window.renderTaskDetailsPage=function(){var w=q('task-details-wrap');if(!w)return;var t=findTask(activeTaskId);if(!t){w.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><p>Task not found. Try refreshing the task list first.</p><button class="btn btn-primary" onclick="returnFromTaskDetails(event)">Go Back</button></div>';return}try{var can=(typeof canCurrentUserSeeTask==='function'&&canCurrentUserSeeTask(t))||(currentUser&&currentUser.role==='writer'&&t.status==='pending'&&!t.taken_by)||(typeof isJwAdmin==='function'&&isJwAdmin());if(!can){w.innerHTML='<div class="empty-state"><div class="empty-icon">🔒</div><p>You do not have permission to view this task.</p><button class="btn btn-primary" onclick="returnFromTaskDetails(event)">Go Back</button></div>';return}}catch(e){}var posted=t.posted_by_name||t.posted_by||'—',writer=t.taken_by_name||t.taken_by||'Unassigned';w.innerHTML='<div class="task-detail-page-card"><div class="task-detail-cover"><div class="task-detail-cover-top"><div><div class="task-detail-kicker">📌 Task Details</div><h1 class="task-detail-title">'+esc(t.id)+' — '+esc(t.subject||'Task')+'</h1><div class="task-detail-sub">'+Number(t.pages||0)+' page'+(Number(t.pages||0)===1?'':'s')+' · '+esc(t.level||'Level')+' · '+esc(t.style||'Style')+' · Due '+fmtDate(t.deadline)+'</div></div><div class="task-detail-actions">'+taskDetailActionsHtml(t)+'</div></div></div><div class="task-detail-body"><div class="task-detail-grid"><div class="task-detail-stat"><div class="task-detail-stat-label">Status</div><div class="task-detail-stat-value">'+(typeof statusBadgeForTask==='function'?statusBadgeForTask(t):esc(t.status||'—'))+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Payment</div><div class="task-detail-stat-value">'+(typeof payBadge==='function'?payBadge(t.payment):esc(t.payment||'—'))+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Visible Amount</div><div class="task-detail-stat-value">'+esc(amountText(t))+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Writer</div><div class="task-detail-stat-value">'+esc(writer)+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Posted By</div><div class="task-detail-stat-value">'+esc(posted)+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Pages</div><div class="task-detail-stat-value">'+esc(t.pages||'—')+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Words</div><div class="task-detail-stat-value">'+(t.words?Number(t.words).toLocaleString():'—')+'</div></div><div class="task-detail-stat"><div class="task-detail-stat-label">Deadline</div><div class="task-detail-stat-value">'+fmtDate(t.deadline)+'</div></div></div>'+partner(t)+'<div class="task-detail-section"><div class="task-detail-section-title">Instructions / Description</div><div class="task-detail-text">'+esc(t.description||t.instructions||'No written instructions were provided.')+'</div></div>'+(t.requirements?'<div class="task-detail-section"><div class="task-detail-section-title">Special Requirements</div><div class="task-detail-text">'+esc(t.requirements)+'</div></div>':'')+files(t)+flow(t)+'<div class="task-detail-danger-note">Keep order communication, files, disputes, revisions, and approvals inside Janelle Writes so the platform can protect both sides.</div></div></div>';try{var title=q('page-title');if(title)title.textContent=t.id}catch(e){}};
+var __jwTaskDetailRendererWithMemory=window.renderTaskDetailsPage;
+window.renderTaskDetailsPage=function(){
+  var detailId=String(window._activeTaskDetailId||'').trim()||String(activeTaskId||'').trim();
+  if(!detailId){try{detailId=decodeURIComponent(String(location.hash||'').replace(/^#task=/,''))}catch(e){}}
+  if(detailId)activeTaskId=detailId;
+  var remembered=detailId?findTask(detailId):null;
+  if(!remembered&&detailId&&typeof jwTaskForModuleDetail==='function')remembered=jwTaskForModuleDetail(detailId);
+  if(!remembered&&detailId&&typeof _jwActiveTaskSnapshot!=='undefined'&&_jwActiveTaskSnapshot&&String(_jwActiveTaskSnapshot.id||'').toLowerCase()===detailId.toLowerCase())remembered=_jwActiveTaskSnapshot.task;
+  if(remembered){
+    window.__jwTaskDetailMemory=window.__jwTaskDetailMemory||new Map();
+    window.__jwTaskDetailMemory.set(detailId.toLowerCase(),remembered);
+  }
+  return __jwTaskDetailRendererWithMemory.apply(this,arguments)
+};
 var __jwTaskDetailRendererWithActions=window.renderTaskDetailsPage;
 window.renderTaskDetailsPage=function(){
   var result=__jwTaskDetailRendererWithActions.apply(this,arguments);
@@ -28776,6 +28799,13 @@ window.renderTaskDetailsPage=function(){
   return result
 };
 window.openTaskDetailsPage=function(taskId,opt){opt=opt||{};var id=String(taskId||'').trim();if(!id)return false;activeTaskId=id;window._activeTaskDetailId=id;var snapshot=findTask(id);try{if(snapshot&&typeof jwRememberModuleTaskDetail==='function')jwRememberModuleTaskDetail(snapshot)}catch(e){}saveBack(id,opt.returnPage);var w=q('task-details-wrap');if(w)w.innerHTML=jwGlobalLoadingInline('Opening task details...');jwShowGlobalLoader('Opening task details...');try{navigate('task-details',{skipHistory:!!opt.skipHistory})}catch(e){console.warn('navigate task-details failed',e)}try{history.replaceState(history.state,'','#task='+encodeURIComponent(id))}catch(e){}setTimeout(function(){renderTaskDetailsPage();jwHideGlobalLoader()},opt.fast?120:360);return false};
+var __jwOpenTaskDetailsWithSnapshot=window.openTaskDetailsPage;
+window.openTaskDetailsPage=function(taskId,opt){
+  var snapshot=findTask(taskId);
+  if(taskId)window._activeTaskDetailId=String(taskId).trim();
+  try{if(snapshot&&typeof jwRememberActiveTaskSnapshot==='function')jwRememberActiveTaskSnapshot(snapshot)}catch(e){}
+  return __jwOpenTaskDetailsWithSnapshot.apply(this,arguments)
+};
 window.__jwOriginalEmpViewTaskModal=window.__jwOriginalEmpViewTaskModal||(typeof empViewTask==='function'?empViewTask:null);window.empViewTask=function(id){return openTaskDetailsPage(id)};
 window.__jwOriginalOpenTakeOrderModal=window.__jwOriginalOpenTakeOrderModal||(typeof openTakeOrderModal==='function'?openTakeOrderModal:null);window.openTakeOrderModal=function(id){return openTaskDetailsPage(id)};
 if(typeof viewTask==='function'){window.__jwOriginalViewTask=window.__jwOriginalViewTask||viewTask;window.viewTask=function(id){return openTaskDetailsPage(id)}}
@@ -33847,6 +33877,21 @@ function jwReleaseWorkspaceAnimation() {
   __jwStrictWorkspaceBootRunning = false;
   document.body.classList.remove('jw-workspace-booting');
   document.body.classList.add('jw-workspace-ready');
+  if (currentUser) {
+    const app = document.getElementById('app-shell');
+    if (app) {
+      app.style.display = 'block';
+      app.style.visibility = 'visible';
+      app.removeAttribute('aria-hidden');
+    }
+    document.body.classList.remove('jw-logout-transition', 'jw-logged-out-safe');
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      // Logout hides workflow overlays inline. Clear that stale state for the
+      // next authenticated account so dispute and deadline dialogs can open.
+      modal.style.display = '';
+      modal.removeAttribute('aria-hidden');
+    });
+  }
   // Mobile launchApp historically opens a second, older data overlay. Always
   // release it together with the branded loader so a successful session can
   // never remain hidden behind either loading layer.
@@ -34919,6 +34964,7 @@ submitWriterBid = async function(taskId) {
   const task = getTaskById(taskId);
   if (!task || currentUser?.role !== 'writer') return notify('Only writers can request tasks.');
   if (task.taken_by || String(task.status || '') !== 'pending') return notify('This order is no longer open for requests.');
+  if (!taskDeadlineOpenForBids(task)) return notify('This order deadline has passed and it is no longer open for requests.');
   const message = String(document.getElementById('writer-bid-message')?.value || '').trim();
   if (message.length < 20) return notify('Please write a request message of at least 20 characters.');
 
