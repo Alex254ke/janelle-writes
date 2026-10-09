@@ -47,6 +47,8 @@ test('task details retain authorized orders across partial background refreshes'
   assert.match(html, /const t = jwTaskForModuleDetail\(_activeTaskDetailId\)/);
   assert.match(html, /jwRememberModuleTaskDetail\(fresh\)/);
   assert.match(html, /window\.__jwTaskDetailMemory\.set\(String\(merged\.id\)/);
+  assert.match(html, /var snapshot=findTask\(id\)/);
+  assert.match(html, /jwRememberModuleTaskDetail\(snapshot\)/);
 
   const actionsStart = html.indexOf('window.taskDetailActionsHtml=function');
   const actionsEnd = html.indexOf('function partner', actionsStart);
