@@ -14258,7 +14258,7 @@ body.dark-mode .jw-live-indicator {
     </div>
     <label class="jw-admin-confirm-check">
       <input type="checkbox" id="admin-reassign-review-confirm">
-      <span>I have reviewed the request and understand that approval reopens the order and clears its current writer assignment.</span>
+      <span id="admin-reassign-review-confirm-copy">I have reviewed the request and understand how this decision changes the order.</span>
     </label>
     <div class="modal-actions">
       <button class="btn btn-outline" type="button" onclick="closeModal('modal-admin-reassign-review')">Cancel</button>
@@ -23390,6 +23390,9 @@ function openAdminReassignReview(taskId, decision) {
     <div class="jw-admin-review-detail"><small>Request note</small><strong>${esc(req.note || 'No note provided')}</strong></div>`;
   document.getElementById('admin-reassign-review-note').value = '';
   document.getElementById('admin-reassign-review-confirm').checked = false;
+  document.getElementById('admin-reassign-review-confirm-copy').textContent = approving
+    ? 'I have reviewed the request and understand that approval reopens the order and clears its current writer assignment.'
+    : 'I have reviewed the request and understand that rejection keeps this order cancelled.';
   const submit = document.getElementById('admin-reassign-review-submit');
   submit.disabled = false;
   submit.className = approving ? 'btn btn-primary' : 'btn btn-danger';

@@ -21,6 +21,7 @@ test('admin control center exposes deliberate review workflows', () => {
   assert.match(html, /id="modal-admin-reassign-review"/);
   assert.match(html, /id="admin-reassign-review-note"/);
   assert.match(html, /id="admin-reassign-review-confirm"/);
+  assert.match(html, /id="admin-reassign-review-confirm-copy"/);
   assert.match(html, /function approveReassignRequest\(taskId\)\s*\{\s*openAdminReassignReview\(taskId, 'approved'\)/);
   assert.match(html, /function rejectReassignRequest\(taskId\)\s*\{\s*openAdminReassignReview\(taskId, 'rejected'\)/);
 });
