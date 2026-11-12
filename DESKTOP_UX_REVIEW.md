@@ -59,3 +59,20 @@ Removed the repeated welcome-banner totals from writer and employer dashboards, 
 - Clicked all three welcome actions per account and checked empty-account rendering with a temporary in-browser empty task list, restored afterward. No page errors or database writes were needed for this pass.
 - Public landing and mobile landing-template markup match the preceding release. Landing screenshots at 390px and 1440px are identical with the new dashboard stylesheet enabled and disabled.
 - JavaScript syntax checks and all 88 automated tests pass. The production-access limits noted above still apply.
+
+## Employer task-posting redesign
+
+The employer form now groups the existing controls into task details, scope/budget, and files/writer sections. A live summary shows the brief, length, deadline, assignment, attachments, and the existing calculated total. It stays beside the form on larger desktops and follows the form on smaller screens. Improved labels, focus states, dark-mode fields, and keyboard file selection/removal complete the interaction updates.
+
+The enhancement moves the existing field nodes and buttons without duplicating their IDs or replacing posting/pricing handlers. It initializes after the legacy deferred modules finish. On employer sign-out it clears the unsent form and restores the shared page's original layout for other roles. The public landing markup is untouched.
+
+Verification used the existing isolated test accounts and a local release checkout with the actual backend:
+
+- Twelve viewport/theme combinations (320, 390, 768, 1024, 1366, and 1440px; light/dark) pass without document overflow or clipped controls. The summary action is accessible on a 1366 × 768 laptop.
+- Changing scope, rate, citation style, writer, and deadline updates the preview; four pages at KES 350 calculates KES 1,400. Entered markup is displayed as text. Three real background snapshots preserve the filled brief and keep one summary/field set.
+- Keyboard file selection/removal, drag-and-drop selection, attachment counts, form clearing, and blank-subject validation pass. These selected test files were removed before the real posting check, so no storage objects were created.
+- A simulated persistence failure retains the filled brief. A real zero-value QA order posts through the existing handler with an instruction link and direct assignment only to the QA writer; the writer account retrieves it.
+- Employer logout cleanup and student login in the same browser restore the original 15-group form and student currency calculation, without the employer's unsent draft. Zero browser page errors in the completed account checks.
+- Landing markup matches the preceding release; phone/desktop screenshots are identical with the new stylesheet enabled and disabled. JavaScript syntax checks and all 88 automated tests pass.
+
+Production deployment status is checked separately; the production-browser access limit described above still applies.
