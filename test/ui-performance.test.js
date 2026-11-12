@@ -356,7 +356,7 @@ test('message inbox stays list-first and mobile chats use a familiar dedicated r
   const inboxEnd = html.indexOf('function loadMessageThread()', inboxStart);
   assert.ok(inboxStart >= 0 && inboxEnd > inboxStart, 'message inbox renderer should exist');
   const inbox = html.slice(inboxStart, inboxEnd);
-  assert.match(inbox, /const preselected = _preselectMessageTaskId/);
+  assert.match(inbox, /const requestedId = _preselectMessageTaskId \|\| sel\.value/);
   assert.doesNotMatch(inbox, /latestExistingConversation|fallbackAssignedTask|list\[0\]/);
 
   const adminStart = html.indexOf('function renderAdminStudentMessagesPage()');

@@ -16515,6 +16515,7 @@ function setLoading(on) {
 async function doLogout() {
   if (typeof stopSessionGuard === 'function') stopSessionGuard();
   try { await _sb.auth.signOut(); } catch (err) { console.warn('Supabase sign-out warning:', err); }
+  if (typeof jwClearDesktopConversationState === 'function') jwClearDesktopConversationState();
   currentUser = null;
   tasks = [];
   _currentPage = null;
@@ -20605,11 +20606,12 @@ function selectMessageThread(id) {
 }
 function renderMessagesPage() {
   const sel = document.getElementById('msg-order-select');
+  const requestedId = _preselectMessageTaskId || sel.value;
   const list = [...messageableTasks()].sort((a, b) => messageSortValue(b) - messageSortValue(a));
   sel.innerHTML = '<option value="">— Select an assigned order —</option>' + list.map(t => `<option value="${esc(t.id)}">${esc(messageOptionLabel(t))}</option>`).join('');
 
-  const preselected = _preselectMessageTaskId && list.some(t => t.id === _preselectMessageTaskId) ? _preselectMessageTaskId : '';
-  if (preselected) sel.value = preselected;
+  // Realtime and background reconciliation must keep the authorized chat open.
+  sel.value = list.some(t => t.id === requestedId) ? requestedId : '';
   _preselectMessageTaskId = null;
   renderMessageConversationList(list, sel.value);
   loadMessageThread();
@@ -21931,8 +21933,10 @@ loadMessageThread = function() {
   const id = document.getElementById('msg-order-select')?.value;
   const t = getTaskById(id);
   const thread = document.getElementById('msg-thread');
-  if (!t || !thread || !getTaskMessages(t).length) return;
-  thread.innerHTML = messagesNewestFirst(getTaskMessages(t)).map(m => {
+  if (!t || !thread || !canCurrentUserSeeTask(t)) return;
+  const visible = visibleMessagesForCurrentUser(t);
+  if (!visible.length) return;
+  thread.innerHTML = messagesNewestFirst(visible).map(m => {
     const mine = m.sender_email === currentUser.email;
     const when = m.at ? new Date(m.at).toLocaleString([], { dateStyle:'medium', timeStyle:'short' }) : '';
     const admin = m.sender_role === 'admin' || isJwAdminEmail(m.sender_email);
@@ -35411,7 +35415,10 @@ function jwSetMessageFilter(button) {
 if (typeof renderMessageConversationList === 'function' && !renderMessageConversationList.__jwPremiumMessagesPatched) {
   const __jwOriginalPremiumConversationList = renderMessageConversationList;
   renderMessageConversationList = function() {
+    const list = document.getElementById('msg-conversation-list');
+    const scrollTop = list?.scrollTop || 0;
     const result = __jwOriginalPremiumConversationList.apply(this, arguments);
+    if (list) list.scrollTop = scrollTop;
     setTimeout(() => {
       jwEnhanceMessageCards('standard');
       jwUpdateMessageContext('standard');
@@ -35434,10 +35441,64 @@ if (typeof renderAdminStudentMessagesPage === 'function' && !renderAdminStudentM
   renderAdminStudentMessagesPage.__jwPremiumMessagesPatched = true;
 }
 
+// Drafts are in-memory, scoped to the signed-in account and conversation.
+const jwDesktopConversationState = new Map();
+let jwDesktopConversationOwner = '';
+
+function jwClearDesktopConversationState() {
+  jwDesktopConversationState.clear();
+  jwDesktopConversationOwner = '';
+  const thread = document.getElementById('msg-thread');
+  if (thread) delete thread.dataset.conversationId;
+  const input = document.getElementById('msg-input');
+  if (input) input.value = '';
+}
+
+function jwCaptureDesktopConversationState() {
+  const owner = String(currentUser?.email || '').toLowerCase();
+  if (owner !== jwDesktopConversationOwner) {
+    jwClearDesktopConversationState();
+    jwDesktopConversationOwner = owner;
+  }
+  const input = document.getElementById('msg-input');
+  const thread = document.getElementById('msg-thread');
+  const previousId = thread?.dataset.conversationId || '';
+  const focused = !!input && document.activeElement === input;
+  if (previousId && owner) {
+    jwDesktopConversationState.set(previousId, {
+      draft:input?.value || '',
+      selectionStart:input?.selectionStart || 0,
+      selectionEnd:input?.selectionEnd || 0,
+      scrollTop:thread.scrollTop
+    });
+  }
+  return { previousId, focused };
+}
+
+function jwRestoreDesktopConversationState(previous) {
+  const id = document.getElementById('msg-order-select')?.value || '';
+  const task = getTaskById(id);
+  const input = document.getElementById('msg-input');
+  const thread = document.getElementById('msg-thread');
+  if (!input || !thread) return;
+  const authorized = !!task && canCurrentUserSeeTask(task);
+  thread.dataset.conversationId = authorized ? id : '';
+  const saved = authorized ? jwDesktopConversationState.get(id) : null;
+  const draft = saved?.draft || '';
+  if (input.value !== draft) input.value = draft;
+  thread.scrollTop = saved?.scrollTop || 0;
+  if (authorized && previous.focused && previous.previousId === id && !input.disabled) {
+    input.focus({ preventScroll:true });
+    input.setSelectionRange(saved?.selectionStart || 0, saved?.selectionEnd || 0);
+  }
+}
+
 if (typeof loadMessageThread === 'function' && !loadMessageThread.__jwContextRailPatched) {
   const __jwOriginalContextLoadMessageThread = loadMessageThread;
   loadMessageThread = function() {
+    const previous = jwCaptureDesktopConversationState();
     const result = __jwOriginalContextLoadMessageThread.apply(this, arguments);
+    jwRestoreDesktopConversationState(previous);
     setTimeout(() => jwUpdateMessageContext('standard'), 0);
     return result;
   };
