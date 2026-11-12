@@ -91,3 +91,18 @@ Reproduced an unsent request being erased when the existing task page refreshed.
 - Employer form compatibility and account-state isolation pass. Landing markup matches the preceding release, and landing screenshots at 390px/1440px are unchanged with the new stylesheet enabled and disabled.
 
 Request history remains limited to task records returned by the existing server visibility policy; this release does not add a separate permanent bid archive. Production-browser access remains blocked from this environment, as noted above.
+
+## Bid typing and reload recovery
+
+The scheduled task refresh could still replace the focused request textarea. A read-only check on an actual public order confirmed that replacement during desktop typing, even though the preceding release restored its text in that run. A separate reproduction against the preceding release confirmed that a full browser reload erased the unsent draft.
+
+The bidding enhancement now defers the same order's detail redraw while the writer is using its request form, including composition input, and applies deferred updates after focus leaves the form. Drafts are also saved per writer and order in the current tab's session storage, restored after a reload, and removed when cleared, successfully submitted, or explicitly signed out. Other account drafts are discarded on account changes. Storage failures leave the existing in-memory draft protection working.
+
+Legacy DOM replacements also rehydrate the saved text and focus. If an order stops accepting bids, sending is disabled and the writer's unsent text remains available to copy; this does not grant access to the closed order. The landing page, stylesheets, database schema, and bid RPC are unchanged.
+
+Verification for this follow-up uses real QA authentication and browser-only task fixtures; it does not submit bids to public orders:
+
+- Desktop native keyboard typing passes a full 65-second cycle through the actual scheduled refresh, with the same textarea node throughout. Repeated explicit snapshots preserve the field, selection, focus, and textarea scroll on desktop and a 390px touch viewport; synthetic composition events are covered as well.
+- Full page reloads restore the current writer's per-order text. Separate order drafts, legacy DOM replacement recovery, deliberately emptying a draft, closed-order text recovery, and explicit logout cleanup pass on both desktop and mobile, with zero browser page errors or task/bid writes.
+- Five additional automated cases cover reload restoration, successful-send/clear cleanup, account isolation, unrelated storage preservation, and unavailable/malformed storage. JavaScript checks and all 98 automated tests pass.
+- Repeated the bidding functional regression: minimum-length validation, failed-send draft recovery, one RPC for duplicate clicks, pending state across refresh, sent-draft storage cleanup, successful bid history despite notification failure, late-result isolation after logout, and employer form compatibility pass. Successful sends and notifications are intercepted fixtures; the actual authenticated bid RPC safely rejects a nonexistent QA order. Landing markup and phone/desktop screenshots remain unchanged. This follow-up does not repeat the previous release's full styling matrix.
