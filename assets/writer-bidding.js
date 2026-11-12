@@ -15,9 +15,52 @@ export function writerBidDisplayState(task, bid, email, now = Date.now()) {
 export function writerBidMessageLength(value) { return Array.from(String(value || '').trim()).length; }
 
 export class WriterBidSession {
-  constructor() { this.owner = ''; this.version = 0; this.drafts = new Map(); this.requests = new Map(); }
-  reset(owner = '') { this.owner = String(owner).toLowerCase(); this.version++; this.drafts.clear(); this.requests.clear(); }
-  sync(owner = '') { const next = String(owner).toLowerCase(); if (next === this.owner) return false; this.reset(next); return true; }
+  constructor(storage = null) {
+    this.owner = ''; this.version = 0; this.drafts = new Map(); this.requests = new Map(); this.storage = storage;
+    this.prefix = 'jw_writer_bid_drafts:v1:';
+  }
+  storageKey(owner = this.owner) { return this.prefix + encodeURIComponent(owner); }
+  pruneStorage(keep = '') {
+    try {
+      for (let index = this.storage.length - 1; index >= 0; index--) {
+        const key = this.storage.key(index);
+        if (key?.startsWith(this.prefix) && (!keep || key !== this.storageKey(keep))) this.storage.removeItem(key);
+      }
+    } catch { /* Drafts still work in memory when browser storage is unavailable. */ }
+  }
+  persist() {
+    if (!this.owner) return;
+    try {
+      const entries = [...this.drafts].map(([id,draft]) => [id,{value:draft.value,start:draft.start,end:draft.end,scroll:draft.scroll}]);
+      if (entries.length) this.storage.setItem(this.storageKey(),JSON.stringify(entries));
+      else this.storage.removeItem(this.storageKey());
+    } catch { /* Do not block typing or sending if browser storage is full or disabled. */ }
+  }
+  saveDraft(id, draft) {
+    if (!this.owner) return;
+    if (draft.value) this.drafts.set(String(id),draft); else this.drafts.delete(String(id));
+    this.persist();
+  }
+  deleteDraft(id) { this.drafts.delete(String(id)); this.persist(); }
+  reset(owner = '') {
+    this.pruneStorage(); this.owner = String(owner).trim().toLowerCase(); this.version++; this.drafts.clear(); this.requests.clear();
+  }
+  sync(owner = '') {
+    const next = String(owner).trim().toLowerCase();
+    if (next === this.owner) return false;
+    this.pruneStorage(next); this.owner = next; this.version++; this.drafts.clear(); this.requests.clear();
+    if (next) {
+      try {
+        const entries = JSON.parse(this.storage.getItem(this.storageKey()) || '[]');
+        if (Array.isArray(entries)) entries.forEach(entry => {
+          if (Array.isArray(entry) && typeof entry[0] === 'string' && typeof entry[1]?.value === 'string') {
+            this.drafts.set(entry[0],{...entry[1],focused:false});
+          }
+        });
+      } catch { /* An unavailable or malformed saved draft must not break the order page. */ }
+    }
+    return true;
+  }
   begin(id) { if (this.requests.has(id)) return null; const ticket = { id, owner:this.owner, version:this.version }; this.requests.set(id, ticket); return ticket; }
   current(ticket) { return ticket.owner === this.owner && ticket.version === this.version; }
   finish(ticket) { if (this.requests.get(ticket.id) === ticket) this.requests.delete(ticket.id); }
@@ -28,16 +71,20 @@ function initializeWriterBidding() {
   const bidsPage = document.getElementById('page-writer-bids');
   const detail = document.getElementById('page-task-details');
   if (!available || !bidsPage || !detail) return;
-  const memory = new WriterBidSession();
+  let draftStorage = null; try { draftStorage = window.sessionStorage; } catch {}
+  const memory = new WriterBidSession(draftStorage);
+  let deferredDetails = false, composing = false;
   const ui = { query:'', status:'all', open:new Set() };
   const byId = id => document.getElementById(id);
   const text = (element, value) => { if (element && element.textContent !== value) element.textContent = value; };
   const date = value => { const d = new Date(value); return !value || Number.isNaN(d.getTime()) ? 'Not set' : /^\d{4}-\d{2}-\d{2}$/.test(value) ? fmtDate(value) : d.toLocaleString(undefined, { dateStyle:'medium', timeStyle:'short' }); };
   function actor() {
-    const owner = currentUser?.role === 'writer' ? currentUser.email : '';
+    if (!currentUser?.email) return false;
+    const owner = currentUser.role === 'writer' ? currentUser.email : '';
+    const previousOwner = memory.owner;
     if (memory.sync(owner)) {
       ui.query = ''; ui.status = 'all'; ui.open.clear();
-      const oldInput = detail.querySelector('#writer-bid-message'); if (oldInput) oldInput.value = '';
+      const oldInput = detail.querySelector('#writer-bid-message'); if (oldInput && previousOwner) oldInput.value = '';
       ['avail-search','avail-filter-style','avail-filter-level','writer-bids-search'].forEach(id => { if (byId(id)) byId(id).value = ''; });
     }
     return Boolean(owner);
@@ -114,25 +161,30 @@ function initializeWriterBidding() {
   };
 
   function activeForm(id) { return [...detail.querySelectorAll('form[data-writer-bid-task]')].find(form => !id || form.dataset.writerBidTask === String(id)); }
-  function captureDraft() {
+  function captureDraft(userInput = false) {
     if (!actor()) return null;
     const form = activeForm(), input = form?.querySelector('textarea');
     if (!input) return null;
     const id = form.dataset.writerBidTask;
-    if (getTaskById(id) && writerBidForTask(getTaskById(id))) { memory.drafts.delete(id); return null; }
+    if (input.dataset.bidSubmitted === 'true' || memory.requests.get(id)?.saved) return null;
+    const retained = memory.drafts.get(id);
+    if (!userInput && !input.value && retained?.value) return {id,...retained};
     const saved = { value:input.value, start:input.selectionStart, end:input.selectionEnd, scroll:input.scrollTop, focused:document.activeElement===input };
-    memory.drafts.set(id,saved); return { id, ...saved };
+    memory.saveDraft(id,saved); return { id, ...saved };
   }
   function feedback(form, message) { const line = form?.querySelector('.writer-bid-feedback'); if (line) { text(line,message); line.hidden=!message; form.querySelector('textarea')?.setAttribute('aria-invalid',String(Boolean(message))); } }
   function hydrateForm() {
     const form = activeForm(); if (!form) return;
     const id = form.dataset.writerBidTask, input = form.querySelector('textarea'), draft = memory.drafts.get(id), busy = memory.requests.has(id);
     if (draft) { input.value = draft.value; input.setSelectionRange(draft.start,draft.end); input.scrollTop=draft.scroll; }
-    input.readOnly=busy; form.querySelector('button[type="submit"]').disabled=busy; form.setAttribute('aria-busy',String(busy));
+    const task = getTaskById(id), closed = task && (!isPublicAvailableTask(task) || writerBidForTask(task));
+    input.readOnly=busy; form.querySelector('button[type="submit"]').disabled=Boolean(busy || closed); form.setAttribute('aria-busy',String(busy));
     text(form.querySelector('.writer-bid-character-count'),`${writerBidMessageLength(input.value)} characters · minimum 20`);
   }
   window.bidRequestPanelForWriter = function(task) {
     if (!actor()) return '';
+    // Legacy renderers can bypass the public render wrapper; read the live field before they replace it.
+    if (activeForm(task.id)) captureDraft();
     const bid = writerBidForTask(task), state = writerBidDisplayState(task,bid,currentUser.email);
     if (bid) return `<div class="jw-writer-bid-panel"><div class="writer-bid-panel-head"><h2>Your request</h2>${statusPill(state)}</div><p class="writer-bid-help">${esc(state.note)}</p><div class="writer-sent-message">${esc(bid.message || 'No message saved.')}</div><button type="button" class="btn btn-outline" data-writer-page="writer-bids">My bids</button></div>`;
     if (!isPublicAvailableTask(task)) return `<div class="jw-writer-bid-panel">${statusPill(state)}<p class="writer-bid-help">This order is no longer accepting requests.</p></div>`;
@@ -157,9 +209,9 @@ function initializeWriterBidding() {
       if (error) throw error;
       if (!canApply(ticket)) return;
       upsertLocalTask({...(getTaskById(id) || task),ratings:data});
-      memory.drafts.delete(id);
+      ticket.saved = true; input.dataset.bidSubmitted = 'true'; memory.deleteDraft(id);
       window.renderAvailableOrders(); window.renderWriterBidsPage(); updateBadges();
-      if (detail.classList.contains('active') && activeForm(id)) window.renderTaskDetailsPage();
+      if (detail.classList.contains('active') && activeForm(id)) renderDetailsNow();
       notify('Request sent. You can track it in My Bids.','message');
       // The bid is already saved; a notification failure must not turn it into a failed bid.
       try {
@@ -175,14 +227,43 @@ function initializeWriterBidding() {
       if (canApply(ticket)) { hydrateForm(); const button = activeForm(id)?.querySelector('button[type="submit"]'); if (button) button.innerHTML='Send request <i class="bi bi-arrow-right" aria-hidden="true"></i>'; }
     }
   };
+  let forceDetails = false;
+  function renderDetailsNow() {
+    const previous = forceDetails; forceDetails = true;
+    try { return window.renderTaskDetailsPage(); } finally { forceDetails = previous; }
+  }
+  function addRetainedDraft() {
+    if (currentUser?.role !== 'writer') return;
+    const id = String(window._activeTaskDetailId || (typeof jwActiveTaskDetailId === 'function' ? jwActiveTaskDetailId() : '') || '');
+    const saved = memory.drafts.get(id);
+    if (!saved?.value || activeForm(id) || detail.querySelector('.writer-retained-draft')) return;
+    const task = getTaskById(id), bid = task ? writerBidForTask(task) : null;
+    if (task && isPublicAvailableTask(task) && !bid) return;
+    if (bid && String(bid.message || '').trim() === saved.value.trim()) { memory.deleteDraft(id); return; }
+    const section = document.createElement('section'); section.className = 'task-detail-section writer-retained-draft';
+    section.innerHTML = `<div class="jw-writer-bid-panel"><h2>Your unsent draft</h2><p class="writer-bid-help">This order is no longer accepting this request. Your text is kept below so you can copy it.</p><textarea readonly rows="5" aria-label="Your saved unsent bid draft">${esc(saved.value)}</textarea></div>`;
+    (detail.querySelector('.task-detail-body') || byId('task-details-wrap')).append(section);
+  }
   const originalDetails = window.renderTaskDetailsPage;
   window.renderTaskDetailsPage = function(...args) {
     const draft = captureDraft(), scroll = window.scrollY, wasActive = detail.classList.contains('active');
+    const form = activeForm(), input = form?.querySelector('textarea');
+    const wanted = String(window._activeTaskDetailId || (typeof jwActiveTaskDetailId === 'function' ? jwActiveTaskDetailId() : '') || form?.dataset.writerBidTask || '');
+    if (!forceDetails && wasActive && form && form.dataset.writerBidTask === wanted && (form.contains(document.activeElement) || composing) && input.dataset.bidSubmitted !== 'true') {
+      deferredDetails = true;
+      const task = getTaskById(wanted);
+      if (task && (!isPublicAvailableTask(task) || writerBidForTask(task))) {
+        form.querySelector('button[type="submit"]').disabled = true;
+        feedback(form,'This order is no longer accepting requests. Your draft is kept here.');
+      }
+      return;
+    }
+    deferredDetails = false;
     const positions = [];
     for (let element = activeForm()?.parentElement; element; element = element.parentElement) {
       if (element.scrollTop || element.scrollLeft) positions.push({element,top:element.scrollTop,left:element.scrollLeft});
     }
-    const result = originalDetails.apply(this,args); hydrateForm();
+    const result = originalDetails.apply(this,args); hydrateForm(); addRetainedDraft();
     if (draft && wasActive && activeForm(draft.id)) {
       if (draft.focused) { const input=activeForm(draft.id).querySelector('textarea'); input.focus({preventScroll:true}); input.setSelectionRange(draft.start,draft.end); input.scrollTop=draft.scroll; }
       const version = memory.version;
@@ -215,12 +296,38 @@ function initializeWriterBidding() {
     else if (button.dataset.writerBidFilter) { ui.status=button.dataset.writerBidFilter;window.renderWriterBidsPage(); }
   }
   [available,bidsPage,detail].forEach(root=>root.addEventListener('click',handleClick));
-  detail.addEventListener('input',event=>{if(event.target.id==='writer-bid-message'){captureDraft();text(event.target.closest('form').querySelector('.writer-bid-character-count'),`${writerBidMessageLength(event.target.value)} characters · minimum 20`);feedback(event.target.closest('form'),'');}});
+  detail.addEventListener('input',event=>{if(event.target.id==='writer-bid-message'){captureDraft(true);text(event.target.closest('form').querySelector('.writer-bid-character-count'),`${writerBidMessageLength(event.target.value)} characters · minimum 20`);feedback(event.target.closest('form'),'');}},true);
+  detail.addEventListener('focusin',event=>{if(event.target.id==='writer-bid-message')captureDraft();});
+  detail.addEventListener('select',event=>{if(event.target.id==='writer-bid-message' && document.activeElement===event.target)captureDraft();},true);
+  detail.addEventListener('compositionstart',event=>{if(event.target.id==='writer-bid-message')composing=true;});
+  detail.addEventListener('compositionend',event=>{if(event.target.id==='writer-bid-message'){composing=false;captureDraft(true);}});
+  detail.addEventListener('focusout',()=>{setTimeout(()=>{
+    const form=activeForm();
+    if(deferredDetails && detail.classList.contains('active') && !composing && (!form || !form.contains(document.activeElement))) renderDetailsNow();
+  },0);});
+  window.addEventListener('pagehide',()=>captureDraft());
+  window.addEventListener('beforeunload',()=>captureDraft());
+  let trackedInput = detail.querySelector('#writer-bid-message');
+  let trackedTaskId = trackedInput?.closest('form')?.dataset.writerBidTask;
+  new MutationObserver(()=>{
+    const input=detail.querySelector('#writer-bid-message');
+    if(input===trackedInput)return;
+    const previousId=trackedTaskId;
+    trackedInput=input; trackedTaskId=input?.closest('form')?.dataset.writerBidTask; composing=false;
+    if(!actor())return;
+    if(!input){addRetainedDraft();return;}
+    const form=input.closest('form[data-writer-bid-task]'),saved=form?memory.drafts.get(form.dataset.writerBidTask):null;
+    hydrateForm();
+    if(saved?.focused && previousId===form.dataset.writerBidTask && detail.classList.contains('active')){
+      input.focus({preventScroll:true});input.setSelectionRange(saved.start,saved.end);input.scrollTop=saved.scroll;
+    }
+  }).observe(detail,{childList:true,subtree:true});
   detail.addEventListener('submit',event=>{const form=event.target.closest('form[data-writer-bid-task]');if(!form)return;event.preventDefault();window.submitWriterBid(form.dataset.writerBidTask);});
   bidsPage.addEventListener('toggle',event=>{if(!actor()||!event.target.matches('details[data-writer-message]'))return;const id=event.target.dataset.writerMessage;if(event.target.open)ui.open.add(id);else ui.open.delete(id);},true);
   const originalLogout=window.doLogout;
   window.doLogout=async function(...args){
-    memory.reset(); const input=detail.querySelector('#writer-bid-message'); if(input)input.value='';
+    memory.reset(); deferredDetails=false;composing=false;const input=detail.querySelector('#writer-bid-message');if(input)input.value='';
+    detail.querySelectorAll('.writer-retained-draft').forEach(element=>element.remove());
     detail.querySelectorAll('.writer-sent-message').forEach(element=>text(element,''));
     byId('avail-orders-wrap').replaceChildren(); byId('writer-bids-wrap').replaceChildren();
     ui.query='';ui.status='all';ui.open.clear();return originalLogout.apply(this,args);
