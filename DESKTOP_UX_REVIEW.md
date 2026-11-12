@@ -76,3 +76,18 @@ Verification used the existing isolated test accounts and a local release checko
 - Landing markup matches the preceding release; phone/desktop screenshots are identical with the new stylesheet enabled and disabled. JavaScript syntax checks and all 88 automated tests pass.
 
 Production deployment status is checked separately; the production-browser access limit described above still applies.
+
+## Writer bidding workspace
+
+Refreshed Available Orders and My Bids for desktop and mobile, using readable order cards, visible payout/deadline information, search/style/level filters, sorting, and pending/closed request filters. Removed the repeated bid-summary cards. Assigned work continues to move to My Tasks. Expired requests are shown as closed, and the sidebar pending count uses the same classification.
+
+Reproduced an unsent request being erased when the existing task page refreshed. The full-page request composer now retains separate in-memory drafts, cursor/focus, textarea position, and ancestor scroll positions through refreshes. Submission uses the existing atomic bid RPC, guards duplicate requests per order, preserves drafts after failures, and shows a saved request even if its subsequent notification fails. Signing out clears request state; late responses cannot populate a different account. These hooks install after the legacy deferred modules finish.
+
+- All 93 automated tests and JavaScript checks pass, including new tests for bid status/deadline boundaries, per-account draft state, overlapping requests, stale responses, and Unicode character counting consistent with Postgres.
+- Authenticated with the real QA writer account. An actual call to the existing bid RPC with a nonexistent QA order confirms its parameter contract and expected rejection without changing data. The existing database function definition and task visibility policy were also inspected; no database permissions or schema were changed.
+- Browser bid scenarios use isolated in-memory orders and intercepted bid/notification responses. No public QA orders were advertised, real bid records changed, or owner notifications delivered. These scenarios cover search/sort, pending/expired/declined states, expanded-request preservation, selected-order exclusion from My Bids, duplicate clicks, failed sending, notification failure, and sign-out during a request.
+- Thirty-four settled viewport/theme checks pass: Available Orders and My Bids at six widths (320/390/768/1024/1366/1440px), plus the request composer at five widths, in light/dark mode. The longer Reconnecting header label no longer pushes actions off smaller laptop screens.
+- A separate touch-device check covers opening an order, minimum message length (including emoji), draft/caret/textarea scrolling through refreshes, one successful simulated send, bid status/search/message expansion, and logout. Zero page errors in the completed desktop/mobile runs.
+- Employer form compatibility and account-state isolation pass. Landing markup matches the preceding release, and landing screenshots at 390px/1440px are unchanged with the new stylesheet enabled and disabled.
+
+Request history remains limited to task records returned by the existing server visibility policy; this release does not add a separate permanent bid archive. Production-browser access remains blocked from this environment, as noted above.
