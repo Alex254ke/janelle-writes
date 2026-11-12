@@ -12068,6 +12068,7 @@ body.dark-mode .jw-live-indicator {
 <link rel="stylesheet" href="assets/landing-refresh.css" media="(max-width: 760px)">
 <link rel="stylesheet" href="assets/mobile-workspace.css" media="(max-width: 760px)">
 <link rel="stylesheet" href="assets/desktop-workspace.css" media="(min-width: 1024px)">
+<link rel="stylesheet" href="assets/dashboard-overview.css">
 </head>
 <body>
 
@@ -13551,7 +13552,7 @@ body.dark-mode .jw-live-indicator {
   </div>
 
   <!-- STUDENT DASHBOARD -->
-  <div class="page content" id="page-student-dashboard">
+  <div class="page content jw-dashboard" id="page-student-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
         <div class="premium-hero-eyebrow">Student workspace</div>
@@ -13559,23 +13560,15 @@ body.dark-mode .jw-live-indicator {
         <p>Post your assignment details, follow progress, and communicate privately with the Janelle Writes admin team.</p>
         <div class="premium-hero-actions">
           <button class="btn premium-hero-primary" onclick="navigate('emp-post')"><i class="bi bi-plus-lg" aria-hidden="true"></i> Post assignment</button>
+          <button class="btn premium-hero-secondary" onclick="navigate('emp-tasks')"><i class="bi bi-list-check" aria-hidden="true"></i> My orders</button>
           <button class="btn premium-hero-secondary" onclick="openStudentAdminMessages()"><i class="bi bi-chat-dots" aria-hidden="true"></i> Message admin</button>
         </div>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="student-stat-total">0</div>
-          <div class="hero-stat-label">My Orders</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="student-stat-active">0</div>
-          <div class="hero-stat-label">Active</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="student-stat-done">0</div>
-          <div class="hero-stat-label">Completed</div>
-        </div>
-      </div>
+    </div>
+    <div class="stats-grid dashboard-metrics" role="group" aria-label="Assignment overview">
+      <div class="stat-card teal"><div class="stat-icon">📋</div><div class="stat-value" id="student-stat-total">0</div><div class="stat-label">My Orders</div></div>
+      <div class="stat-card slate"><div class="stat-icon">⏳</div><div class="stat-value" id="student-stat-active">0</div><div class="stat-label">Active</div></div>
+      <div class="stat-card rust"><div class="stat-icon">✅</div><div class="stat-value" id="student-stat-done">0</div><div class="stat-label">Completed</div></div>
     </div>
     <div class="hero-visual-strip" aria-hidden="true">
       <div class="visual-strip-item">
@@ -13591,14 +13584,6 @@ body.dark-mode .jw-live-indicator {
         <div class="visual-strip-overlay"><span class="visual-strip-label">Admin-Guided Flow</span></div>
       </div>
     </div>
-    <div class="premium-section-heading">
-      <div><span>Quick actions</span><h2>Keep your assignment moving</h2></div>
-    </div>
-    <div class="quick-actions">
-      <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post Assignment</div><div class="qa-sub">Share instructions and deadline</div></div>
-      <div class="qa-card" onclick="navigate('emp-tasks')"><div class="qa-icon">📋</div><div class="qa-title">My Orders</div><div class="qa-sub">Track progress privately</div></div>
-      <div class="qa-card" onclick="openStudentAdminMessages()"><div class="qa-icon">💬</div><div class="qa-title">Message Admin</div><div class="qa-sub">Discuss payment and order details</div></div>
-    </div>
     <div class="section-header"><div class="section-title">Recent <span>Assignments</span></div></div>
     <div class="table-wrap">
       <div class="table-scroll">
@@ -13613,7 +13598,7 @@ body.dark-mode .jw-live-indicator {
   <!-- ═══ EMPLOYER PAGES ═══════════════════════════════════════ -->
 
   <!-- EMPLOYER DASHBOARD -->
-  <div class="page content" id="page-emp-dashboard">
+  <div class="page content jw-dashboard" id="page-emp-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
         <div class="premium-hero-eyebrow">Employer workspace</div>
@@ -13622,20 +13607,7 @@ body.dark-mode .jw-live-indicator {
         <div class="premium-hero-actions">
           <button class="btn premium-hero-primary" onclick="navigate('emp-post')"><i class="bi bi-plus-lg" aria-hidden="true"></i> Post new task</button>
           <button class="btn premium-hero-secondary" onclick="navigate('emp-tasks')"><i class="bi bi-list-check" aria-hidden="true"></i> View orders</button>
-        </div>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="emp-stat-total">0</div>
-          <div class="hero-stat-label">My Orders</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="emp-stat-active">0</div>
-          <div class="hero-stat-label">Active</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value" id="emp-stat-done">0</div>
-          <div class="hero-stat-label">Completed</div>
+          <button class="btn premium-hero-secondary" onclick="navigate('emp-invoice')"><i class="bi bi-receipt" aria-hidden="true"></i> Invoice</button>
         </div>
       </div>
     </div>
@@ -13668,21 +13640,14 @@ body.dark-mode .jw-live-indicator {
       </div>
     </div>
 
-    <div class="stats-grid">
+    <div class="stats-grid dashboard-metrics" role="group" aria-label="Order overview">
       <div class="stat-card teal"><div class="stat-icon">📋</div><div class="stat-value" id="emp-d-total">0</div><div class="stat-label">Total Orders</div></div>
+      <div class="stat-card slate"><div class="stat-icon">⏳</div><div class="stat-value" id="emp-stat-active">0</div><div class="stat-label">Active</div></div>
       <div class="stat-card slate"><div class="stat-icon">⏳</div><div class="stat-value" id="emp-d-pending">0</div><div class="stat-label">Pending</div></div>
       <div class="stat-card rust"><div class="stat-icon">✅</div><div class="stat-value" id="emp-d-completed">0</div><div class="stat-label">Completed</div></div>
       <div class="stat-card ink"><div class="stat-icon">💰</div><div class="stat-value" id="emp-d-unpaid" style="font-size:20px;">KES 0</div><div class="stat-label">Unpaid</div></div>
     </div>
 
-    <div class="premium-section-heading">
-      <div><span>Quick actions</span><h2>Manage your workspace</h2></div>
-    </div>
-    <div class="quick-actions">
-      <div class="qa-card" onclick="navigate('emp-post')"><div class="qa-icon">✏️</div><div class="qa-title">Post New Task</div><div class="qa-sub">Create a writing order</div></div>
-      <div class="qa-card" onclick="navigate('emp-tasks')"><div class="qa-icon">📋</div><div class="qa-title">My Orders</div><div class="qa-sub">Track all your orders</div></div>
-      <div class="qa-card" onclick="navigate('emp-invoice')"><div class="qa-icon">🧾</div><div class="qa-title">Invoice</div><div class="qa-sub">Billing & payments</div></div>
-    </div>
 
     <div class="section-header"><div class="section-title">Recent <span>Orders</span></div></div>
     <div class="table-wrap">
@@ -13955,7 +13920,7 @@ body.dark-mode .jw-live-indicator {
   <!-- ═══ WRITER PAGES ═══════════════════════════════════════ -->
 
   <!-- WRITER DASHBOARD -->
-  <div class="page content" id="page-writer-dashboard">
+  <div class="page content jw-dashboard" id="page-writer-dashboard">
     <div class="hero-banner">
       <div class="hero-text">
         <div class="premium-hero-eyebrow">Writer workspace</div>
@@ -13964,13 +13929,8 @@ body.dark-mode .jw-live-indicator {
         <div class="premium-hero-actions">
           <button class="btn premium-hero-primary" onclick="navigate('writer-available')"><i class="bi bi-briefcase" aria-hidden="true"></i> Find work</button>
           <button class="btn premium-hero-secondary" onclick="navigate('writer-tasks')"><i class="bi bi-list-check" aria-hidden="true"></i> My tasks</button>
+          <button class="btn premium-hero-secondary" onclick="navigate('writer-submit')"><i class="bi bi-upload" aria-hidden="true"></i> Submit work</button>
         </div>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat jw-active-task-stat"><div class="hero-stat-value" id="writer-stat-active">0</div><div class="hero-stat-label">Active / In Progress</div></div>
-        <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-taken">0</div><div class="hero-stat-label">My Tasks</div></div>
-        <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-done">0</div><div class="hero-stat-label">Completed</div></div>
-        <div class="hero-stat"><div class="hero-stat-value" id="writer-stat-revision">0</div><div class="hero-stat-label">Revisions</div></div>
       </div>
     </div>
 
@@ -14002,8 +13962,9 @@ body.dark-mode .jw-live-indicator {
       </div>
     </div>
 
-    <div class="stats-grid">
+    <div class="stats-grid dashboard-metrics" role="group" aria-label="Task overview">
       <div class="stat-card teal clickable-stat" onclick="navigate('writer-available')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-available')"><div class="stat-icon">📥</div><div class="stat-value" id="writer-d-available">0</div><div class="stat-label">Available</div></div>
+      <div class="stat-card slate"><div class="stat-icon">⏳</div><div class="stat-value" id="writer-stat-active">0</div><div class="stat-label">Active / In Progress</div></div>
       <div class="stat-card slate clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✍️</div><div class="stat-value" id="writer-d-taken">0</div><div class="stat-label">My Tasks</div></div>
       <div class="stat-card rust clickable-stat" onclick="navigate('writer-tasks')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-tasks')"><div class="stat-icon">✅</div><div class="stat-value" id="writer-d-completed">0</div><div class="stat-label">Completed</div></div>
       <div class="stat-card revision clickable-stat" onclick="navigate('writer-revisions')" tabindex="0" onkeydown="if(event.key==='Enter')navigate('writer-revisions')"><div class="stat-icon">🔄</div><div class="stat-value" id="writer-d-revision">0</div><div class="stat-label">Revisions</div></div>
@@ -14028,21 +13989,12 @@ body.dark-mode .jw-live-indicator {
           <div><span>Workspace health</span><h2>Build momentum</h2></div>
         </div>
         <div class="premium-insight-list">
-          <button type="button" onclick="navigate('writer-revisions')"><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span><strong>Revisions</strong><small>Respond quickly to protect your rating.</small></span><b id="writer-premium-revisions">0</b></button>
           <button type="button" onclick="openMessagesInbox()"><i class="bi bi-chat-dots" aria-hidden="true"></i><span><strong>Messages</strong><small>Keep every conversation tied to its task.</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
           <button type="button" onclick="navigate('writer-earnings')"><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>Earnings</strong><small>Review completed and pending payouts.</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
         </div>
       </aside>
     </div>
 
-    <div class="premium-section-heading">
-      <div><span>Quick actions</span><h2>Everything within reach</h2></div>
-    </div>
-    <div class="quick-actions">
-      <div class="qa-card" onclick="navigate('writer-available')"><div class="qa-icon">📥</div><div class="qa-title">Browse Orders</div><div class="qa-sub">Find new writing work</div></div>
-      <div class="qa-card" onclick="navigate('writer-submit')"><div class="qa-icon">📎</div><div class="qa-title">Submit Work</div><div class="qa-sub">Upload files or links</div></div>
-      <div class="qa-card" onclick="navigate('writer-earnings')"><div class="qa-icon">💳</div><div class="qa-title">My Earnings</div><div class="qa-sub">Track payout status</div></div>
-    </div>
   </div>
 
   <!-- WRITER: AVAILABLE ORDERS -->
@@ -18931,9 +18883,7 @@ function renderEmpDashboard() {
   const done = mine.filter(t => t.status === 'completed').length;
   const unpaid = mine.filter(t => t.payment === 'unpaid').reduce((s,t) => s+t.total, 0);
 
-  document.getElementById('emp-stat-total').textContent = total;
   document.getElementById('emp-stat-active').textContent = active;
-  document.getElementById('emp-stat-done').textContent = done;
   document.getElementById('emp-d-total').textContent = total;
   document.getElementById('emp-d-pending').textContent = mine.filter(t=>t.status==='pending').length;
   document.getElementById('emp-d-completed').textContent = done;
@@ -19250,18 +19200,12 @@ function renderWriterDashboard() {
   const revision = myTasks.filter(t => t.status === 'revision').length;
   const lateStats = writerLatenessStats(currentUser.email);
 
-  document.getElementById('writer-stat-taken').textContent = myTasks.length;
-  document.getElementById('writer-stat-done').textContent = done;
-  document.getElementById('writer-stat-revision').textContent = revision;
   document.getElementById('writer-d-available').textContent = available;
   document.getElementById('writer-d-taken').textContent = myTasks.length;
   document.getElementById('writer-d-completed').textContent = done;
   document.getElementById('writer-d-revision').textContent = revision;
   const lateRateEl = document.getElementById('writer-d-late-rate');
   if (lateRateEl) lateRateEl.textContent = lateStats.rate + '%';
-
-  const revisionInsight = document.getElementById('writer-premium-revisions');
-  if (revisionInsight) revisionInsight.textContent = revision;
 
   const currentWork = document.getElementById('writer-premium-current-work');
   if (currentWork) {
@@ -33028,23 +32972,23 @@ function jwIsWriterActiveTask(t) {
 function jwEnsureWriterActiveStatBox() {
   if (!currentUser || currentUser.role !== 'writer') return;
 
-  const heroStats = document.querySelector('#page-writer-dashboard .hero-stats');
-  if (!heroStats) return;
+  const statsGrid = document.querySelector('#page-writer-dashboard .dashboard-metrics');
+  if (!statsGrid) return;
 
   let active = document.getElementById('writer-stat-active');
-  const myTasks = document.getElementById('writer-stat-taken')?.closest('.hero-stat');
+  const myTasks = document.getElementById('writer-d-taken')?.closest('.stat-card');
 
   if (!active) {
     const box = document.createElement('div');
-    box.className = 'hero-stat jw-active-task-stat';
-    box.innerHTML = `<div class="hero-stat-value" id="writer-stat-active">0</div><div class="hero-stat-label">Active / In Progress</div>`;
-    if (myTasks) heroStats.insertBefore(box, myTasks);
-    else heroStats.insertBefore(box, heroStats.firstChild);
+    box.className = 'stat-card slate';
+    box.innerHTML = `<div class="stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div><div class="stat-value" id="writer-stat-active">0</div><div class="stat-label">Active / In Progress</div>`;
+    if (myTasks) statsGrid.insertBefore(box, myTasks);
+    else statsGrid.insertBefore(box, statsGrid.firstChild);
     active = document.getElementById('writer-stat-active');
   } else {
-    const box = active.closest('.hero-stat');
+    const box = active.closest('.stat-card');
     if (box && myTasks && box.nextElementSibling !== myTasks) {
-      heroStats.insertBefore(box, myTasks);
+      statsGrid.insertBefore(box, myTasks);
     }
   }
 }
@@ -33061,7 +33005,7 @@ function jwUpdateWriterActiveStatBox() {
   if (activeEl) activeEl.textContent = activeCount;
 
   // Keep the existing My Tasks number as all assigned tasks.
-  const takenEl = document.getElementById('writer-stat-taken');
+  const takenEl = document.getElementById('writer-d-taken');
   if (takenEl) takenEl.textContent = assigned.length;
 }
 

@@ -49,3 +49,13 @@ Additional verification used the same three isolated QA accounts and actual auth
 - The chat composer stays within a 768px-high viewport at widths of 1024, 1200, 1220, 1280, 1366, and 1440px for all three roles. Employer order actions remain within view at each width.
 - Repeated the live messaging regression after applying the stylesheet: three real snapshots per role, separate drafts, two-way replies, another-order update, search/unread filters, a full 65-second reconciliation cycle, laptop resizing, and logout all pass with zero browser page errors.
 - JavaScript syntax checks and all 88 automated tests pass. The production-browser and workflow-coverage limits above still apply.
+
+## Dashboard repetition cleanup
+
+Removed the repeated welcome-banner totals from writer and employer dashboards, moved the student's overview into the same card format, and kept one metric section per account. Active work remains available alongside the other unique metrics. Removed the extra writer revision-count shortcut and consolidated duplicate action cards into the welcome actions; submission, invoices, orders, and student/admin messaging remain accessible.
+
+- Logged into all three isolated QA accounts and verified every displayed count against the account's task data through three real background snapshots. Each dashboard retains one metric section with unique labels and counter elements.
+- Checked 30 role/viewport/theme combinations (390, 768, 1024, 1366, and 1440px, light/dark): no document overflow or clipped summary cards/actions.
+- Clicked all three welcome actions per account and checked empty-account rendering with a temporary in-browser empty task list, restored afterward. No page errors or database writes were needed for this pass.
+- Public landing and mobile landing-template markup match the preceding release. Landing screenshots at 390px and 1440px are identical with the new dashboard stylesheet enabled and disabled.
+- JavaScript syntax checks and all 88 automated tests pass. The production-access limits noted above still apply.

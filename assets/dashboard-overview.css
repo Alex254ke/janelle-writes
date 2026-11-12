@@ -1,0 +1,19 @@
+/* Each signed-in dashboard has one metric section, below its welcome banner. */
+#app-shell .jw-dashboard .hero-banner {
+  grid-template-columns:minmax(0,1fr);
+  min-height:0;
+}
+#app-shell .jw-dashboard .dashboard-metrics {
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+}
+#app-shell .jw-dashboard .dashboard-metrics .stat-card { min-width:0; }
+#app-shell .jw-dashboard .dashboard-metrics .stat-label { line-height:1.5; }
+@media (min-width:761px) and (max-width:1279px) {
+  #app-shell .jw-dashboard .dashboard-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:760px) {
+  #app-shell .jw-dashboard .dashboard-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #app-shell .jw-dashboard .dashboard-metrics .stat-card:last-child { grid-column:auto; }
+  #app-shell .jw-dashboard .dashboard-metrics .stat-card:last-child:nth-child(odd) { grid-column:1 / -1; }
+  #app-shell .jw-dashboard .premium-hero-actions .btn:last-child:nth-child(odd) { grid-column:1 / -1; }
+}
