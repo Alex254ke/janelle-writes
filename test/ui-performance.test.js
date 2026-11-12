@@ -23,8 +23,13 @@ test('sidebar profile identity reserves space for the user name', () => {
 });
 
 test('mobile navigation and hero both expose the student CTA', () => {
-  const matches = html.match(/class="btn[^"]*student-cta-btn[^"]*"[^>]*>International Student<\/button>/g) || [];
-  assert.equal(matches.length, 2);
+  const mobile = html.match(/<template id="mobile-landing-template">([\s\S]*?)<\/template>/)?.[1];
+  assert.ok(mobile, 'mobile homepage template should exist');
+  const desktop = html.replace(/<template id="mobile-landing-template">[\s\S]*?<\/template>/, '');
+  for (const markup of [desktop, mobile]) {
+    const matches = markup.match(/class="btn[^"]*student-cta-btn[^"]*"[^>]*>International Student<\/button>/g) || [];
+    assert.equal(matches.length, 2, 'both desktop and mobile should expose student navigation and hero actions');
+  }
   assert.match(html, /#landing-page \.student-cta-btn[\s\S]*visibility:visible !important/);
 });
 
