@@ -12065,6 +12065,8 @@ body.dark-mode .jw-live-indicator {
 
 </style>
 <meta property="og:url" content="https://www.janellewrites.it.com/">
+<link rel="stylesheet" href="assets/landing-refresh.css" media="(max-width: 760px)">
+<link rel="stylesheet" href="assets/mobile-workspace.css" media="(max-width: 760px)">
 </head>
 <body>
 
@@ -12537,6 +12539,452 @@ body.dark-mode .jw-live-indicator {
   </div>
 </div>
 
+<template id="mobile-landing-template">
+  <div class="landing-mobile-menu" id="landing-mobile-menu">
+    <div class="landing-mobile-top">
+      <div class="landing-brand">
+        <div class="landing-brand-mark">J</div>
+        <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+      </div>
+      <button class="landing-mobile-close" onclick="closeLandingMenu()">×</button>
+    </div>
+    <div class="landing-mobile-links">
+      <a href="#landing-features" onclick="closeLandingMenu()">Features</a>
+      <a href="#landing-for-you" onclick="closeLandingMenu()">For You</a>
+      <a class="student-nav-link" href="#landing-students" onclick="closeLandingMenu()">Students <i class="bi bi-mortarboard" aria-hidden="true"></i></a>
+      <a href="#landing-reviews" onclick="closeLandingMenu()">Reviews</a>
+      <a href="#landing-faq" onclick="closeLandingMenu()">FAQs</a>
+      <a href="#landing-final" onclick="closeLandingMenu()">Start</a>
+    </div>
+    <div class="landing-mobile-actions">
+      <button class="btn btn-outline" onclick="closeLandingMenu(); openAuthScreen('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="closeLandingMenu(); openAuthScreen('signup','employer')">Get Started</button>
+      <button class="btn student-cta-btn" onclick="closeLandingMenu(); openAuthScreen('signup','student')">International Student</button>
+    </div>
+  </div>
+
+  <div class="landing-shell">
+    <header class="landing-nav">
+      <div class="landing-brand">
+        <div class="landing-brand-mark">J</div>
+        <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+      </div>
+
+      <nav class="landing-nav-links">
+        <a href="#landing-how">How it Works</a>
+        <a href="#landing-for-you">For You</a>
+        <a href="#landing-features">Features</a>
+        <a href="#landing-reviews">Reviews</a>
+        <a class="student-nav-link" href="#landing-students">Students <i class="bi bi-mortarboard" aria-hidden="true"></i></a>
+      </nav>
+
+      <div class="landing-mobile-header-actions" aria-label="Account actions">
+        <button type="button" class="mobile-header-auth" onclick="openAuthScreen('login')">Sign In</button>
+        <button type="button" class="mobile-header-auth primary" onclick="openAuthScreen('signup','employer')">Sign Up</button>
+      </div>
+
+      <div class="landing-actions">
+        <button class="btn btn-outline" onclick="openAuthScreen('login')">Sign In</button>
+        <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Get Started</button>
+      </div>
+
+      <button class="landing-menu-btn" onclick="openLandingMenu()" aria-label="Open menu">
+        <span></span>
+      </button>
+    </header>
+
+    <div class="landing-trustline" aria-label="Janelle Writes service promise">
+      <strong><i class="bi bi-patch-check" aria-hidden="true"></i> Reliable writing support for every deadline.</strong>
+      <span>Clear workflows, secure delivery, and responsive assistance in one place.</span>
+    </div>
+
+    <section class="landing-hero">
+      <div class="landing-hero-panel">
+        <div class="landing-hero-content">
+          <div class="landing-hero-copy">
+            <div class="landing-kicker">Your brief. Your writer. One workspace.</div>
+            <h1>Writing support, with every step in one place.</h1>
+            <p>Share your brief, connect with a writer, and keep messages, files, and revisions together from start to finish.</p>
+            <div class="landing-cta-row">
+              <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Post a Task</button>
+              <button class="btn gold-outline-btn" onclick="openAuthScreen('signup','writer')">Join as a Writer</button>
+              <button class="btn btn-outline student-cta-btn" onclick="openAuthScreen('signup','student')">International Student</button>
+            </div>
+            <a class="landing-demo-link" href="#landing-how">Explore a sample order <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
+          </div>
+          <div class="landing-hero-visual">
+            <img class="landing-hero-image" src="https://images.unsplash.com/photo-1713947505772-1c61f6a112fc?auto=format&amp;fit=crop&amp;w=1200&amp;q=82" alt="Writer working on a laptop at a bright desk">
+            <div class="landing-hero-badge">
+              <i class="bi bi-check2-circle" aria-hidden="true"></i>
+              <span><strong>Clear task flow</strong><small>From brief to delivery</small></span>
+            </div>
+            <div class="landing-hero-badge">
+              <i class="bi bi-chat-dots" aria-hidden="true"></i>
+              <span><strong>Connected support</strong><small>Help when you need it</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="landing-hero-feature-strip" aria-label="Platform highlights">
+          <div class="landing-hero-feature"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span><strong>Structured tasks</strong><small>Clear briefs and requirements</small></span></div>
+          <div class="landing-hero-feature"><i class="bi bi-activity" aria-hidden="true"></i><span><strong>Live progress</strong><small>Track every stage of work</small></span></div>
+          <div class="landing-hero-feature"><i class="bi bi-shield-check" aria-hidden="true"></i><span><strong>Secure files</strong><small>Organized task submissions</small></span></div>
+          <div class="landing-hero-feature"><i class="bi bi-headset" aria-hidden="true"></i><span><strong>Direct support</strong><small>Responsive assistance</small></span></div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-how" aria-labelledby="order-demo-heading">
+      <div class="section-heading">
+        <div class="eyebrow">How it works</div>
+        <h2 id="order-demo-heading">A clear next step. At every stage.</h2>
+        <p>Explore a sample editing order. Choose a stage to see how the work moves forward.</p>
+      </div>
+      <div class="order-demo" data-order-demo>
+        <div class="order-demo-header">
+          <span><i class="bi bi-window" aria-hidden="true"></i> Your order workspace</span>
+          <span class="order-demo-label">Interactive demo · sample content</span>
+        </div>
+        <div class="order-demo-tabs" role="tablist" aria-label="Sample order stages">
+          <button type="button" role="tab" id="demo-tab-brief" aria-controls="demo-panel-brief" aria-selected="true" tabindex="0"><span>01</span> Brief</button>
+          <button type="button" role="tab" id="demo-tab-progress" aria-controls="demo-panel-progress" aria-selected="false" tabindex="-1"><span>02</span> In progress</button>
+          <button type="button" role="tab" id="demo-tab-review" aria-controls="demo-panel-review" aria-selected="false" tabindex="-1"><span>03</span> Review</button>
+          <button type="button" role="tab" id="demo-tab-complete" aria-controls="demo-panel-complete" aria-selected="false" tabindex="-1"><span>04</span> Complete</button>
+        </div>
+        <div class="order-demo-panel" id="demo-panel-brief" role="tabpanel" aria-labelledby="demo-tab-brief" tabindex="0">
+          <div class="demo-explanation">
+            <span class="demo-status">Start with the details</span>
+            <h3>A good brief makes room for good work.</h3>
+            <p>Share what you need, attach your instructions, and set your deadline. Your writer has a clear place to begin.</p>
+            <span class="demo-next"><i class="bi bi-arrow-right" aria-hidden="true"></i> Next: follow the work in progress</span>
+          </div>
+          <div class="demo-preview">
+            <span class="demo-preview-kicker">Sample order · JW-DEMO</span>
+            <h4>Edit my article</h4>
+            <dl class="demo-details"><div><dt>Service</dt><dd>Editing &amp; proofreading</dd></div><div><dt>Length</dt><dd>5 pages</dd></div><div><dt>Deadline</dt><dd>3 days from the start</dd></div></dl>
+            <div class="demo-file"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>Article-draft.docx<small>Example instruction file</small></span><i class="bi bi-check2" aria-hidden="true"></i></div>
+          </div>
+        </div>
+        <div class="order-demo-panel" id="demo-panel-progress" role="tabpanel" aria-labelledby="demo-tab-progress" tabindex="0" hidden>
+          <div class="demo-explanation">
+            <span class="demo-status">Stay in the loop</span>
+            <h3>Less chasing. More clarity.</h3>
+            <p>Ask a question or share an update right inside the order. The conversation stays beside the brief and files it belongs to.</p>
+            <span class="demo-next"><i class="bi bi-arrow-right" aria-hidden="true"></i> Next: review the submitted files</span>
+          </div>
+          <div class="demo-preview">
+            <span class="demo-preview-kicker">Sample conversation</span>
+            <div class="demo-message"><strong>Writer <small>Sample update</small></strong><p>I've reviewed your brief. I'll focus on clarity, grammar, and consistent formatting.</p></div>
+            <div class="demo-message demo-message-reply"><strong>You</strong><p>Thank you! Please keep the introduction in my own voice.</p></div>
+            <span class="demo-message-note"><i class="bi bi-chat-dots" aria-hidden="true"></i> One conversation, connected to your order.</span>
+          </div>
+        </div>
+        <div class="order-demo-panel" id="demo-panel-review" role="tabpanel" aria-labelledby="demo-tab-review" tabindex="0" hidden>
+          <div class="demo-explanation">
+            <span class="demo-status">Ready for your feedback</span>
+            <h3>Review the details together.</h3>
+            <p>Find the submission in your order, read the changes, and keep revision feedback in the same conversation.</p>
+            <span class="demo-next"><i class="bi bi-arrow-right" aria-hidden="true"></i> Next: keep your completed work organized</span>
+          </div>
+          <div class="demo-preview">
+            <span class="demo-preview-kicker">Sample submission</span>
+            <h4>Your edited article is ready.</h4>
+            <div class="demo-file"><i class="bi bi-file-earmark-check" aria-hidden="true"></i><span>Article-edited.docx<small>Example delivery file</small></span></div>
+            <div class="demo-feedback"><strong>Feedback stays here, too.</strong><p>“Could you clarify the second paragraph?”</p><small>Sample revision feedback</small></div>
+          </div>
+        </div>
+        <div class="order-demo-panel" id="demo-panel-complete" role="tabpanel" aria-labelledby="demo-tab-complete" tabindex="0" hidden>
+          <div class="demo-explanation">
+            <span class="demo-status">All in one place</span>
+            <h3>Finished work. A clear record.</h3>
+            <p>Your completed order keeps the brief, conversation, and final files together. Leave a review to share your experience.</p>
+            <button type="button" class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Start your own order <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+          <div class="demo-preview demo-complete">
+            <span class="demo-complete-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+            <span class="demo-preview-kicker">Sample completed order</span>
+            <h4>From first brief to final file.</h4>
+            <p>Instructions, messages, and delivery. Together.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-for-you" aria-labelledby="landing-paths-heading">
+      <div class="section-heading">
+        <div class="eyebrow">Find your path</div>
+        <h2 id="landing-paths-heading">What brings you here?</h2>
+      </div>
+      <div class="landing-paths">
+        <article class="landing-path">
+          <i class="bi bi-building" aria-hidden="true"></i>
+          <h3>I need a writer</h3>
+          <p>Post a task, choose a writer, and manage your orders with an Employer account.</p>
+          <button type="button" onclick="openAuthScreen('signup','employer')">Post a task <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+        </article>
+        <article class="landing-path">
+          <i class="bi bi-pen" aria-hidden="true"></i>
+          <h3>I'm a writer</h3>
+          <p>Find writing tasks, follow clear briefs, and deliver your work from one workspace.</p>
+          <button type="button" onclick="openAuthScreen('signup','writer')">Join as a writer <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+        </article>
+        <article class="landing-path">
+          <i class="bi bi-mortarboard" aria-hidden="true"></i>
+          <h3>I'm a student</h3>
+          <p>Get editing, feedback, and academic guidance. Prepare a brief before signing up.</p>
+          <a href="#landing-students">Build my brief <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-students">
+      <div class="student-support-section">
+        <div class="student-support-intro">
+          <div class="student-support-copy">
+            <div class="section-heading">
+              <div class="eyebrow">International Student Support</div>
+              <h2>Academic guidance that feels clear from the start.</h2>
+            </div>
+            <p>Tell us what you are working on, where you need support, and when it is due. Your private workspace keeps the brief, messages, progress, and files connected in one place.</p>
+
+            <div class="student-service-grid" aria-label="Student support services">
+              <div class="student-service-item"><i class="bi bi-spellcheck" aria-hidden="true"></i><span>Editing and proofreading</span></div>
+              <div class="student-service-item"><i class="bi bi-search" aria-hidden="true"></i><span>Research guidance</span></div>
+              <div class="student-service-item"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Citations and formatting</span></div>
+              <div class="student-service-item"><i class="bi bi-easel2" aria-hidden="true"></i><span>Presentation support</span></div>
+              <div class="student-service-item"><i class="bi bi-translate" aria-hidden="true"></i><span>Language and clarity</span></div>
+              <div class="student-service-item"><i class="bi bi-chat-square-text" aria-hidden="true"></i><span>Feedback and revisions</span></div>
+            </div>
+          </div>
+
+          <form class="student-estimate-card" id="student-estimate-form" onsubmit="return buildStudentEstimate(event)">
+            <h3>Build your support brief</h3>
+            <p>No account is needed to prepare your brief. Pricing is confirmed before any work begins.</p>
+
+            <div class="student-estimate-grid">
+              <div class="student-estimate-field full">
+                <label for="student-estimate-service">Support needed</label>
+                <select id="student-estimate-service" required>
+                  <option value="">Choose a service</option>
+                  <option>Editing and proofreading</option>
+                  <option>Research guidance</option>
+                  <option>Citations and formatting</option>
+                  <option>Presentation support</option>
+                  <option>Language and clarity</option>
+                  <option>Feedback and revisions</option>
+                </select>
+              </div>
+              <div class="student-estimate-field">
+                <label for="student-estimate-level">Academic level</label>
+                <select id="student-estimate-level" required>
+                  <option value="">Select level</option>
+                  <option>College / Diploma</option>
+                  <option>Undergraduate</option>
+                  <option>Postgraduate</option>
+                  <option>Professional</option>
+                </select>
+              </div>
+              <div class="student-estimate-field">
+                <label for="student-estimate-length">Pages / slides</label>
+                <input id="student-estimate-length" type="number" min="1" max="200" inputmode="numeric" placeholder="e.g. 5" required>
+              </div>
+              <div class="student-estimate-field full">
+                <label for="student-estimate-deadline">Deadline</label>
+                <select id="student-estimate-deadline" required>
+                  <option value="">Choose a timeframe</option>
+                  <option>Within 24 hours</option>
+                  <option>2–3 days</option>
+                  <option>4–7 days</option>
+                  <option>More than 7 days</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary student-estimate-action" type="submit">Prepare My Request <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <div class="student-estimate-note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>This prepares your request only. It does not place an order or charge you.</span></div>
+            <div class="student-estimate-result" id="student-estimate-result" aria-live="polite"></div>
+          </form>
+        </div>
+
+        <div class="student-trust-strip" aria-label="International student benefits">
+          <div class="student-trust-item"><i class="bi bi-globe2" aria-hidden="true"></i><span>Time-zone friendly communication</span></div>
+          <div class="student-trust-item"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Private messages and secure files</span></div>
+          <div class="student-trust-item"><i class="bi bi-journal-check" aria-hidden="true"></i><span>Major referencing styles supported</span></div>
+          <div class="student-trust-item"><i class="bi bi-credit-card" aria-hidden="true"></i><span>Clear payment guidance before work</span></div>
+        </div>
+
+        <div class="student-integrity-note">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <span><strong>Academic integrity matters.</strong> Janelle Writes provides editing, feedback, research guidance, formatting, and learning support. Students remain responsible for following their institution's rules and submitting work that represents their own learning.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-features">
+      <div class="section-heading">
+        <div class="eyebrow">Features</div>
+        <h2>A platform that covers the full workflow.</h2>
+        <p>Core tools for posting, tracking, communicating, and getting work delivered cleanly and professionally.</p>
+      </div>
+
+      <div class="features-grid">
+        <article class="feature-cell">
+          <div class="feature-icon">🧠</div>
+          <h3>Smart orders</h3>
+          <p>Structured tasks, clear instructions, and preferred-writer assignment for repeat work.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">📍</div>
+          <h3>Live tracking</h3>
+          <p>See status updates, lateness markers, disputes, and progress in real time.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">📁</div>
+          <h3>File uploads</h3>
+          <p>Attach instructions, submit completed files, and download what you need quickly.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">💬</div>
+          <h3>Messaging</h3>
+          <p>Order-based chat keeps communication organized and tied to the right task.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">💳</div>
+          <h3>M-Pesa / Airtel</h3>
+          <p>Support for popular payment options with a familiar Kenya-friendly flow.</p>
+        </article>
+        <article class="feature-cell">
+          <div class="feature-icon">🧾</div>
+          <h3>Auto-invoice</h3>
+          <p>Payment details and order history are easier to track as work moves through the platform.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-reviews">
+      <div class="landing-reviews-shell">
+        <div class="section-heading">
+          <div class="eyebrow">User Reviews</div>
+          <h2>Built around a better working experience.</h2>
+          <p>A dedicated space for feedback from employers, writers, and students after completed work.</p>
+        </div>
+
+        <div class="landing-reviews-grid">
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Clear briefs, progress updates, and files stay connected to the same task.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">D</span>
+              <span><strong>Daisy</strong><small>Employer</small></span>
+            </div>
+          </article>
+
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Payments, deadlines, messages, and submissions are easy to follow from one focused workspace. I highly recommend.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">K</span>
+              <span><strong>Kelvin</strong><small>Writer</small></span>
+            </div>
+          </article>
+
+          <article class="landing-review-card">
+            <div class="landing-review-top">
+              <span class="landing-review-stars" aria-label="Five-star example rating"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+              <i class="bi bi-quote landing-review-quote" aria-hidden="true"></i>
+            </div>
+            <blockquote>Posting an assignment feels guided, organized, and much less overwhelming.</blockquote>
+            <div class="landing-review-author">
+              <span class="landing-review-avatar" aria-hidden="true">J</span>
+              <span><strong>Jasmine</strong><small>Student</small></span>
+            </div>
+          </article>
+        </div>
+
+        <div class="landing-review-note"><i class="bi bi-shield-check" aria-hidden="true"></i><span>Feedback from writers, employers, and students using Janelle Writes.</span></div>
+      </div>
+    </section>
+
+    <section class="landing-section landing-faq" id="landing-faq" aria-labelledby="landing-faq-title">
+      <div class="section-heading">
+        <div class="eyebrow">A little clarity</div>
+        <h2 id="landing-faq-title">Before you get started.</h2>
+      </div>
+      <div class="landing-faq-list">
+        <details>
+          <summary>Which account should I choose?</summary>
+          <p>Choose Employer to post and manage writing tasks, Writer to find and complete orders, or International Student for editing, feedback, and academic guidance.</p>
+        </details>
+        <details>
+          <summary>Does preparing a student brief place an order?</summary>
+          <p>No. The brief builder prepares your request on this device. Continue to student signup to take the next step. Scope and pricing are confirmed before work begins.</p>
+        </details>
+        <details>
+          <summary>Where do messages, files, and revisions go?</summary>
+          <p>They stay connected to your order in your private workspace, so you can follow progress and keep feedback in one place.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-final">
+      <div class="final-cta">
+        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1600&q=80" alt="Writers collaborating around laptops">
+        <div class="final-cta-content">
+          <h2>Ready to bring your brief to life?</h2>
+          <p>Choose your path and keep your next writing project in one place.</p>
+          <div class="final-cta-actions">
+            <button class="btn landing-btn-light" onclick="openAuthScreen('login')">Sign In</button>
+            <button class="btn btn-primary" onclick="openAuthScreen('signup','employer')">Create Account</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="landing-brand" style="margin-bottom:12px;">
+            <div class="landing-brand-mark">J</div>
+            <div class="landing-brand-text">Janelle <em>Writes!</em></div>
+          </div>
+          <p class="footer-brand-note">A polished writing platform for employers and writers who want a smoother workflow from order to delivery.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="#landing-how">How it Works</a>
+          <a href="#landing-for-you">For Employers</a>
+          <a href="#landing-for-you">For Writers</a>
+          <a href="#landing-features">Features</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a class="footer-contact-link" href="https://instagram.com/Janelle_assignments" target="_blank" rel="noopener">
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-instagram"></i></span> @Janelle_assignments
+          </a>
+          <a class="footer-contact-link" href="mailto:janellewrites979@gmail.com">
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-envelope-fill"></i></span> janellewrites979@gmail.com
+          </a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Account</h4>
+          <a class="footer-contact-link member-sign-in-link" href="javascript:void(0)" onclick="openAuthScreen('login')">
+            <span class="footer-icon" aria-hidden="true"><i class="bi bi-person-lock"></i></span> Member Sign In
+          </a>
+        </div>
+      </div>
+      <div class="footer-rights">© 2026 Janelle Writes. All rights reserved.</div>
+    </footer>
+  </div>
+</template>
+
 <!-- ══════════════════════════════════════════════
      AUTH SCREEN
 ══════════════════════════════════════════════ -->
@@ -12681,17 +13129,17 @@ body.dark-mode .jw-live-indicator {
     <!-- SIGNUP FORM -->
     <div id="signup-form" style="display:none;">
       <div class="auth-role-select">
-        <div class="role-card" id="role-student" onclick="selectRole('student')">
+        <div class="role-card" id="role-student" role="button" tabindex="0" aria-pressed="false" onclick="selectRole('student')">
           <div class="role-icon"><i class="bi bi-mortarboard" aria-hidden="true"></i></div>
           <div class="role-name">International Student</div>
           <div class="role-desc">Post assignments with admin-guided support</div>
         </div>
-        <div class="role-card selected" id="role-employer" onclick="selectRole('employer')">
+        <div class="role-card selected" id="role-employer" role="button" tabindex="0" aria-pressed="true" onclick="selectRole('employer')">
           <div class="role-icon"><i class="bi bi-building" aria-hidden="true"></i></div>
           <div class="role-name">Employer</div>
           <div class="role-desc">Post writing tasks & manage orders</div>
         </div>
-        <div class="role-card" id="role-writer" onclick="selectRole('writer')">
+        <div class="role-card" id="role-writer" role="button" tabindex="0" aria-pressed="false" onclick="selectRole('writer')">
           <div class="role-icon"><i class="bi bi-pen" aria-hidden="true"></i></div>
           <div class="role-name">Writer</div>
           <div class="role-desc">Browse & complete writing orders</div>
@@ -15206,6 +15654,9 @@ function selectRole(r) {
   document.getElementById('role-employer').classList.toggle('selected', r==='employer');
   document.getElementById('role-writer').classList.toggle('selected', r==='writer');
   document.getElementById('role-student')?.classList.toggle('selected', r==='student');
+  ['student', 'employer', 'writer'].forEach(role => {
+    document.getElementById('role-' + role)?.setAttribute('aria-pressed', String(r === role));
+  });
   const studentFields = document.getElementById('student-signup-fields');
   if (studentFields) studentFields.style.display = r === 'student' ? 'block' : 'none';
 }
@@ -19240,8 +19691,10 @@ function startRevision(id) {
 // ══════════════════════════════════════════════════════
 function populateWriterSubmitSelect() {
   const sel = document.getElementById('writer-submit-select');
-  const myTasks = tasks.filter(t => t.taken_by === currentUser.email && (t.status === 'progress' || t.status === 'pending' || t.status === 'late'));
+  const selected = sel.value;
+  const myTasks = tasks.filter(t => sameEmail(t.taken_by, currentUser.email) && ['progress','pending','late','revision'].includes(t.status));
   sel.innerHTML = '<option value="">— Select Order —</option>' + myTasks.map(t => `<option value="${t.id}">${t.id} — ${t.subject}</option>`).join('');
+  if (myTasks.some(t => t.id === selected)) sel.value = selected;
 }
 
 function toggleSubmitSection() {
@@ -32748,6 +33201,32 @@ function jwMessageRoomTitle(t) {
   return `${esc(t.id)} — ${esc(t.subject || 'Order Messages')}`;
 }
 
+function jwRefreshMessageRoomPreservingDraft() {
+  const input = document.getElementById('message-room-input');
+  const draft = input?.value || '';
+  const selection = input ? [input.selectionStart, input.selectionEnd] : null;
+  const focused = document.activeElement === input;
+  const busy = !!input?.disabled;
+  const thread = document.getElementById('message-room-thread');
+  const scrollTop = thread?.scrollTop || 0;
+  renderMessageRoomPage();
+  const nextInput = document.getElementById('message-room-input');
+  if (nextInput) {
+    nextInput.value = draft;
+    jwSetMessageComposerBusy(nextInput, busy);
+    if (focused && !busy) {
+      nextInput.focus({ preventScroll:true });
+      if (selection) nextInput.setSelectionRange(...selection);
+    }
+  }
+  // renderMessageRoomPage schedules an initial scroll reset; retain the reader's
+  // position after that reset when an incoming update refreshes an existing chat.
+  setTimeout(() => {
+    const nextThread = document.getElementById('message-room-thread');
+    if (nextThread) nextThread.scrollTop = scrollTop;
+  }, 40);
+}
+
 function renderMessageRoomPage() {
   const wrap = document.getElementById('message-room-wrap');
   if (!wrap) return;
@@ -34486,7 +34965,10 @@ const JW_VISUAL_EMOJI_RE = /\p{Extended_Pictographic}\uFE0F?/gu;
 
 function jwIconifyTextNode(node) {
   const parent = node?.parentElement;
-  if (!parent || !JW_VISUAL_EMOJI_RE.test(node.nodeValue || '')) return;
+  JW_VISUAL_EMOJI_RE.lastIndex = 0;
+  // Copyright stays as text. Replacing it with identical text inside the
+  // observer would otherwise create an endless mutation loop on layout swaps.
+  if (!parent || !JW_VISUAL_EMOJI_RE.test((node.nodeValue || '').replace(/©/g, ''))) return;
   JW_VISUAL_EMOJI_RE.lastIndex = 0;
   if (parent.closest('script,style,textarea,code,pre,svg,i,.bi')) return;
   if (parent.tagName === 'OPTION') {
@@ -35478,6 +35960,9 @@ function jwRenderLiveWorkspace(taskId = '') {
     'cancelled': () => renderCancelledOrdersPage(),
     'disputes': () => { if (typeof renderDisputesPage === 'function') renderDisputesPage(); },
     'messages': () => renderMessagesPage(),
+    'message-room': () => {
+      if (!taskId || String(_activeMessageRoomTaskId) === String(taskId)) jwRefreshMessageRoomPreservingDraft();
+    },
     'admin-control': () => renderAdminControlPage(),
     'admin-student-orders': () => renderAdminStudentOrdersPage(),
     'admin-filtered-orders': () => renderAdminFilteredOrdersPage(),
@@ -36015,5 +36500,6 @@ if (document.readyState === 'loading') {
 }
 </script>
 
+<script src="assets/landing-refresh.js"></script>
 </body>
 </html>
