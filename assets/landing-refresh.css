@@ -1,0 +1,149 @@
+/* Public homepage refresh. Keep workspace and payment layouts independent. */
+#landing-page .landing-section { margin-top:0; padding:40px 0; }
+#landing-page .section-heading { margin-bottom:24px; }
+#landing-page .section-heading h2 { font-size:clamp(34px,4vw,52px); }
+#landing-page .landing-hero-panel { box-shadow:0 12px 32px rgba(19,60,57,.06); }
+#landing-page .landing-hero-content { gap:40px; padding-block:48px; }
+#landing-page .landing-hero-content h1 { margin:20px 0; font-size:clamp(48px,5.2vw,72px); }
+#landing-page .landing-hero-copy > p { max-width:54ch; font-size:16px; }
+#landing-page .landing-hero-image { animation:none; }
+#landing-page .landing-hero-badge { position:static; max-width:none; box-shadow:none; background:rgba(255,255,255,.96); }
+#landing-page .landing-hero-visual { display:flex; align-items:flex-end; gap:8px; padding:14px; }
+#landing-page .landing-hero-visual > img { z-index:0; }
+#landing-page .landing-hero-badge { z-index:1; flex:1; min-width:0; padding:12px; }
+#landing-page .landing-hero-badge small { font-size:11px; }
+#landing-page .landing-demo-link { display:inline-flex; align-items:center; gap:8px; margin-top:18px; min-height:44px; color:#146b62; font-size:14px; font-weight:600; text-underline-offset:4px; }
+#landing-page .landing-cta-row { display:flex; flex-wrap:wrap; gap:10px; }
+#landing-page .landing-cta-row .btn { width:auto; }
+#landing-page .landing-cta-row .gold-outline-btn,
+#landing-page .landing-cta-row .student-cta-btn { background:#fff; color:#153743; border:1px solid #a6c8c3; box-shadow:none; }
+#landing-page .landing-cta-row .gold-outline-btn:hover,
+#landing-page .landing-cta-row .student-cta-btn:hover { background:#e1f3ee; color:#153743; }
+#landing-page .landing-cta-row .student-cta-btn { background:#fff !important; border:1px solid #a6c8c3 !important; box-shadow:none !important; }
+#landing-page .landing-cta-row .student-cta-btn:hover { background:#e1f3ee !important; border-color:#168577 !important; }
+#landing-page .landing-hero-feature-strip { box-shadow:none; }
+
+/* A self-contained sample; tabs never read or write real orders. */
+#landing-page .order-demo { border:1px solid #b9d6d0; border-radius:24px; overflow:hidden; background:#fff; box-shadow:0 14px 36px rgba(19,60,57,.06); }
+#landing-page .order-demo-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:18px 26px; color:#f4fffc; background:#14313d; font-size:14px; font-weight:600; }
+#landing-page .order-demo-header > span:first-child { display:flex; align-items:center; gap:10px; }
+#landing-page .order-demo-label { color:#c1e4dc; font-size:12px; font-weight:400; }
+#landing-page .order-demo-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-bottom:1px solid #dce9e5; padding:0 20px; background:#f6faf8; }
+#landing-page .order-demo-tabs button { display:flex; align-items:center; justify-content:center; gap:10px; position:relative; min-height:66px; padding:12px 8px; border:0; border-radius:0; color:#536b73; background:transparent; font:600 14px/1.4 'DM Sans',sans-serif; cursor:pointer; }
+#landing-page .order-demo-tabs button > span { color:#536b73; font-size:11px; }
+#landing-page .order-demo-tabs button::after { content:''; position:absolute; bottom:0; left:10px; right:10px; height:3px; background:transparent; }
+#landing-page .order-demo-tabs button[aria-selected="true"] { color:#126e61; background:#eaf5f0; }
+#landing-page .order-demo-tabs button[aria-selected="true"]::after { background:#168577; }
+#landing-page .order-demo-tabs button:hover { background:#edf4f0; }
+#landing-page .order-demo-panel { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:48px; padding:36px; min-height:345px; }
+#landing-page .order-demo-panel[hidden] { display:none; }
+#landing-page .demo-status { display:inline-flex; margin-bottom:14px; font-size:12px; color:#147567; font-weight:600; }
+#landing-page .demo-explanation h3 { margin:0 0 14px; max-width:18ch; color:#14313d; font:700 34px/1.08 'Cormorant Garamond',Georgia,serif; }
+#landing-page .demo-explanation p { margin:0 0 20px; max-width:48ch; color:#536b73; font-size:14px; line-height:1.7; }
+#landing-page .demo-next { display:flex; gap:8px; align-items:baseline; color:#386960; font-size:12px; }
+#landing-page .demo-preview { min-width:0; padding:24px; border:1px solid #d5e5dd; border-radius:16px; background:#f5f9f6; }
+#landing-page .demo-preview-kicker { display:block; margin-bottom:12px; color:#4d6b64; font-size:11px; letter-spacing:.7px; text-transform:uppercase; }
+#landing-page .demo-preview h4 { margin:0 0 18px; font:600 19px/1.3 'DM Sans',sans-serif; color:#173743; }
+#landing-page .demo-details { display:grid; gap:10px; margin:0 0 20px; font-size:12px; }
+#landing-page .demo-details > div { display:flex; justify-content:space-between; gap:12px; }
+#landing-page .demo-details dt { color:#536b73; }
+#landing-page .demo-details dd { margin:0; text-align:right; color:#243e43; font-weight:600; }
+#landing-page .demo-file { display:flex; align-items:center; gap:12px; padding:14px; border:1px solid #d8e7e1; border-radius:10px; background:#fff; color:#16796a; }
+#landing-page .demo-file > span { flex:1; min-width:0; overflow-wrap:anywhere; color:#243e43; font-size:13px; font-weight:600; }
+#landing-page .demo-file small { display:block; margin-top:4px; color:#536b73; font-size:11px; font-weight:400; }
+#landing-page .demo-message { margin-bottom:12px; padding:14px; background:#fff; border:1px solid #d8e7e1; border-radius:12px 12px 12px 2px; }
+#landing-page .demo-message strong { display:flex; justify-content:space-between; gap:8px; color:#173743; font-size:12px; }
+#landing-page .demo-message small { font-weight:400; color:#536b73; font-size:10px; }
+#landing-page .demo-message p { margin:6px 0 0; font-size:13px; line-height:1.6; color:#334f53; }
+#landing-page .demo-message-reply { margin-left:24px; background:#e2f1ea; border-color:#c8dfd4; border-radius:12px 12px 2px 12px; }
+#landing-page .demo-message-note { display:flex; gap:8px; color:#536b73; font-size:11px; }
+#landing-page .demo-feedback { margin-top:18px; color:#334f53; font-size:13px; }
+#landing-page .demo-feedback p { margin:8px 0; }
+#landing-page .demo-feedback small { color:#536b73; font-size:11px; }
+#landing-page .demo-complete { text-align:center; padding-block:36px; }
+#landing-page .demo-complete-icon { display:grid; place-items:center; margin:0 auto 18px; width:56px; height:56px; border-radius:50%; background:#dcefe3; color:#147567; font-size:28px; }
+#landing-page .demo-complete p { margin:0; color:#536b73; font-size:13px; line-height:1.6; }
+
+#landing-page .landing-paths { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+#landing-page .landing-path { display:flex; flex-direction:column; align-items:flex-start; padding:26px; background:#fff; border:1px solid #d5e5df; border-radius:18px; }
+#landing-page .landing-path > i { margin-bottom:20px; font-size:24px; color:#168577; }
+#landing-page .landing-path h3 { margin:0 0 10px; color:#173743; font-size:19px; }
+#landing-page .landing-path p { margin:0 0 16px; color:#536b73; font-size:14px; line-height:1.65; }
+#landing-page .landing-path button,
+#landing-page .landing-path a { display:inline-flex; align-items:center; gap:12px; margin-top:auto; min-height:44px; padding:0; border:0; border-bottom:1px solid #9bbeb3; border-radius:0; background:transparent; color:#126e61; text-decoration:none; font:600 14px/1.5 'DM Sans',sans-serif; cursor:pointer; }
+#landing-page .landing-path button:hover,
+#landing-page .landing-path a:hover { color:#0b4a42; border-color:#126e61; }
+#landing-page .student-support-section { box-shadow:none; }
+#landing-page .features-grid { box-shadow:none; }
+#landing-page .feature-cell { padding:24px; }
+#landing-page .landing-review-avatar { display:grid; place-items:center; color:#14313d; font-size:15px; font-weight:600; }
+#landing-page .landing-faq { display:grid; grid-template-columns:1fr 1.3fr; gap:40px; }
+#landing-page .landing-faq-list details { border-bottom:1px solid #cbded7; }
+#landing-page .landing-faq-list summary { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:20px 0; color:#173743; font-size:15px; font-weight:600; cursor:pointer; list-style:none; }
+#landing-page .landing-faq-list summary::-webkit-details-marker { display:none; }
+#landing-page .landing-faq-list summary::after { content:'+'; font-size:24px; font-weight:400; color:#168577; }
+#landing-page .landing-faq-list details[open] summary::after { content:'−'; }
+#landing-page .landing-faq-list p { margin:0 0 20px; max-width:64ch; color:#536b73; font-size:14px; line-height:1.7; }
+#landing-page .order-demo :focus-visible,
+#landing-page .landing-path :focus-visible,
+#landing-page .landing-faq summary:focus-visible { outline:3px solid #168577; outline-offset:-3px; }
+
+/* All signup roles remain visible, with native button keyboard behavior. */
+#auth-screen .auth-role-label { margin:0 0 12px; font-size:13px; font-weight:600; color:#243e43; }
+#auth-screen .role-card { font-family:'DM Sans',sans-serif; text-align:left; cursor:pointer; }
+#auth-screen .role-card .role-name,
+#auth-screen .role-card .role-desc,
+#auth-screen .role-card .role-icon { display:block; }
+#auth-screen .role-card:focus-visible { outline:3px solid #168577; outline-offset:3px; }
+
+@media (max-width:760px) {
+  #landing-page .landing-section { margin-top:0; padding:28px 4px; }
+  #landing-page .section-heading h2 { font-size:34px; }
+  #landing-page .landing-trustline { display:none; }
+  #landing-page .landing-hero { min-height:0; margin-top:12px; padding:0; }
+  #landing-page .landing-hero-panel { min-height:0; }
+  #landing-page .landing-hero-content { padding:24px 18px 18px; gap:24px; }
+  #landing-page .landing-kicker { font-size:9px; letter-spacing:.55px; }
+  #landing-page .landing-hero-content h1 { max-width:14ch; margin:16px 0; font-size:clamp(36px,10vw,48px); line-height:1; }
+  #landing-page .landing-hero-copy > p { font-size:14px; line-height:1.6; }
+  #landing-page .landing-cta-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:18px; }
+  #landing-page .landing-cta-row .btn { min-width:0; width:100%; min-height:46px; padding:10px 8px; white-space:normal; font-size:12px; }
+  #landing-page .landing-cta-row .btn-primary { grid-column:1 / -1; font-size:14px; }
+  #landing-page .landing-demo-link { margin-top:8px; font-size:13px; }
+  #landing-page .landing-hero-visual { order:0; min-height:220px; width:100%; padding:10px; gap:6px; }
+  #landing-page .landing-hero-badge { padding:9px 8px; border-radius:10px; gap:6px; }
+  #landing-page .landing-hero-badge i { width:25px; height:25px; flex-shrink:0; font-size:12px; }
+  #landing-page .landing-hero-badge strong { font-size:10px; }
+  #landing-page .landing-hero-badge small { font-size:9px; }
+  #landing-page .landing-hero-feature-strip { margin-top:12px; }
+  #landing-page .landing-hero-feature { min-height:66px; }
+  #landing-page .order-demo-header { padding:16px; font-size:13px; }
+  #landing-page .order-demo-label { font-size:11px; }
+  #landing-page .order-demo-tabs { padding:0 6px; }
+  #landing-page .order-demo-tabs button { flex-direction:column; gap:3px; min-height:64px; padding:10px 2px; font-size:11px; }
+  #landing-page .order-demo-tabs button::after { left:3px; right:3px; }
+  #landing-page .order-demo-panel { grid-template-columns:1fr; gap:20px; padding:20px 16px; min-height:530px; align-content:start; }
+  #landing-page .demo-explanation h3 { max-width:none; font-size:30px; }
+  #landing-page .demo-explanation p { font-size:13px; margin-bottom:14px; }
+  #landing-page .demo-status { margin-bottom:10px; }
+  #landing-page .demo-preview { padding:18px; }
+  #landing-page .landing-paths { grid-template-columns:1fr; gap:12px; }
+  #landing-page .landing-path { padding:20px; }
+  #landing-page .landing-path > i { margin-bottom:12px; font-size:21px; }
+  #landing-page .landing-path p { margin-bottom:8px; font-size:13px; }
+  #landing-page .student-trust-strip { display:grid; grid-template-columns:1fr 1fr; }
+  #landing-page .student-trust-item { padding:12px; min-height:76px; border:0; }
+  #landing-page .feature-cell { padding:20px; }
+  #landing-page .landing-faq { grid-template-columns:1fr; gap:0; }
+  #auth-screen .auth-role-select { display:grid; grid-template-columns:1fr; width:100%; overflow:visible; padding:0; gap:8px; scroll-snap-type:none; }
+  #auth-screen .role-card { display:grid; grid-template-columns:30px minmax(0,1fr); gap:4px 10px; min-width:0; max-width:none; min-height:0; width:100%; padding:12px; }
+  #auth-screen .role-card .role-icon { grid-row:span 2; margin:0; align-self:center; font-size:20px; }
+  #auth-screen .role-card .role-name { font-size:14px; }
+  #auth-screen .role-card .role-desc { margin:0; font-size:11px; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  #landing-page .order-demo-panel:not([hidden]) { animation:order-demo-in .2s ease-out; }
+  #landing-page .landing-path { transition:border-color .18s ease,transform .18s ease; }
+  #landing-page .landing-path:hover { border-color:#85b6a4; transform:translateY(-2px); }
+}
+@keyframes order-demo-in { from { opacity:.5; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }

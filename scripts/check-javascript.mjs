@@ -13,7 +13,7 @@ function javascriptFiles(directory) {
   });
 }
 
-for (const file of javascriptFiles(join(root, 'api'))) {
+for (const file of [...javascriptFiles(join(root, 'api')), ...javascriptFiles(join(root, 'assets'))]) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   if (result.status !== 0) {
     process.stderr.write(result.stderr || result.stdout);
