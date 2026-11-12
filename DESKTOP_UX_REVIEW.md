@@ -32,3 +32,20 @@ Used the existing isolated writer, employer, and student QA accounts, a local re
 ## Limits
 
 The 44-screen scan checks navigation/layout, not every possible action. Real payments, Google/email authentication journeys, protected profile-save API calls, and replies from a real admin/support account remain outside the verified coverage described in MOBILE_UX_REVIEW.md. No real payments were made, and test operations used only QA orders and identities.
+
+## Subsequent desktop styling pass
+
+After the messaging correction, the owner authorized desktop styling while explicitly excluding the public landing page. The new `assets/desktop-workspace.css` is restricted to `#app-shell` at widths of 1024px and above. Public landing markup, copy, authentication screens, and the mobile styles were not edited in this pass.
+
+- Refined dashboard spacing, readable current-work summaries, sidebar states, filters, buttons, and keyboard focus indicators, with subtle interaction feedback that respects reduced-motion preferences.
+- Improved order-row readability. At 1024–1199px, the existing order rows become labeled cards so all actions remain accessible without sideways scrolling; wider desktops retain tables and their existing handlers.
+- Gave messaging a viewport-sized workspace with independently scrolling conversations, thread, and task context. Increased message text and metadata sizes, kept the composer visible, and corrected dark-mode contrast for the conversation heading, incoming-message metadata, filters, and task details.
+
+Additional verification used the same three isolated QA accounts and actual authentication/data/realtime:
+
+- Public landing screenshots match the preceding production checkout pixel for pixel at 390px and 1440px.
+- Mobile dashboard and order screenshots are identical with and without the new stylesheet for each role.
+- All 44 account screens pass desktop navigation/layout checks again. Dashboard, orders, and messaging pass 54 combinations of role, viewport width (1024/1366/1440px), and light/dark mode with no page errors, document overflow, or clipped controls.
+- The chat composer stays within a 768px-high viewport at widths of 1024, 1200, 1220, 1280, 1366, and 1440px for all three roles. Employer order actions remain within view at each width.
+- Repeated the live messaging regression after applying the stylesheet: three real snapshots per role, separate drafts, two-way replies, another-order update, search/unread filters, a full 65-second reconciliation cycle, laptop resizing, and logout all pass with zero browser page errors.
+- JavaScript syntax checks and all 88 automated tests pass. The production-browser and workflow-coverage limits above still apply.
